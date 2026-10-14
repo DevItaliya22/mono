@@ -1,0 +1,21 @@
+[package]
+rust-version.workspace = true
+name = "koru-import-notion"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Notion Markdown & CSV zip importer for Koru."
+
+[dependencies]
+koru-import = { path = "../koru-import" }
+koru-import-markdown = { path = "../koru-import-markdown" }
+koru-link = { path = "../koru-link" }
+koru-store-core = { path = "../koru-store-core" }
+koru-core = { path = "../koru-core" }
+csv.workspace = true
+tempfile.workspace = true
+zip.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

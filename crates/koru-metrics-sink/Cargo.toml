@@ -1,0 +1,21 @@
+[package]
+rust-version.workspace = true
+name = "koru-metrics-sink"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "What a delivery attempt to an analytics system looks like — and nothing about where events are stored or when they are sent."
+
+# **A leaf, and the charter sentence is what excludes things.** A forwarder
+# links this and never links an HTTP client or the name of a vendor; an adapter
+# links this and never links SQLite or the journal. That is what makes a second
+# sink a new crate and one line at a construction site, rather than an edit
+# spread through whoever happens to do the sending today.
+#
+# `serde_json` is here because an event's approved properties *are* a JSON
+# object by contract (`koru_events::telemetry::TelemetryEvent`), not because
+# anything in this crate transmits one.
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }

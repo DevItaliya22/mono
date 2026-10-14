@@ -1,0 +1,20 @@
+[package]
+rust-version.workspace = true
+name = "koru-notification-owner"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Narrow signed macOS owner for Koru reminder notifications."
+
+[[bin]]
+name = "koru-notification-owner"
+path = "src/main.rs"
+
+[dependencies]
+koru-native-notifications = { path = "../../crates/koru-native-notifications" }
+koru-i18n = { path = "../../crates/koru-i18n" }
+serde_json.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-foundation = { version = "0.2.2", features = ["NSArray", "NSLocale", "NSString"] }

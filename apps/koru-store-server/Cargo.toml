@@ -1,0 +1,148 @@
+[package]
+rust-version.workspace = true
+name = "koru-store-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Koru Store daemon: the only component that persists Koru's CRDT state."
+
+[[bin]]
+name = "koru-store-server"
+path = "src/main.rs"
+
+[dependencies]
+koru-env = { path = "../../crates/koru-env" }
+koru-store-core = { path = "../../crates/koru-store-core" }
+koru-store-sqlite = { path = "../../crates/koru-store-sqlite" }
+# Channel identity and the per-channel data root. A leaf crate with no
+# dependencies of its own — this used to be `koru-update`, which dragged
+# reqwest, zip and minisign-verify in behind a four-variant enum.
+koru-channel = { path = "../../crates/koru-channel" }
+# Store's typed HTTP and WebSocket boundary.
+koru-store-api = { path = "../../crates/koru-store-api" }
+koru-sync-control = { path = "../../crates/koru-sync-control" }
+koru-replication = { path = "../../crates/koru-replication" }
+koru-network-iroh = { path = "../../crates/koru-network-iroh" }
+koru-network-edge = { path = "../../crates/koru-network-edge" }
+koru-pairing = { path = "../../crates/koru-pairing" }
+koru-device = { path = "../../crates/koru-device" }
+koru-ipc = { path = "../../crates/koru-ipc" }
+koru-api-discovery = { path = "../../crates/koru-api-discovery", features = ["server"] }
+koru-api-wire = { path = "../../crates/koru-api-wire" }
+# The read model, and the daemon's link to the node model. Core stays opaque;
+# the daemon is what wires the two together.
+# Read for exactly one type: the `Region` the blob byte-origin allowlist is
+# chosen by. No account database and no account route reaches this process.
+koru-account-core = { path = "../../crates/koru-account-core" }
+koru-blob-sync = { path = "../../crates/koru-blob-sync" }
+# The stable refusal codes, so a peer and the Cloud plane name one refusal the
+# same way rather than each inventing a string.
+koru-cloud-blob = { path = "../../crates/koru-cloud-blob" }
+koru-projection = { path = "../../crates/koru-projection" }
+koru-time-zone = { path = "../../crates/koru-time-zone" }
+# Already linked through koru-projection; named directly because the attribute
+# query port reads the workspace *system document* — custom attribute
+# definitions and the tag table — which is node-model vocabulary the
+# projection deliberately does not walk.
+koru-core = { path = "../../crates/koru-core" }
+# The read model's first consumer. It links no node model of its own.
+koru-search = { path = "../../crates/koru-search" }
+# The commit feed's second consumer: the events worker. Forwarded ids and
+# revisions only; it links no node model either.
+koru-events-server = { path = "../koru-events-server" }
+# The event model, for the other direction across the same seam: the Store's
+# own committed catalog facts, built by `koru-store-api`'s handlers and given
+# an envelope here against the worker's system context.
+koru-events = { path = "../../crates/koru-events" }
+# The wire vocabulary the search port speaks.
+koru-store-wire = { path = "../../crates/koru-store-wire" }
+# Explicit client used by the unshipped standalone integration adapter and its
+# black-box suites. Shipping products use `koru-api-client`.
+koru-store-client = { path = "../../crates/koru-store-client" }
+loro = { workspace = true }
+loro-protocol = { workspace = true }
+# The projection gate reads  directly. The one thing this suite
+# does that a client may not — counters are what a component says about itself,
+# and what is asserted here is what is on the disk.
+rusqlite = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true }
+url.workspace = true
+axum = { workspace = true }
+tower = { version = "0.5", features = ["util"] }
+# Loopback HTTP is shared by the embedded worker and integration host.
+reqwest = { workspace = true }
+# Logging remains an executable concern: `koru-log` owns daily rotation and
+# seven-file retention for Store and MCP, while `koru-store-core` stays free of
+# the framework for mobile embedders.
+koru-log = { path = "../../crates/koru-log" }
+tracing = { workspace = true }
+chrono = { workspace = true }
+zip = { workspace = true }
+tempfile = { workspace = true }
+# The startup registry entry, shared with the app.
+koru-autostart = { path = "../../crates/koru-autostart" }
+
+# The tray icon and its message pump, the console the CLI verbs attach to, and
+# the dialog that is the only way to report a failure before either exists.
+[target.'cfg(windows)'.dependencies]
+tray-icon = { version = "0.24.2", default-features = false }
+rfd = "0.15"
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_System_Console",
+    "Win32_System_Threading",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+# The icon and version block, so the tray has a picture to show.
+[build-dependencies]
+koru-winres = { path = "../../crates/koru-winres" }
+
+[dev-dependencies]
+# **`no-sink` under test.** These suites open a real events worker, and without
+# this the worker would construct the configured telemetry sink and post their
+# fixtures into the shared analytics project. `cfg(test)` cannot cover it: a
+# dependency is never compiled with it (the `no-reader` lesson).
+koru-events-server = { path = "../koru-events-server", features = ["no-sink"] }
+# `tasks.rs` journals task events the way a host wrapper does, to read them back
+# per subject. The registered payloads are declared here, not in the server.
+koru-events = { path = "../../crates/koru-events" }
+# The blob engine's fakes, for the hydration seam's own test: a peer that
+# answers, and a count that has to notice.
+koru-blob-sync = { path = "../../crates/koru-blob-sync", features = ["test-support"] }
+koru-mcp-server = { path = "../../crates/koru-mcp-server" }
+koru-api-client = { path = "../../crates/koru-api-client" }
+# `document_roundtrip.rs` drives a Koru document through the store. Here rather
+# than in `koru-workspace` because `CARGO_BIN_EXE_koru-store-server` only exists in
+# tests of the package declaring the binary.
+koru-workspace = { path = "../../crates/koru-workspace" }
+# `attribute_query.rs` builds calendar-date attribute values.
+chrono = { workspace = true }
+# The fixture for §6's peer points names a blob by its own address; hashing
+# belongs to the blob store, so a test that seeds one does it itself.
+blake3 = { workspace = true }
+tempfile = { workspace = true }
+# The suite asks which channel it is rather than hardcoding one, so that a
+# `cargo test --release` moves the test and the store it spawns together.
+koru-channel = { path = "../../crates/koru-channel" }
+# The vertical slice drives the store through the same client a third party
+# would use — there is no privileged path in, including for our own tests.
+koru-store-client = { path = "../../crates/koru-store-client" }
+loro = { workspace = true }
+loro-protocol = { workspace = true }
+# The projection gate reads the read model directly. The one thing that suite
+# does which a client may not — counters are what a component says about
+# itself, and what is asserted there is what is on the disk.
+rusqlite = { workspace = true }
+# The search gate reads `search.db` the same way, and for the same reason.
+koru-search = { path = "../../crates/koru-search" }
+# The wire vocabulary the search port speaks.
+koru-store-wire = { path = "../../crates/koru-store-wire" }
+# `projection/not_projected_tests.rs` commits a real delegated run through the
+# store and asserts the projector neither forks it nor enrols it in history.
+koru-delegate-document = { path = "../../crates/koru-delegate-document" }
+koru-delegate-core = { path = "../../crates/koru-delegate-core" }

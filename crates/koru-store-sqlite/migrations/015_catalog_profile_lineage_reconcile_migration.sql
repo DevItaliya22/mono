@@ -1,0 +1,6 @@
+-- Catalog schema 9 -> 10 reconciles two independently shipped schema-9 shapes.
+--
+-- OAuth schema 9 added profiles.removed_at. Dev schema 9 added profiles.kind.
+-- The migration runner conditionally adds both declared columns, skipping the
+-- one already present, so either lineage reaches the same schema without a
+-- repeated ALTER TABLE. The executable work is in Migration.columns.

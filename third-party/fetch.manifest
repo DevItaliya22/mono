@@ -1,0 +1,28 @@
+# Third-party code Koru builds with and does not commit, fetched by
+# scripts/setup/fetch-third-party.ps1 (or .sh). Every entry is pinned by sha256 and
+# refused unless it matches, so a changed pin is a reviewed line here.
+#
+#   crate <name> <version> <sha256 of the .crate> <sha256 of patches/<name>.patch>
+#     A crates.io release with Koru's patch applied, placed in
+#     third-party/crates/<name>/. Why each is patched: patches/<name>.md.
+#   file <path> <sha256> <url> [exec] [crlf]
+#     An upstream file used as it is, placed at <path>, which is gitignored.
+#
+# How to change an entry: README.md beside this file.
+
+crate onenote_parser 2.0.0 d9850dc986316a0f729457917284a8e63ff06a359be2ba1ce051239d37e1c978 1e3de0cdc819830c09b425f9d4943b008e7cb996e03ff3da2d4ffabe729039c8
+crate sherpa-onnx 1.13.6 93440301c4240bd5d83496ab9adeee889be48d9428f9c01c37e5ae4ef33ba9e2 daa9fd560d3d8df2bb790e63388b1819299fbeca327ab79a830b0843c38bfad0
+crate sherpa-onnx-sys 1.13.6 4d627abc4624c845e628ad87cca4ff9ac265fc643021d155f2721ac589eeb324 014eff842ac5132713e57809442e1cdf07842988bde6bc2d7fe54d770cebd0ec
+
+# The TypeScript grammar koru-blocks compiles in (include_str!): Microsoft's
+# TypeScript-Sublime-Plugin as machine-converted by bat, from bat v0.24.0.
+# Apache-2.0; crates/koru-blocks/assets/README.md says why it is needed.
+file crates/koru-blocks/assets/TypeScript.sublime-syntax 28ee3a665973468be16e44c89fdae5cf1f865680132c086b6973c2b3900dfb5e https://raw.githubusercontent.com/sharkdp/bat/v0.24.0/assets/syntaxes/02_Extra/TypeScript.sublime-syntax
+
+# The Android build's Gradle wrapper, Gradle 8.11.1 (the version
+# gradle-wrapper.properties names). The jar's sha256 is the one Gradle
+# publishes for 8.11.1 (services.gradle.org/distributions/gradle-8.11.1-wrapper.jar.sha256).
+# Apache-2.0.
+file apps/android/gradle/wrapper/gradle-wrapper.jar 2db75c40782f5e8ba1fc278a5574bab070adccb2d21ca5a6e5ed840888448046 https://raw.githubusercontent.com/gradle/gradle/v8.11.1/gradle/wrapper/gradle-wrapper.jar
+file apps/android/gradlew 9cbbb4d68ff7fb5211c4d58f598ac9d8664c05fdcd1e5f59b7f2c3ac1ee00af0 https://raw.githubusercontent.com/gradle/gradle/v8.11.1/gradlew exec
+file apps/android/gradlew.bat 0f3ed8f03b50934cb8c48b15a470d5c20a30a5385825e48b55bcc8ea3d8f8e18 https://raw.githubusercontent.com/gradle/gradle/v8.11.1/gradlew.bat crlf

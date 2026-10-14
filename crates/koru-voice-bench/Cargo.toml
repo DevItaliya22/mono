@@ -1,0 +1,76 @@
+[package]
+rust-version.workspace = true
+name = "koru-voice-bench"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The speech-engine benchmark harness — the two passes, the corpora, the normalisation, the metrics and the four tables of docs/features/voice/plans/ENGINE_BENCHMARK.md. It reads files, never a microphone; it opens no socket and draws nothing."
+
+# **A binary with a library beside it**, because the metrics are the part that
+# has to be tested and a `main.rs` is the part that cannot be. The split is the
+# same one `apps/koru-store-server` and `crates/koru-store-core` use.
+[[bin]]
+name = "koru-voice-bench"
+path = "src/main.rs"
+
+# **Both engine features are off, and turning one on is what a bench run does.**
+# `koru-voice-sherpa`'s runtime downloads a native archive at build time unless
+# it is told where one is, so a default that turned it on would make
+# `cargo test --workspace` reach the network. See
+# `docs/features/voice/RUNTIME_ARTIFACTS.md`.
+#
+# With neither on, the harness still runs end to end: it reads the corpus,
+# samples it, normalises, and reports *engine unavailable* for every candidate.
+# That is the state the smoke test exercises, and it exits zero — a harness that
+# could only be run with 3 GB of models provisioned is a harness nobody runs.
+[features]
+default = []
+sherpa = ["dep:koru-voice-sherpa", "koru-voice-sherpa/runtime"]
+whisper = ["dep:koru-voice-whisper", "koru-voice-whisper/runtime"]
+
+[dependencies]
+koru-voice = { path = "../koru-voice" }
+koru-voice-sherpa = { path = "../koru-voice-sherpa", optional = true }
+koru-voice-whisper = { path = "../koru-voice-whisper", optional = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+# The sample seed is `sha256("koru-voice-bench" || rev || source || language)`,
+# and a corpus is pinned by the hash of what was downloaded. One hash function
+# for both, and it is the one the update path and the model store already use.
+sha2 = { workspace = true }
+# NFKC, which is rule 1 of every normaliser in the protocol.
+unicode-normalization = { workspace = true }
+
+# **Grapheme clusters, not characters.** Every error rate for `zh-Hans` and `ja`
+# is a Levenshtein distance over *extended grapheme clusters* (UAX #29), and so
+# is the prefix test behind `TTFUP`. Counting `char`s instead would score a
+# combining sequence as several edits and would make `L(language)` mean
+# something different in Arabic than in English — which is the exact confusion
+# the protocol's "in graphemes and not characters" sentence exists to prevent.
+# Not a workspace dependency: one consumer.
+unicode-segmentation.workspace = true
+
+# The seeded shuffle the protocol specifies by name. ChaCha20, so a second
+# person on another platform draws the same sample — which is what "reproducible
+# by a second person" means and what a `HashMap` iteration order or a
+# `SmallRng` would quietly break.
+rand_chacha = "0.9"
+rand_core = "0.9"
+
+# Peak resident memory, read from the OS's own peak counter rather than sampled,
+# because a sampled maximum misses a load-time spike between samples.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = [
+    # GetProcessMemoryInfo → PROCESS_MEMORY_COUNTERS.PeakWorkingSetSize.
+    "Win32_System_ProcessStatus",
+] }
+
+[target.'cfg(unix)'.dependencies]
+# getrusage → ru_maxrss, which on macOS is the same kernel counter as
+# `mach_task_basic_info.resident_size_max` and is reported in bytes there.
+libc = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

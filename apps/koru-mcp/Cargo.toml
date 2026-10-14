@@ -1,0 +1,27 @@
+[package]
+rust-version.workspace = true
+name = "koru-mcp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Local stdio MCP server for Koru."
+
+[build-dependencies]
+koru-winres = { path = "../../crates/koru-winres" }
+
+[[bin]]
+name = "koru-mcp"
+path = "src/main.rs"
+
+[dependencies]
+koru-mcp-server = { path = "../../crates/koru-mcp-server" }
+koru-channel = { path = "../../crates/koru-channel" }
+koru-log = { path = "../../crates/koru-log" }
+rmcp = { version = "=3.1.2", features = ["transport-io"] }
+tokio.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

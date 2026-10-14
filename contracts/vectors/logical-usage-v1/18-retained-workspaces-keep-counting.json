@@ -1,0 +1,216 @@
+{
+  "case": "18-retained-workspaces-keep-counting",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "One account: an active workspace, a turned-off one, a deletion-pending one, and a purged one.",
+  "covers": [
+    "D37",
+    "D28",
+    "D66"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "The quick brown fox jumps over the lazy dog.",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 44
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      },
+      {
+        "workspace": "ws-2",
+        "state": "DISABLED_RETAINED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-2",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "四半期計画",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 15
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "いろはにほへと ちりぬるを — 漢字とカタカナとひらがな、ﾊﾝｶｸ も。",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 100
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      },
+      {
+        "workspace": "ws-3",
+        "state": "DELETION_PENDING",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-3",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      },
+      {
+        "workspace": "ws-4",
+        "state": "PURGED",
+        "counted": false,
+        "documents": [],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 14 = 14",
+    "    doc-1/n2 (paragraph): node.text 44 = 44",
+    "  document doc-1: 58",
+    "  -> documents_units 58 + files_bytes 0 = 58",
+    "workspace ws-2 (DISABLED_RETAINED):",
+    "    doc-2/n1 (paragraph): node.text 5 = 5",
+    "    doc-2/n2 (paragraph): node.text 36 = 36",
+    "  document doc-2: 41",
+    "  -> documents_units 41 + files_bytes 0 = 41",
+    "workspace ws-3 (DELETION_PENDING):",
+    "    doc-3/n1 (paragraph): node.text 14 = 14",
+    "  document doc-3: 14",
+    "  -> documents_units 14 + files_bytes 0 = 14",
+    "workspace ws-4 (PURGED): purged / not Cloud-enabled -> excluded",
+    "account: documents_units 113 + files_bytes 0 = 113"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 58,
+        "files_bytes": 0,
+        "logical_usage_units": 58,
+        "algorithm_version": 1
+      },
+      {
+        "workspace": "ws-2",
+        "workspace_state": "DISABLED_RETAINED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 41,
+        "files_bytes": 0,
+        "logical_usage_units": 41,
+        "algorithm_version": 1
+      },
+      {
+        "workspace": "ws-3",
+        "workspace_state": "DELETION_PENDING",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 14,
+        "files_bytes": 0,
+        "logical_usage_units": 14,
+        "algorithm_version": 1
+      },
+      {
+        "workspace": "ws-4",
+        "workspace_state": "PURGED",
+        "counted": false
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 113,
+      "files_bytes": 0,
+      "logical_usage_units": 113,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "Data in DISABLED_RETAINED, DELETION_PENDING and entitlement-retained workspaces keeps consuming the account pool until it is actually purged (D37).",
+    "The purged workspace contributes nothing. Its tombstone — the encrypted display name and the causal manifest — is never charged either; that residual is measured and bounded under contract 7, which is also where the manifest's size is watched.",
+    "The per-workspace figures are a breakdown of one pool, never reservations (D28)."
+  ]
+}

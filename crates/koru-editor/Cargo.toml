@@ -1,0 +1,90 @@
+[package]
+rust-version.workspace = true
+name = "koru-editor"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "An embeddable editor over a list of paragraphs: caret, marks, pills and pickers."
+
+[features]
+# **A test must not open a browser window.** `browser::open` hands the URL to
+# the OS handler, and since a plain click on a link follows it, any test that
+# clicks one launches a real window on the machine running `cargo test`. The
+# guard inside this crate is `cfg(test)`; a dependency is never compiled with
+# it, so the crates above turn this feature on in their `[dev-dependencies]`.
+# The same shape as `koru-search-ui`'s `no-reader`.
+no-browser = []
+
+[dependencies]
+koru-features = { path = "../koru-features" }
+koru-env = { path = "../koru-env" }
+koru-core = { path = "../koru-core" }
+uuid.workspace = true
+# Chords, the primary modifier, and how a shortcut is written. Shared so
+# `koru-workspace-host` and `koru-editor` agree without depending on each other.
+# **The words a person reads.** One row of the slash menu is localized —
+# `/delegate` (ROADMAP D18, standing requirement 2) — and this leaf table is
+# where the eight columns live. It links nothing itself.
+koru-i18n = { path = "../koru-i18n" }
+koru-keys = { path = "../koru-keys" }
+koru-draw = { path = "../koru-draw" }
+koru-markdown = { path = "../koru-markdown" }
+koru-workspace = { path = "../koru-workspace" }
+# Block behaviour and the syntax engine live here so `syntect` is linked in
+# exactly one place; the editor calls `highlight`/`parse_fence` at the seams.
+koru-blocks = { path = "../koru-blocks" }
+# The one-line `TextField` and `ctrl_letter` live there so prompts can use a
+# text box without linking the node model. Upward only -- `koru-ui`
+# depends on `koru-draw` and nothing else.
+koru-ui = { path = "../koru-ui" }
+# The natural-language date grammar (ADR-191). A leaf over `chrono` that names
+# no model type -- it answers `When::{Date, Wall}` and `utils::when` maps those
+# onto `DateOnly`/`FloatingDateTime` at this crate's edge, which is what keeps
+# the parser unable to grow a third arm the day the model does.
+koru-when = { path = "../koru-when" }
+# OS detection and arbitrary-IANA rules live above the timezone-database-free
+# model. `utils::zone` re-exports this mechanism for existing editor callers.
+koru-time-zone = { path = "../koru-time-zone" }
+# **One predicate, not a second reading of `KORU_VOICE_DISABLED`.** The `/voice`
+# row is absent on an installation with dictation switched off, and the switch
+# is `koru_voice::available()` -- the same call the worker's supervisor, the
+# welcome hint and the tray row make (Q-V44). The contract crate links no
+# inference runtime, no microphone and no socket: it is types, error codes and
+# this predicate, so a menu can ask it without acquiring any of that.
+koru-voice = { path = "../koru-voice" }
+parley.workspace = true
+# **The accessibility *schema*, and deliberately not an adapter.** `accesskit`
+# is pure data — a role, a text run, a text position — with `uuid` as its only
+# dependency, so it builds on every target and `src/accessibility/` is compiled
+# and unit-tested off Windows. There is no platform here and there must not be:
+# when a window has a provider is `koru-window`'s (ADR-336), and what this
+# crate contributes is what a paragraph's text *is*.
+accesskit.workspace = true
+vello.workspace = true
+peniko.workspace = true
+# Keys and pointer events are winit's vocabulary. Deliberately *not* a window:
+# the event loop lives in `koru-workspace-host`, which this crate knows nothing about.
+winit.workspace = true
+chrono.workspace = true
+# The shared OS mechanism. What a document copy *means* — rows, runs and rich
+# payload freshness — remains in this crate.
+koru-clipboard = { path = "../koru-clipboard" }
+emojis.workspace = true
+nucleo.workspace = true
+serde_json.workspace = true
+# Extended grapheme clusters so arrow keys and delete never land inside a
+# multi-codepoint emoji (ZWJ sequences, skin tones).
+unicode-segmentation.workspace = true
+
+[dev-dependencies]
+# Every surface on by default in tests; `koru_features::testing::with` opts
+# one test into the simplified product.
+koru-features = { path = "../koru-features", features = ["testing"] }
+# **The golden cases** (`koru_core::tasks::golden`, F-3): the data-only table
+# this crate replays through its own task seam to prove it reaches the domain's
+# answers, and that everything a host adds around a command is invisible to
+# them. A feature rather than `cfg(test)` because **a dependency is never
+# compiled with `cfg(test)`** — the same lesson `no-browser` above records —
+# and off in every product build.
+koru-core = { path = "../koru-core", features = ["golden"] }

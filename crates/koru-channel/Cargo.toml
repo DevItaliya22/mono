@@ -1,0 +1,32 @@
+[package]
+rust-version.workspace = true
+name = "koru-channel"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Which build this is, and where its data lives. The leaf every other crate can depend on."
+
+# **Zero dependencies by default, and that is the point.**
+#
+# This crate exists so that anything needing to know "which channel am I, and
+# where does that channel keep its data" can ask without linking anything else.
+# Before it, that answer lived inside `koru-update` — so `apps/koru-store-server`
+# linked an HTTP client, a zip reader and a signature verifier to reach a
+# four-variant enum.
+#
+# `serde` is optional because only the update client and the release tool ever
+# put a channel in JSON. Nothing that merely *asks* what channel it is pays for
+# it.
+[features]
+default = []
+serde = ["dep:serde"]
+
+[dependencies]
+serde = { workspace = true, optional = true }
+
+# A dev-dependency is not a dependency: nothing that links this crate links
+# `serde_json`. It is here to assert that the JSON tokens are exactly the
+# strings the CDN manifest is keyed by, which is a published format.
+[dev-dependencies]
+serde_json = { workspace = true }

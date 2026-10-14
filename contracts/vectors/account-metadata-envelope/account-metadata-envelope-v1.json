@@ -1,0 +1,58 @@
+{
+  "cases": [
+    {
+      "envelope": "0001000100300001a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a20000000175730000000000008dd7f4cb7da6e9174148720ffcf3355aec0ef8af5150087f9afc9987e0735f7f9e878e7be259412a462194240bbbab8a1734d19921fe8089d7d20f374b5aca131d7b9804b1f50ac870619f8981be7ab7aca5a916c707cf608ddb92e2bfd6af98cf78ed217da5d79c375cabaf4b003806c56b6c3031b9df4c2b3525",
+      "expect": {
+        "account_id": "a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1",
+        "key_id": "a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2",
+        "key_version": 1,
+        "plaintext": "3c6f7061717565206163636f756e742d6d65746164617461207265636f72642c206f776e656420627920506c616e20332e323e",
+        "record_type": 1,
+        "region": "us"
+      },
+      "expect_wrapped_key": {
+        "kek_id": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+        "kek_version": 4
+      },
+      "name": "round trip: unwrap the account key, then open the envelope",
+      "regional_metadata_kek": "2cf50e449270f9e8654e94a5d48fd1541952c8ec9e2267e484055965cd7b22d4",
+      "result": "valid",
+      "wrapped_account_metadata_key": "000100010031a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2000000017573000000000000a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3000000044346fb0268daa4cc2bfbee3f26649c9da2fdfb55b6680399a1ea72532bc720a222e29d2e1a7ca1b46b7479b9a204ef5da01f3be3f0d7d740bda903fed2b28f372cae7d35c61693feec3a25a68d5bcda244e079937590b30f4ac4b0935b8df80bb0c8563311eb06bd"
+    },
+    {
+      "envelope": "0001000100300001a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a20000000175730000000000008dd7f4cb7da6e9174148720ffcf3355aec0ef8af5150087f9afc9987e0735f7f9e878e7be259412a462194240bbbab8a1734d19921fe8089d7d20f374b5aca131d7b9804b1f50ac870619f8981be7ab7aca5a916c707cf608ddb92e2bfd6af98cf78ed217da5d79c375cabaf4b003806c56b6c3031b9df4c2b3525",
+      "error": "CRYPTO_COMMITMENT_MISMATCH",
+      "name": "destroying the wrapped key renders the envelope unrecoverable",
+      "note": "With no wrapped key there is no account metadata key. Offering the KEK directly — the nearest thing an operator still holds — fails at the commitment.",
+      "regional_metadata_kek": "2cf50e449270f9e8654e94a5d48fd1541952c8ec9e2267e484055965cd7b22d4",
+      "result": "invalid",
+      "wrapped_account_metadata_key": null
+    },
+    {
+      "envelope": "0001000100300001a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a20000000165750000000000008dd7f4cb7da6e9174148720ffcf3355aec0ef8af5150087f9afc9987e0735f7f9e878e7be259412a462194240bbbab8a1734d19921fe8089d7d20f374b5aca131d7b9804b1f50ac870619f8981be7ab7aca5a916c707cf608ddb92e2bfd6af98cf78ed217da5d79c375cabaf4b003806c56b6c3031b9df4c2b3525",
+      "error": "CRYPTO_COMMITMENT_MISMATCH",
+      "name": "cross-region: an envelope relabelled for another region does not open",
+      "regional_metadata_kek": "2cf50e449270f9e8654e94a5d48fd1541952c8ec9e2267e484055965cd7b22d4",
+      "result": "invalid",
+      "wrapped_account_metadata_key": "000100010031a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2000000017573000000000000a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3000000044346fb0268daa4cc2bfbee3f26649c9da2fdfb55b6680399a1ea72532bc720a222e29d2e1a7ca1b46b7479b9a204ef5da01f3be3f0d7d740bda903fed2b28f372cae7d35c61693feec3a25a68d5bcda244e079937590b30f4ac4b0935b8df80bb0c8563311eb06bd"
+    },
+    {
+      "envelope": "0001000100300001b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a20000000175730000000000008dd7f4cb7da6e9174148720ffcf3355aec0ef8af5150087f9afc9987e0735f7f9e878e7be259412a462194240bbbab8a1734d19921fe8089d7d20f374b5aca131d7b9804b1f50ac870619f8981be7ab7aca5a916c707cf608ddb92e2bfd6af98cf78ed217da5d79c375cabaf4b003806c56b6c3031b9df4c2b3525",
+      "error": "CRYPTO_COMMITMENT_MISMATCH",
+      "name": "cross-account: an envelope relabelled for another account does not open",
+      "regional_metadata_kek": "2cf50e449270f9e8654e94a5d48fd1541952c8ec9e2267e484055965cd7b22d4",
+      "result": "invalid",
+      "wrapped_account_metadata_key": "000100010031a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2000000017573000000000000a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3000000044346fb0268daa4cc2bfbee3f26649c9da2fdfb55b6680399a1ea72532bc720a222e29d2e1a7ca1b46b7479b9a204ef5da01f3be3f0d7d740bda903fed2b28f372cae7d35c61693feec3a25a68d5bcda244e079937590b30f4ac4b0935b8df80bb0c8563311eb06bd"
+    }
+  ],
+  "crypto_erasure_limit": "Destroying the wrapped key covers ciphertext whose ONLY remaining decryption path is that key. It is defeated by plaintext logs, search indexes, caches, analytics events, or backups of unwrapped keys. Those are operational controls; no format decision supplies them.",
+  "envelope_does_not_name_the_kek": "Which KEK wraps the account key is a fact about the wrapped-key record and changes on rotation. A copy in every envelope would be stale the moment it rotated, so the envelope names only (account_id, key_id, key_version, region) and the wrapped-key record names the KEK.",
+  "envelope_header_len": 52,
+  "format": "AccountMetadataEnvelopeV1 and WrappedAccountMetadataKeyV1",
+  "format_version": 1,
+  "hierarchy": "regional metadata KEK (KMS) wraps a RANDOM per-account metadata key, which encrypts every account-metadata record. The account key is never KDF(regional_key, account_id): a derived key can be recomputed from public inputs, so destroying it would destroy nothing.",
+  "one_copy": "The wrapped key is stored ONCE per account. An envelope references it by account, key id and version and never contains it — otherwise destroying 'the' wrapped key would erase nothing.",
+  "record_type": "Opaque to Plan 2.1. Which entries a purged account record carries is Plan 3.2's.",
+  "scope": "Server-only. No client holds this key and no client implements this format; per D42 and the standing requirement it carries a server-only vector suite, verified by the regional account service, its KMS adapter, the rotation job and backup/restore.",
+  "wrapped_key_header_len": 70
+}

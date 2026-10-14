@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What the FileProvider may grant a reader, and nothing else.
+
+  Scoped to the one directory exports are written to rather than to the whole
+  cache: a grant is handed to another application, and the shared-content
+  staging beside it holds files somebody sent *into* Koru. Only what Koru
+  deliberately exported is reachable, and only while the grant lives.
+-->
+<paths>
+    <cache-path name="koru-exports" path="shared-content/exports/" />
+</paths>

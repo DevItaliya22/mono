@@ -1,0 +1,307 @@
+[package]
+rust-version.workspace = true
+name = "koru-workspace-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Koru's workspace-aware multi-window host and lifecycle."
+
+[features]
+# Tests above this crate must not inspect a developer's real model cache.
+no-model-reader = []
+
+[dependencies]
+koru-features = { path = "../koru-features" }
+koru-agent-wire = { path = "../koru-agent-wire" }
+koru-oauth-credentials = { path = "../koru-oauth-credentials" }
+koru-env = { path = "../koru-env" }
+# The capture engine the recording WindowRequests perform (SESSIONRECORD).
+# Windows-only in effect; the crate is portable so this links everywhere.
+koru-recording = { path = "../koru-recording" }
+koru-core = { path = "../koru-core" }
+# Chords, the primary modifier, and how a shortcut is written. Shared so
+# `koru-workspace-host` and `koru-editor` agree without depending on each other.
+koru-keys = { path = "../koru-keys" }
+koru-workspace = { path = "../koru-workspace" }
+# Where the workspace directory is decided, and how it is backed up. Named
+# directly because `startup` resolves the directory *before* a session exists.
+koru-docstore = { path = "../koru-docstore" }
+# For the base clear colour and the titlebar variant. Not the editor: this crate
+# must stay ignorant of what a row is, and the manifest is what enforces that.
+koru-draw = { path = "../../crates/koru-draw" }
+# The window and its platform traps, shared with Agent. See its `lib.rs` for
+# why they are no longer modules here.
+koru-window = { path = "../koru-window" }
+# **Not for widgets** — this crate draws none. For `keys`: the one normalisation
+# of which letter a Ctrl chord is on, and the input log beside it. This crate
+# used to keep a second, subtly worse copy of `ctrl_letter` with a comment
+# saying it could not borrow the editor's; that stopped being true when the
+# function moved to a widget crate, and the copy is gone.
+koru-ui = { path = "../koru-ui" }
+# First-run's workspace appearance button opens the exact picker used by the
+# full app. The leaf crate keeps that reusable surface out of this host.
+koru-appearance-ui = { path = "../koru-appearance-ui" }
+# The startup registry entry, shared with the Koru Store so there is one copy of
+# the wide-string and error-code handling rather than two.
+koru-channel = { path = "../koru-channel" }
+# One call only: naming the process that holds a store root claim when the
+# gateway will not start, so the fatal dialog can say "quit that" instead of
+# "nothing is listening".
+koru-api-discovery = { path = "../koru-api-discovery" }
+koru-autostart = { path = "../koru-autostart" }
+# **Three things only**, now that checking, downloading and installing belong to
+# `koru-agent`: `InstanceLease` (refuse to start while this installation is being
+# replaced), `signal_health` (an update installed by the *previous* build named
+# `koru.exe` as its restart target, so that contract has to keep working) and
+# `install_key`, which `startup.rs` uses to name a legacy directory.
+koru-update = { path = "../koru-update" }
+# The staging inbox a share extension writes. Named here rather than in
+# `apps/koru` because the drain hangs off `Focused` and `about_to_wait`,
+# beside the file-drop queue it is modelled on (ADR-185).
+koru-share-inbox = { path = "../koru-share-inbox" }
+# The dictation controller. **The shell owns it** because the shell is where a
+# key press and, now, a key *release* live, and because one installation runs
+# one dictation however many windows it has open. It names no widget; what it
+# hands down is a `DictationAction` a `View` routes.
+koru-dictation = { path = "../koru-dictation" }
+# **First use.** The consent step offers a model and the download that follows
+# is this window's, on a worker thread — see `voice_install.rs` for why the
+# window and not the agent. Neither adds a heavy graph: `koru-update` already
+# links reqwest, minisign-verify and zip here.
+koru-voice-models = { path = "../koru-voice-models" }
+koru-voice-consent = { path = "../koru-voice-consent" }
+koru-voice = { path = "../koru-voice" }
+# The spell engine boundary: the worker in `spelling.rs` is the one consumer —
+# views talk to it through that module's client, never to koru-spell directly.
+koru-spell = { path = "../koru-spell" }
+koru-import = { path = "../koru-import" }
+koru-import-legacy-workspace = { path = "../koru-import-legacy-workspace" }
+koru-import-markdown = { path = "../koru-import-markdown" }
+koru-import-evernote = { path = "../koru-import-evernote" }
+koru-import-textbundle = { path = "../koru-import-textbundle" }
+koru-import-onenote = { path = "../koru-import-onenote" }
+koru-import-files = { path = "../koru-import-files" }
+koru-import-google-docs = { path = "../koru-import-google-docs" }
+koru-import-notion = { path = "../koru-import-notion" }
+koru-export = { path = "../koru-export" }
+koru-export-markdown = { path = "../koru-export-markdown" }
+koru-export-textbundle = { path = "../koru-export-textbundle" }
+koru-api-client = { path = "../koru-api-client" }
+koru-delegate-core = { path = "../koru-delegate-core" }
+# Three types only, for the session-tab record in `settings`: a saved tab names
+# the session it was over (`SessionId`) and the launch profile that made it
+# (`SessionProfileKey`). This crate never dials the session host.
+koru-session-protocol = { path = "../koru-session-protocol" }
+# The settings registry's types. This crate links it for the section shape and
+# the patch, never for its storage: after SP-6b nothing here opens a settings
+# file, and the authority behind the Gateway is the only thing that does.
+koru-settings = { path = "../koru-settings" }
+# The event model, for the fire-and-forget emitters in `events_host`.
+koru-events = { path = "../koru-events" }
+# `environment` maps the OS locale to a supported language *here*, through
+# the same table the app draws with, so a raw tag never leaves the machine.
+koru-i18n = { path = "../koru-i18n" }
+# One call, in `environment`: the machine's current UTC offset, daylight
+# saving accounted for rather than assumed.
+chrono = { workspace = true }
+koru-store-core = { path = "../koru-store-core" }
+serde_json.workspace = true
+serde.workspace = true
+directories.workspace = true
+sha2.workspace = true
+# The spelling dictionary download (`spelling/download.rs`). Already in this
+# crate's graph through `koru-update`; named here because it is now used here.
+reqwest.workspace = true
+uuid.workspace = true
+# The accessibility schema — a role, an action, a `TreeUpdate`. The *adapter*
+# is `koru-window`'s; this crate names only the vocabulary, which is what
+# lets the host and a view share presentation types without either of them
+# acquiring a platform. See `src/accessibility.rs` and ADR-336.
+accesskit.workspace = true
+vello.workspace = true
+peniko.workspace = true
+winit.workspace = true
+pollster.workspace = true
+# The GPU readiness lines and the uncaptured-error hook: rare, consequential,
+# and only useful if they reach the rotated log a bug report can attach.
+tracing.workspace = true
+# Images: decode picture bytes for display (`image`), and pick them off disk
+# (`rfd`). Both reverse an earlier "no image dep" stance — see ADR-29. Bytes
+# never enter the CRDT; these are display-only.
+image = "0.25"
+rfd = "0.15"
+zip.workspace = true
+# The sole OS clipboard mechanism. Rich HTML/RTF interpretation and document
+# insertion remain in this host; platform formats and bitmap normalization do not.
+koru-clipboard = { path = "../koru-clipboard" }
+# Exporting a workspace as one file somebody can send. `deflate` only — the
+# other backends bring compressors we have no use for, and a workspace is
+# mostly a Loro snapshot, which deflate handles perfectly well.
+# Base64-decoding `data:` URIs out of CF_HTML (browser clipboard images).
+base64 = "0.22"
+# Lexing the "Rich Text Format" clipboard entry, so a paste from Word brings
+# its inline pictures in document order (the mixed-content case). Lexer/token
+# stream only.
+#
+# **`default-features = false`, and it is not a tidy-up.** This crate's default
+# feature is `jsbindings`, which pulls `wasm-bindgen` and `tsify` — and `tsify`
+# pulls `gloo-utils` and then `web-sys`. A desktop clipboard parser was
+# compiling the browser DOM bindings on Windows: minutes of build time for an
+# API nothing here can call.
+#
+# It also broke `sccache`. `web-sys` is generated with a `--check-cfg` argument
+# naming every DOM feature it has, which is tens of thousands of characters;
+# cargo passes that to rustc through a response file, sccache rebuilds the
+# command line, and Windows refuses it at 32,767 characters —
+# "The filename or extension is too long. (os error 206)".
+#
+# The comment here used to claim these features were already off. They were
+# not; `jsbindings` is in `default`, so saying so was not the same as doing it.
+rtf-parser = { version = "0.4", default-features = false }
+# CommonMark parsing for clipboard payloads that explicitly advertise Markdown,
+# plus a conservative fallback for producers that expose Markdown as plain text.
+pulldown-cmark.workspace = true
+
+[dev-dependencies]
+# Every surface on by default in tests; `koru_features::testing::with` opts
+# one test into the simplified product.
+koru-features = { path = "../koru-features", features = ["testing"] }
+tempfile.workspace = true
+# **The golden cases** (`koru_core::tasks::golden`, F-3): the data-only table
+# this crate's wrapper replays to prove it reaches the domain's answers. A
+# feature rather than `cfg(test)` because a dependency is never compiled with
+# `cfg(test)`, and off in every product build.
+koru-core = { path = "../koru-core", features = ["golden"] }
+koru-workspace-host = { path = ".", features = ["no-model-reader"] }
+# **The same crate, with `no-engine` on.** A `Dictation` built in a test must
+# not dial a voice worker or ask an agent to start one, and `cfg(test)` inside
+# `koru-dictation` cannot reach here — a dependency is never compiled with it.
+# The `no-reader` shape exactly; resolver 2+ keeps it out of the real build.
+koru-dictation = { path = "../koru-dictation", features = ["no-engine"] }
+# `koru-appearance-ui` reaches the shared emoji catalogue; tests above it must
+# carry the browser guard because dependency crates are not built with cfg(test).
+koru-appearance-ui = { path = "../koru-appearance-ui", features = ["no-browser"] }
+
+# **The UI Automation *client*, and only in the interactive proof.** The
+# accessibility bridge is a UIA *provider*; `tests/accessibility_native.rs`
+# stands outside it and asks the same questions Narrator asks, which is the
+# only way to establish that a locator really does reach an external client.
+# `#[ignore]`d: it opens a real window on a real desktop. The same binding
+# stack `apps/koru-agent` already uses for its own client (the roadmap's
+# "reuse the existing `windows` bindings"), so no second stack arrives.
+[target.'cfg(windows)'.dev-dependencies]
+windows = { version = "0.62.2", features = [
+    "Win32_Foundation",
+    "Win32_System_Com",
+    "Win32_System_Variant",
+    "Win32_UI_Accessibility",
+    "Win32_UI_WindowsAndMessaging",
+] }
+# **Named directly because `#[implement]` expands to `windows_core::` paths.**
+# Plan 1b.4's live-region proof registers a real `IUIAutomationEventHandler`,
+# because *announce once* is a claim about an event a **client receives** and
+# reading the adapter's source is not evidence of one. The macro is re-exported
+# by `windows::core`, but the code it generates names the crate itself — the
+# same note `apps/koru-document` carries for the text proof. Already in the
+# lock as `windows`' own dependency, so nothing new is compiled.
+windows-core = "0.62.2"
+
+# Reading the OS appearance before any window exists, the same job the Windows
+# registry read does. `NSUserDefaults` needs no `NSApplication`, which is what
+# makes it usable on the cold-start path — see `system_theme`. Both are already
+# in the lock: winit pulls them.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSUserDefaults",
+    # The Dock icon: the logo's bytes have to become an `NSData` to become an
+    # `NSImage`. See `app::set_dock_icon`.
+    "NSData",
+    # The once-per-run environment snapshot (`environment`): installed memory
+    # (`NSProcessInfo`), which day the locale starts a week on (`NSCalendar`),
+    # and whether it prefers a 12- or 24-hour clock — which is asked by
+    # building the `j` pattern rather than by reading a preference, so it
+    # follows the same rule a formatter would.
+    "NSProcessInfo",
+    "NSCalendar",
+    "NSDateFormatter",
+    "NSLocale",
+] }
+# `NSEvent::pressedMouseButtons` — asking the OS whether a mouse button is
+# *physically* down. macOS does not reliably deliver `mouseUp:` to the view (a
+# window drag consumes it outright), so a press that never ends is not a
+# hypothetical here; see `app::press_ended_unseen`.
+objc2-app-kit = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSEvent",
+    "NSResponder",
+    # The Dock icon. macOS ignores winit's per-window icon entirely, so the app
+    # icon has to be set on `NSApplication` itself — see `app::set_dock_icon`.
+    "NSApplication",
+    "NSImage",
+    "NSRunningApplication",
+    # `environment`'s two accessibility readers: Reduce motion and Increase
+    # contrast, which live on `NSWorkspace` and are declared in the
+    # `NSAccessibility` header — so both features, or the methods are not
+    # compiled.
+    "NSWorkspace",
+    "NSAccessibility",
+] }
+# `environment`, twice: `statvfs` for free space on the data volume — the
+# POSIX counterpart of the Windows arm's `GetDiskFreeSpaceExW` — and
+# `sockaddr_in` for the reachability target. Already in the graph (objc2 and
+# winit both pull it), so this names a version rather than adding one.
+libc = { workspace = true }
+# One type: `CFString`, for reading the keyboard layout's identifier out of
+# Text Input Services. The TIS call itself is a three-line `extern` block, the
+# way `environment`'s Windows arm declares `RtlGetVersion` — but hand-rolling
+# `CFStringGetCString` beside it would be a second copy of something this
+# crate is already linking through arboard.
+objc2-core-foundation = { version = "0.3", default-features = false, features = [
+    "std",
+    "CFString",
+] }
+# The menu bar. A Mac app without one reads as broken before anything else is
+# judged: no ⌘Q, no About, no Services. Same authors as `tray-icon`, and on
+# macOS it wraps NSMenu with no gtk/libxdo in sight — that weight is Linux's.
+#
+# **Its sibling `tray-icon` is deliberately not here**, and that is ADR-41
+# rather than a platform limit: the agent owns the one notification-area icon,
+# so a Koru process creates no status item on any platform and this crate has no
+# tray module to link one from.
+muda = { version = "0.17", default-features = false }
+
+# Two things winit cannot answer, and nothing else. `GetAsyncKeyState`: whether
+# Shift is held at launch, which decides whether the profile picker asks — winit
+# has no event loop yet, and no window, when that is asked. `GetMonitorInfoW`:
+# the monitor's *work area*, which `MonitorHandle` does not expose and which
+# `hairline` needs to know when a window's edge is against the screen's.
+[target.'cfg(windows)'.dependencies]
+# The floating support icon's right-click popup. The same crate the macOS
+# menu bar uses; one event transport for both lives in `menus.rs`.
+muda = { version = "0.17", default-features = false }
+windows = { version = "0.62.2", features = [
+    "Win32_Foundation",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_Pipes",
+    "Win32_UI_WindowsAndMessaging",
+] }
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_System_Registry",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_Graphics_Gdi",
+    # Cold-start light/dark before any window exists (`system_theme`).
+    "Win32_System_Registry",
+    "Win32_Foundation",
+    # The once-per-run environment snapshot (`environment`): OS version and
+    # memory, free space on the data volume, the locale's week and clock,
+    # and the accessibility settings.
+    "Win32_System_SystemInformation",
+    "Win32_Storage_FileSystem",
+    "Win32_Globalization",
+    "Win32_UI_WindowsAndMessaging",
+] }

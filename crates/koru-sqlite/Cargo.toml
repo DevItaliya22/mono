@@ -1,0 +1,15 @@
+[package]
+rust-version.workspace = true
+name = "koru-sqlite"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "How Koru opens and versions a SQLite file: one durability policy, one forward-only migration rule, one refusal of a newer schema."
+
+[dependencies]
+rusqlite.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

@@ -1,0 +1,57 @@
+[package]
+rust-version.workspace = true
+name = "koru-webview"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "A native web surface hosted as a child of a window we own — the only crate that links wry."
+
+# **The only crate in the workspace that links `wry`.** Everything above it
+# sees `WebSurface`, `WebEvent` and `WebError`; no wry type crosses this API,
+# so the engine can be replaced without touching the window or the app
+# (ADR-276).
+#
+# The pin is exact: wry calls its own API unstable.
+#
+# It knows nothing about Intercom, nothing about Koru's store root, and
+# nothing about the workspace host: the data directory arrives resolved in
+# `WebConfig`, and the host's `NativeSurface` trait is implemented by an
+# app-owned adapter, not here.
+
+[features]
+# wry's devtools are a compile-time feature on macOS release builds; on
+# Windows they follow debug assertions. The app turns this on for dev
+# profiles and internal builds only.
+devtools = ["wry/devtools"]
+# **Under test.** `open` answers `RuntimeUnavailable` and no engine instance
+# is ever created, so a suite can exercise every state around the surface
+# without a browser process. The `no-browser` / `no-sink` lesson, applied
+# before it bites: a dependency is never compiled with `cfg(test)`, so the
+# guard is a feature the crates above enable in their dev-dependencies.
+no-webview = []
+
+[dependencies]
+koru-env = { path = "../koru-env" }
+raw-window-handle = "0.6"
+wry = "=0.56.1"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+# `has_focus` asks the window's first responder whether it sits inside the
+# WKWebView: `NSWindow::firstResponder`, the `NSView` downcast and
+# `isDescendantOf`. The same crate wry already links, at the pin it uses.
+objc2-app-kit = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSResponder",
+    "NSView",
+    "NSWindow",
+] }
+
+[target.'cfg(windows)'.dependencies]
+# `GetFocus` + `IsChild`: whether keyboard focus is inside the child window.
+# The platform's answer, never inferred from visibility (ADR-276).
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_WindowsAndMessaging",
+] }

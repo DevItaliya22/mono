@@ -1,0 +1,16 @@
+[package]
+rust-version.workspace = true
+name = "koru-canvas-flow"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Plans a canvas workflow: which agent and output nodes a start node reaches, and what to do next. Pure and UI-free."
+
+[dependencies]
+# The canvas model — `CanvasSnapshot`, `ObjectKind`, `reading_order` — and
+# nothing else, deliberately: the planner is a pure function of a snapshot and
+# the steps' states, so it can run beside the UI today and in the delegate
+# worker later (ADR-347-delegateworker) without either linking the other.
+# `src/tests.rs` holds the fence.
+koru-core = { path = "../koru-core" }

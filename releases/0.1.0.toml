@@ -1,0 +1,26 @@
+title = "Initial public release"
+
+summary = [
+  "Koru is a private, local-first workspace for thinking, writing and AI.",
+  "Documents, files and terminal sessions open as tabs in one native window.",
+  "Your work lives on your own devices, and it syncs directly between them.",
+  "Koru's source is now public, under the Mozilla Public License 2.0.",
+]
+
+body = """
+## Initial public release
+
+Koru is a private, local-first workspace for thinking, writing and AI:
+documents, files and terminal sessions open as tabs in one native window,
+your work lives on your own devices, and it syncs directly between them.
+This is its source under the Mozilla Public License 2.0: the desktop app
+and its background services, the Android and iOS apps, every crate they
+link, the wire contracts and their test vectors, the release tool, and
+Koru's patches to the third-party code it builds with.
+
+Third-party code is fetched and pinned, not vendored (`third-party/`). The
+hosted Koru Cloud service, its infrastructure and the team's internal
+documentation are not here; `docs/` is a submodule of that private
+documentation, and nothing in this repository needs it to build, test or
+package. Start with `README.md`, then `AGENTS.md` and `CONTRIBUTING.md`.
+"""

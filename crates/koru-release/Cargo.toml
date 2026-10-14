@@ -1,0 +1,63 @@
+[package]
+rust-version.workspace = true
+name = "koru-release"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+bzip2.workspace = true
+chrono.workspace = true
+# The release channel's directory segment, which the macOS share extension is
+# stamped with so it stages into its own build's inbox rather than a sibling
+# channel's.
+koru-channel = { path = "../koru-channel" }
+# The runtime values a release bakes in (`koru_env::BAKED`), loaded from
+# .env.production before the first build so `option_env!` sees them.
+koru-env = { path = "../koru-env" }
+koru-features = { path = "../koru-features" }
+# The bundle identifier and display name of that extension. Named from the
+# crate that also *reads* the inbox, so the app and the packager cannot
+# disagree about which container a sandboxed extension would write into.
+koru-share-inbox = { path = "../koru-share-inbox" }
+fs2.workspace = true
+hmac.workspace = true
+image = { version = "0.25", default-features = false, features = ["png"] }
+koru-update = { path = "../koru-update" }
+koru-native-notifications = { path = "../koru-native-notifications" }
+koru-winres = { path = "../koru-winres" }
+# **The publisher writes what the store parses, through the store's own types.**
+# `voice-models` builds a real `CatalogEntry` and serialises that, rather than
+# assembling JSON by hand against a shape it cannot see — the mistake
+# `koru-store-wire` was created to end. A field renamed in `koru-voice-models`
+# breaks this build instead of producing a catalog the desktop silently refuses.
+# The dependency is one way and always will be: nothing in the product links
+# `koru-release`.
+koru-voice = { path = "../koru-voice" }
+koru-voice-models = { path = "../koru-voice-models" }
+# The pinned sherpa-onnx archive table (`artifacts::NAMES`), read — never
+# copied — so `dist-cloud` can refuse a release that linked a non-canonical
+# archive. Without the `runtime` feature this links no native code.
+koru-voice-sherpa = { path = "../koru-voice-sherpa" }
+minisign.workspace = true
+pulldown-cmark.workspace = true
+reqwest.workspace = true
+semver.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tar.workspace = true
+toml.workspace = true
+url.workspace = true
+zip.workspace = true
+
+[dev-dependencies]
+# A real git repository, because what `commit_release_notes` has to get right
+# is git's own pathspec behaviour and nothing else would exercise it.
+tempfile.workspace = true
+# Only for the assertion that the preamble is staged at the path its reader
+# looks for: `RELATIVE_PATH` is the reader's, and this is where both can be
+# named. A dev-dependency, because nothing in the product links `koru-release`
+# and the publisher does not need the resolver — it copies the file.
+koru-delegate-preamble = { path = "../koru-delegate-preamble" }

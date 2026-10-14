@@ -1,0 +1,33 @@
+[package]
+rust-version.workspace = true
+name = "koru-canvas-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The canvas surface — an open plane of cards, images and workflow nodes, drawn from a plain scene and answered with requests the host performs."
+
+# **The dependency list is the charter.** This surface draws a plain `Scene`
+# the container hands it and turns a person's input into `CanvasRequest`s the
+# container performs. It knows nothing of Koru's document model, the store,
+# a workspace or a run: a canvas surface that could name a `WorkspaceDoc`
+# would be one that could be tempted to write one, and every write here is
+# the host's. `src/dependency.rs` fails the build if the list grows.
+[dependencies]
+# Every string a person reads, in eight languages, and the zoom readout's
+# digits through `koru_i18n::number`.
+koru-i18n = { path = "../koru-i18n" }
+# Drawing: the palette, the text engine, the scene helpers, the image cache
+# an image object is drawn from, the icon glyphs.
+koru-draw = { path = "../koru-draw" }
+# The widgets: the context menu, the compact action button a node's Run and
+# Stop are drawn with, and the one normalisation of a cursor shape.
+koru-ui = { path = "../koru-ui" }
+# `Layout<Brush>` — the type a laid-out card is kept as, so pan and zoom only
+# ever change the transform it is drawn under.
+parley.workspace = true
+vello.workspace = true
+winit.workspace = true
+# An object's key is the node's own id, carried as a plain UUID so this crate
+# names no model type.
+uuid.workspace = true

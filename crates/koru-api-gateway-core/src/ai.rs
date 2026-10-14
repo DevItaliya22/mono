@@ -1,0 +1,1469 @@
+// SPDX-License-Identifier: MPL-2.0
+
+//! Authenticated public AI routes and the bounded SSE transport adapter.
+
+use std::convert::Infallible;
+use std::sync::Arc;
+
+use axum::body::Body;
+use axum::extract::rejection::JsonRejection;
+use axum::extract::{Extension, Path, State};
+use axum::http::{HeaderValue, StatusCode, header};
+use axum::response::{IntoResponse, Response};
+use axum::routing::{MethodRouter, get, patch, post};
+use axum::{Json, Router};
+use bytes::Bytes;
+use futures_util::stream;
+use koru_ai_api::{AiPrincipal, AiScope, RequestContext};
+use koru_ai_core::{
+    AiProviderId, ChatId, DocumentExportId, InferenceAttemptId, MessageId, ToolInvocationId,
+};
+use koru_ai_wire::{
+    AiSearchRequest, AiSearchResponse, AttemptResponse, BranchChatRequest, BranchChatResponse,
+    CancelAttemptResponse, CancelModelPullResponse, ChatToolPolicyResponse, ChatTranscript,
+    ClearHistoryResponse, ClearUsageResponse, CreateChatRequest, CreateChatResponse,
+    DeleteChatResponse, ExportChatRequest, ExportChatResponse, Failure, FeedbackRequest,
+    FeedbackResponse, ListChatsResponse, ListChatsToolRequest, ListChatsToolResponse,
+    ModelPullEvent, OllamaSettingsView, OpenAiSettingsView, ProviderSettingsResponse,
+    ProviderValidationResponse, PullOllamaModelAccepted, PullOllamaModelRequest,
+    ReadChatToolRequest, ReadChatToolResponse, RenameChatRequest, RenameChatResponse,
+    RetryTurnRequest, SearchChatsToolRequest, SearchChatsToolResponse, SelectProviderRequest,
+    SendTurnAccepted, SendTurnRequest, StreamEvent, ToolDecisionRequest, ToolDecisionResponse,
+    UpdateChatModelRequest, UpdateChatModelResponse, UpdateChatPrivacyRequest,
+    UpdateChatPrivacyResponse, UpdateChatToolPolicyRequest, UpdateOllamaSettingsRequest,
+    UpdateOpenAiSettingsRequest, UsageResponse,
+};
+use schemars::{Schema, SchemaGenerator};
+
+use crate::{GatewayPrincipal, GatewayState};
+
+type SchemaFor = fn(&mut SchemaGenerator) -> Schema;
+pub const SSE_CAPACITY: usize = 32;
+
+pub struct AiRoute {
+    pub operation_id: &'static str,
+    pub method: &'static str,
+    pub path: &'static str,
+    pub scope: AiScope,
+    pub summary: &'static str,
+    pub returns: &'static str,
+    pub handler: fn() -> MethodRouter<Arc<GatewayState>>,
+    pub request: Option<SchemaFor>,
+    pub response: SchemaFor,
+    pub stream: bool,
+    pub path_parameter: Option<&'static str>,
+}
+
+pub const ROUTES: &[AiRoute] = &[
+    AiRoute {
+        operation_id: "ai_provider_settings",
+        method: "GET",
+        path: "/v1/ai/providers/settings",
+        scope: AiScope::ManageProviders,
+        summary: "Read non-secret AI provider settings",
+        returns: "The selected provider, model, reasoning, endpoint, and credential-presence flag. Secrets and vault labels are never returned.",
+        handler: || get(provider_settings),
+        request: None,
+        response: |generator| generator.subschema_for::<ProviderSettingsResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_select_provider",
+        method: "PUT",
+        path: "/v1/ai/providers/selection",
+        scope: AiScope::ManageProviders,
+        summary: "Select the active AI provider",
+        returns: "The complete persisted non-secret provider settings.",
+        handler: || axum::routing::put(select_provider),
+        request: Some(|generator| generator.subschema_for::<SelectProviderRequest>()),
+        response: |generator| generator.subschema_for::<ProviderSettingsResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_update_openai_settings",
+        method: "PUT",
+        path: "/v1/ai/providers/openai",
+        scope: AiScope::ManageProviders,
+        summary: "Update non-secret OpenAI settings",
+        returns: "The saved OpenAI model, reasoning choice, and credential-presence flag.",
+        handler: || axum::routing::put(update_openai_settings),
+        request: Some(|generator| generator.subschema_for::<UpdateOpenAiSettingsRequest>()),
+        response: |generator| generator.subschema_for::<OpenAiSettingsView>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_update_ollama_settings",
+        method: "PUT",
+        path: "/v1/ai/providers/ollama",
+        scope: AiScope::ManageProviders,
+        summary: "Update Ollama settings",
+        returns: "The saved Ollama endpoint, model, and reasoning choice.",
+        handler: || axum::routing::put(update_ollama_settings),
+        request: Some(|generator| generator.subschema_for::<UpdateOllamaSettingsRequest>()),
+        response: |generator| generator.subschema_for::<OllamaSettingsView>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_validate_provider",
+        method: "POST",
+        path: "/v1/ai/providers/{provider}/validate",
+        scope: AiScope::ManageProviders,
+        summary: "Validate an AI provider and selected model",
+        returns: "A safe provider state, available model names, and selected-model capabilities when ready.",
+        handler: || post(validate_provider),
+        request: None,
+        response: |generator| generator.subschema_for::<ProviderValidationResponse>(),
+        stream: false,
+        path_parameter: Some("provider"),
+    },
+    AiRoute {
+        operation_id: "ai_discover_agent_models",
+        method: "POST",
+        path: "/v1/ai/providers/{provider}/models",
+        scope: AiScope::ManageProviders,
+        summary: "List the models a local agent offers",
+        returns: "The agent's models in its own ids, each with the agent's grouping; empty when it lists none.",
+        handler: || post(discover_agent_models),
+        request: None,
+        response: |generator| generator.subschema_for::<koru_ai_wire::AgentModelsResponse>(),
+        stream: false,
+        path_parameter: Some("provider"),
+    },
+    AiRoute {
+        operation_id: "ai_pull_ollama_model",
+        method: "POST",
+        path: "/v1/ai/providers/ollama/pulls",
+        scope: AiScope::ManageProviders,
+        summary: "Pull an Ollama model with bounded progress streaming",
+        returns: "An SSE stream beginning with the accepted model followed by normalized progress and one terminal event.",
+        handler: || post(pull_ollama_model),
+        request: Some(|generator| generator.subschema_for::<PullOllamaModelRequest>()),
+        response: |generator| generator.subschema_for::<PullOllamaModelAccepted>(),
+        stream: true,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_cancel_ollama_pull",
+        method: "POST",
+        path: "/v1/ai/providers/ollama/pulls/cancel",
+        scope: AiScope::ManageProviders,
+        summary: "Cancel the active Ollama model pull",
+        returns: "Whether an active pull was signalled for cancellation.",
+        handler: || post(cancel_ollama_pull),
+        request: None,
+        response: |generator| generator.subschema_for::<CancelModelPullResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_create_chat",
+        method: "POST",
+        path: "/v1/ai/chats",
+        scope: AiScope::Chat,
+        summary: "Create an AI chat",
+        returns: "The durable chat created with the client-minted identity.",
+        handler: || post(create_chat),
+        request: Some(|generator| generator.subschema_for::<CreateChatRequest>()),
+        response: |generator| generator.subschema_for::<CreateChatResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_list_chats",
+        method: "GET",
+        path: "/v1/ai/chats",
+        scope: AiScope::Chat,
+        summary: "List AI chats",
+        returns: "Durable chats ordered by most recent activity.",
+        handler: || get(list_chats),
+        request: None,
+        response: |generator| generator.subschema_for::<ListChatsResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_read_chat",
+        method: "GET",
+        path: "/v1/ai/chats/{chat}",
+        scope: AiScope::Chat,
+        summary: "Read an authoritative AI chat transcript",
+        returns: "The chat, ordered messages, finalized blocks, and pinned document references.",
+        handler: || get(read_chat),
+        request: None,
+        response: |generator| generator.subschema_for::<ChatTranscript>(),
+        stream: false,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_rename_chat",
+        method: "PATCH",
+        path: "/v1/ai/chats/{chat}",
+        scope: AiScope::Chat,
+        summary: "Rename an AI chat",
+        returns: "The durable chat with its updated title and activity timestamp.",
+        handler: || patch(rename_chat),
+        request: Some(|generator| generator.subschema_for::<RenameChatRequest>()),
+        response: |generator| generator.subschema_for::<RenameChatResponse>(),
+        stream: false,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_update_chat_model",
+        method: "PATCH",
+        path: "/v1/ai/chats/{chat}/model",
+        scope: AiScope::Chat,
+        summary: "Change the model used by an AI chat",
+        returns: "The durable chat with its updated provider, model, reasoning default, and activity timestamp.",
+        handler: || patch(update_chat_model),
+        request: Some(|generator| generator.subschema_for::<UpdateChatModelRequest>()),
+        response: |generator| generator.subschema_for::<UpdateChatModelResponse>(),
+        stream: false,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_update_chat_privacy",
+        method: "PATCH",
+        path: "/v1/ai/chats/{chat}/privacy",
+        scope: AiScope::Chat,
+        summary: "Change whether agents and connected assistants can discover a chat",
+        returns: "The durable chat with its updated privacy flag and activity timestamp.",
+        handler: || patch(update_chat_privacy),
+        request: Some(|generator| generator.subschema_for::<UpdateChatPrivacyRequest>()),
+        response: |generator| generator.subschema_for::<UpdateChatPrivacyResponse>(),
+        stream: false,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_update_chat_folder",
+        method: "PATCH",
+        path: "/v1/ai/chats/{chat}/folder",
+        scope: AiScope::Chat,
+        summary: "Choose the folder a chat's local agent works in",
+        returns: "The durable chat with its working folder; accepted only on an agent chat with no message yet.",
+        handler: || patch(update_chat_folder),
+        request: Some(|generator| {
+            generator.subschema_for::<koru_ai_wire::UpdateChatFolderRequest>()
+        }),
+        response: |generator| generator.subschema_for::<koru_ai_wire::UpdateChatFolderResponse>(),
+        stream: false,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_tool_list_chats",
+        method: "POST",
+        path: "/v1/ai/tools/chats/list",
+        scope: AiScope::Chat,
+        summary: "List non-private AI chats for a trusted tool caller",
+        returns: "A bounded newest-first page of non-private chat summaries.",
+        handler: || post(tool_list_chats),
+        request: Some(|generator| generator.subschema_for::<ListChatsToolRequest>()),
+        response: |generator| generator.subschema_for::<ListChatsToolResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_tool_search_chats",
+        method: "POST",
+        path: "/v1/ai/tools/chats/search",
+        scope: AiScope::Chat,
+        summary: "Search non-private AI chats for a trusted tool caller",
+        returns: "A bounded relevance-ranked page of finalized response matches from non-private chats.",
+        handler: || post(tool_search_chats),
+        request: Some(|generator| generator.subschema_for::<SearchChatsToolRequest>()),
+        response: |generator| generator.subschema_for::<SearchChatsToolResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_tool_read_chat",
+        method: "POST",
+        path: "/v1/ai/tools/chats/read",
+        scope: AiScope::Chat,
+        summary: "Read a non-private AI chat for a trusted tool caller",
+        returns: "A byte-bounded recent page of terminal chat messages; private and missing chats share chat_not_found.",
+        handler: || post(tool_read_chat),
+        request: Some(|generator| generator.subschema_for::<ReadChatToolRequest>()),
+        response: |generator| generator.subschema_for::<ReadChatToolResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_update_chat_tool_policy",
+        method: "PUT",
+        path: "/v1/ai/chats/{chat}/tool-policy",
+        scope: AiScope::Chat,
+        summary: "Replace a chat's workspace-tool policy",
+        returns: "The durable Manual or Auto mode and complete selected-workspace grant set. An empty set grants no workspace access.",
+        handler: || axum::routing::put(update_chat_tool_policy),
+        request: Some(|generator| generator.subschema_for::<UpdateChatToolPolicyRequest>()),
+        response: |generator| generator.subschema_for::<ChatToolPolicyResponse>(),
+        stream: false,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_read_chat_tool_policy",
+        method: "GET",
+        path: "/v1/ai/chats/{chat}/tool-policy",
+        scope: AiScope::Chat,
+        summary: "Read a chat's workspace-tool policy",
+        returns: "The durable Manual or Auto mode and complete selected-workspace grant set.",
+        handler: || get(read_chat_tool_policy),
+        request: None,
+        response: |generator| generator.subschema_for::<ChatToolPolicyResponse>(),
+        stream: false,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_delete_chat",
+        method: "DELETE",
+        path: "/v1/ai/chats/{chat}",
+        scope: AiScope::Chat,
+        summary: "Delete an AI chat while retaining anonymous usage",
+        returns: "Whether the chat existed. Content, search rows, and chat/message identifiers are removed while text-free attempt and feedback metrics survive.",
+        handler: || axum::routing::delete(delete_chat),
+        request: None,
+        response: |generator| generator.subschema_for::<DeleteChatResponse>(),
+        stream: false,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_clear_history",
+        method: "DELETE",
+        path: "/v1/ai/chats",
+        scope: AiScope::Chat,
+        summary: "Clear all AI chat history",
+        returns: "The number of chats deleted. Anonymous text-free usage and feedback aggregates remain until cleared separately.",
+        handler: || axum::routing::delete(clear_history),
+        request: None,
+        response: |generator| generator.subschema_for::<ClearHistoryResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_usage",
+        method: "GET",
+        path: "/v1/ai/usage",
+        scope: AiScope::ReadUsage,
+        summary: "Read private local AI usage",
+        returns: "Content-free local aggregates grouped by day, surface, provider, model, effort, status, and prompt version. Missing provider usage remains unavailable.",
+        handler: || get(usage),
+        request: None,
+        response: |generator| generator.subschema_for::<UsageResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_chat_usage",
+        method: "GET",
+        path: "/v1/ai/chats/{chat}/usage",
+        scope: AiScope::ReadUsage,
+        summary: "Read current-chat and all private local AI usage",
+        returns: "Current-chat totals followed by the same content-free all-usage aggregates as the local usage report.",
+        handler: || get(chat_usage),
+        request: None,
+        response: |generator| generator.subschema_for::<UsageResponse>(),
+        stream: false,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_clear_usage",
+        method: "DELETE",
+        path: "/v1/ai/usage",
+        scope: AiScope::ReadUsage,
+        summary: "Clear private local AI usage and feedback",
+        returns: "The number of text-free attempts and feedback events deleted. Chat history is unchanged.",
+        handler: || axum::routing::delete(clear_usage),
+        request: None,
+        response: |generator| generator.subschema_for::<ClearUsageResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_search",
+        method: "POST",
+        path: "/v1/ai/search",
+        scope: AiScope::Chat,
+        summary: "Search finalized AI chat responses",
+        returns: "Best matching finalized block per response with exact chat, message, and block identity.",
+        handler: || post(search),
+        request: Some(|generator| generator.subschema_for::<AiSearchRequest>()),
+        response: |generator| generator.subschema_for::<AiSearchResponse>(),
+        stream: false,
+        path_parameter: None,
+    },
+    AiRoute {
+        operation_id: "ai_rate_response",
+        method: "PUT",
+        path: "/v1/ai/messages/{message}/feedback",
+        scope: AiScope::Chat,
+        summary: "Append response feedback",
+        returns: "The retry-safe append-only feedback event.",
+        handler: || axum::routing::put(rate_response),
+        request: Some(|generator| generator.subschema_for::<FeedbackRequest>()),
+        response: |generator| generator.subschema_for::<FeedbackResponse>(),
+        stream: false,
+        path_parameter: Some("message"),
+    },
+    AiRoute {
+        operation_id: "ai_branch_chat",
+        method: "POST",
+        path: "/v1/ai/chats/{chat}/branches",
+        scope: AiScope::Chat,
+        summary: "Branch an AI chat",
+        returns: "A durable chat containing newly identified copies through the chosen response.",
+        handler: || post(branch_chat),
+        request: Some(|generator| generator.subschema_for::<BranchChatRequest>()),
+        response: |generator| generator.subschema_for::<BranchChatResponse>(),
+        stream: false,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_retry_turn",
+        method: "POST",
+        path: "/v1/ai/chats/{chat}/retries",
+        scope: AiScope::Chat,
+        summary: "Retry a failed AI response",
+        returns: "A durable fresh assistant entry and attempt, streamed without replacing failed history.",
+        handler: || post(retry_turn),
+        request: Some(|generator| generator.subschema_for::<RetryTurnRequest>()),
+        response: |generator| generator.subschema_for::<SendTurnAccepted>(),
+        stream: true,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_export_chat",
+        method: "POST",
+        path: "/v1/ai/chats/{chat}/exports",
+        scope: AiScope::Chat,
+        summary: "Store a chat prefix as a Koru document",
+        returns: "The durable retry-safe export operation; poll it until terminal.",
+        handler: || post(export_chat),
+        request: Some(|generator| generator.subschema_for::<ExportChatRequest>()),
+        response: |generator| generator.subschema_for::<ExportChatResponse>(),
+        stream: false,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_read_export",
+        method: "GET",
+        path: "/v1/ai/exports/{export}",
+        scope: AiScope::Chat,
+        summary: "Read an AI document export",
+        returns: "The authoritative pending, complete, or failed export operation.",
+        handler: || get(read_export),
+        request: None,
+        response: |generator| generator.subschema_for::<ExportChatResponse>(),
+        stream: false,
+        path_parameter: Some("export"),
+    },
+    AiRoute {
+        operation_id: "ai_send_turn",
+        method: "POST",
+        path: "/v1/ai/chats/{chat}/turns",
+        scope: AiScope::Chat,
+        summary: "Commit and stream an AI turn",
+        returns: "An ordered SSE stream beginning with durable acceptance, followed by normalized Koru AI events. Recover a lost stream by reading the attempt and chat.",
+        handler: || post(send_turn),
+        request: Some(|generator| generator.subschema_for::<SendTurnRequest>()),
+        response: |generator| generator.subschema_for::<SendTurnAccepted>(),
+        stream: true,
+        path_parameter: Some("chat"),
+    },
+    AiRoute {
+        operation_id: "ai_read_attempt",
+        method: "GET",
+        path: "/v1/ai/attempts/{attempt}",
+        scope: AiScope::Chat,
+        summary: "Read authoritative AI attempt state",
+        returns: "The durable attempt state used to recover after stream loss.",
+        handler: || get(read_attempt),
+        request: None,
+        response: |generator| generator.subschema_for::<AttemptResponse>(),
+        stream: false,
+        path_parameter: Some("attempt"),
+    },
+    AiRoute {
+        operation_id: "ai_cancel_attempt",
+        method: "POST",
+        path: "/v1/ai/attempts/{attempt}/cancel",
+        scope: AiScope::Chat,
+        summary: "Cancel an AI attempt",
+        returns: "The current terminal state; cancelling an already-terminal attempt is a successful no-op.",
+        handler: || post(cancel_attempt),
+        request: None,
+        response: |generator| generator.subschema_for::<CancelAttemptResponse>(),
+        stream: false,
+        path_parameter: Some("attempt"),
+    },
+    AiRoute {
+        operation_id: "ai_approve_tool_call",
+        method: "POST",
+        path: "/v1/ai/tool-calls/{tool}/approve",
+        scope: AiScope::Chat,
+        summary: "Approve a pending workspace-tool call",
+        returns: "The durable content-free tool activity. Repeating the same approval is an idempotent read of that state.",
+        handler: || post(approve_tool_call),
+        request: Some(|generator| generator.subschema_for::<ToolDecisionRequest>()),
+        response: |generator| generator.subschema_for::<ToolDecisionResponse>(),
+        stream: false,
+        path_parameter: Some("tool"),
+    },
+    AiRoute {
+        operation_id: "ai_deny_tool_call",
+        method: "POST",
+        path: "/v1/ai/tool-calls/{tool}/deny",
+        scope: AiScope::Chat,
+        summary: "Deny a pending workspace-tool call",
+        returns: "The durable denied activity. The provider receives a structured permission-denied result and may continue.",
+        handler: || post(deny_tool_call),
+        request: Some(|generator| generator.subschema_for::<ToolDecisionRequest>()),
+        response: |generator| generator.subschema_for::<ToolDecisionResponse>(),
+        stream: false,
+        path_parameter: Some("tool"),
+    },
+];
+
+pub fn router() -> Router<Arc<GatewayState>> {
+    ROUTES.iter().fold(Router::new(), |router, route| {
+        router.route(route.path, (route.handler)())
+    })
+}
+
+pub fn extend_openapi(document: &mut serde_json::Value) {
+    use serde_json::{Map, Value, json};
+
+    let mut schemas = schemars::generate::SchemaSettings::openapi3().into_generator();
+    let failure = schemas.subschema_for::<Failure>();
+    let stream_event = schemas.subschema_for::<StreamEvent>();
+    let pull_event = schemas.subschema_for::<ModelPullEvent>();
+    let paths = document["paths"]
+        .as_object_mut()
+        .expect("gateway OpenAPI paths");
+    for route in ROUTES {
+        let mut operation = json!({
+            "operationId": route.operation_id,
+            "summary": route.summary,
+            "description": route.returns,
+            "security": [{"bearerAuth": [route.scope.as_str()]}],
+            "responses": {
+                "200": {"description": route.returns},
+                "400": {"description": "The request body or path identity is invalid", "content": {"application/json": {"schema": failure}}},
+                "401": {"description": "The gateway bearer is absent or invalid", "content": {"application/json": {"schema": failure}}},
+                "403": {"description": "The bearer lacks the operation's declared AI scope", "content": {"application/json": {"schema": failure}}},
+                "409": {"description": "The operation conflicts with durable chat state", "content": {"application/json": {"schema": failure}}},
+                "503": {"description": "The AI worker is unavailable or saturated", "content": {"application/json": {"schema": failure}}}
+            }
+        });
+        if let Some(request) = route.request {
+            operation["requestBody"] = json!({
+                "required": true,
+                "content": {"application/json": {"schema": request(&mut schemas)}}
+            });
+        }
+        if let Some(parameter) = route.path_parameter {
+            let schema = if parameter == "provider" {
+                json!({"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"})
+            } else {
+                json!({"type": "string", "format": "uuid"})
+            };
+            operation["parameters"] = json!([{
+                "name": parameter,
+                "in": "path",
+                "required": true,
+                "schema": schema
+            }]);
+        }
+        let response = (route.response)(&mut schemas);
+        operation["responses"]["200"]["content"] = if route.stream {
+            let event = if route.operation_id == "ai_pull_ollama_model" {
+                pull_event.clone()
+            } else {
+                stream_event.clone()
+            };
+            json!({"text/event-stream": {"schema": {"oneOf": [response, event]}}})
+        } else {
+            json!({"application/json": {"schema": response}})
+        };
+        let entry = paths
+            .entry(route.path.to_owned())
+            .or_insert_with(|| Value::Object(Map::new()));
+        entry
+            .as_object_mut()
+            .expect("AI OpenAPI path")
+            .insert(route.method.to_lowercase(), operation);
+    }
+    let components = document["components"]["schemas"]
+        .as_object_mut()
+        .expect("gateway OpenAPI schemas");
+    components.extend(
+        schemas
+            .take_definitions(true)
+            .into_iter()
+            .map(|(name, schema)| (name, serde_json::to_value(schema).expect("AI schema"))),
+    );
+}
+
+async fn provider_settings(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+) -> Response {
+    let (client, context) = match admitted(&state, principal, AiScope::ManageProviders) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.provider_settings(context)).await)
+}
+
+async fn select_provider(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    payload: Result<Json<SelectProviderRequest>, JsonRejection>,
+) -> Response {
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::ManageProviders) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.select_provider(context, request)).await)
+}
+
+async fn update_openai_settings(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    payload: Result<Json<UpdateOpenAiSettingsRequest>, JsonRejection>,
+) -> Response {
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::ManageProviders) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.update_openai_settings(context, request)).await)
+}
+
+async fn update_ollama_settings(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    payload: Result<Json<UpdateOllamaSettingsRequest>, JsonRejection>,
+) -> Response {
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::ManageProviders) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.update_ollama_settings(context, request)).await)
+}
+
+async fn validate_provider(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(provider): Path<String>,
+) -> Response {
+    let Ok(provider) = AiProviderId::parse(provider) else {
+        return invalid_identity("provider");
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::ManageProviders) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.validate_provider(context, provider)).await)
+}
+
+async fn discover_agent_models(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(provider): Path<String>,
+) -> Response {
+    let Ok(provider) = AiProviderId::parse(provider) else {
+        return invalid_identity("provider");
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::ManageProviders) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.discover_agent_models(context, provider)).await)
+}
+
+async fn pull_ollama_model(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    payload: Result<Json<PullOllamaModelRequest>, JsonRejection>,
+) -> Response {
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::ManageProviders) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    match call(move || client.pull_ollama_model(context, request)).await {
+        Ok(stream) => model_pull_sse_response(stream),
+        Err(failure) => ai_failure(status_for(&failure), failure),
+    }
+}
+
+async fn cancel_ollama_pull(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+) -> Response {
+    let (client, context) = match admitted(&state, principal, AiScope::ManageProviders) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.cancel_ollama_pull(context)).await)
+}
+
+async fn create_chat(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    payload: Result<Json<CreateChatRequest>, JsonRejection>,
+) -> Response {
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.create_chat(context, request)).await)
+}
+
+async fn list_chats(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+) -> Response {
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.list_chats(context)).await)
+}
+
+async fn read_chat(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.read_chat(context, chat)).await)
+}
+
+async fn rename_chat(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+    payload: Result<Json<RenameChatRequest>, JsonRejection>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.rename_chat(context, chat, request)).await)
+}
+
+async fn update_chat_model(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+    payload: Result<Json<UpdateChatModelRequest>, JsonRejection>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.update_chat_model(context, chat, request)).await)
+}
+
+async fn update_chat_privacy(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+    payload: Result<Json<UpdateChatPrivacyRequest>, JsonRejection>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.update_chat_privacy(context, chat, request)).await)
+}
+
+async fn update_chat_folder(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+    payload: Result<Json<koru_ai_wire::UpdateChatFolderRequest>, JsonRejection>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.update_chat_folder(context, chat, request)).await)
+}
+
+async fn tool_list_chats(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    payload: Result<Json<ListChatsToolRequest>, JsonRejection>,
+) -> Response {
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.tool_list_chats(context, request)).await)
+}
+
+async fn tool_search_chats(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    payload: Result<Json<SearchChatsToolRequest>, JsonRejection>,
+) -> Response {
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.tool_search_chats(context, request)).await)
+}
+
+async fn tool_read_chat(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    payload: Result<Json<ReadChatToolRequest>, JsonRejection>,
+) -> Response {
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.tool_read_chat(context, request)).await)
+}
+
+async fn update_chat_tool_policy(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+    payload: Result<Json<UpdateChatToolPolicyRequest>, JsonRejection>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.update_chat_tool_policy(context, chat, request)).await)
+}
+
+async fn read_chat_tool_policy(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.read_chat_tool_policy(context, chat)).await)
+}
+
+async fn delete_chat(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.delete_chat(context, chat)).await)
+}
+
+async fn clear_history(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+) -> Response {
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.clear_history(context)).await)
+}
+
+async fn usage(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+) -> Response {
+    let (client, context) = match admitted(&state, principal, AiScope::ReadUsage) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.usage(context, None)).await)
+}
+
+async fn chat_usage(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::ReadUsage) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.usage(context, Some(chat))).await)
+}
+
+async fn clear_usage(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+) -> Response {
+    let (client, context) = match admitted(&state, principal, AiScope::ReadUsage) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.clear_usage(context)).await)
+}
+
+async fn search(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    payload: Result<Json<AiSearchRequest>, JsonRejection>,
+) -> Response {
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.search(context, request)).await)
+}
+
+async fn rate_response(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(message): Path<String>,
+    payload: Result<Json<FeedbackRequest>, JsonRejection>,
+) -> Response {
+    let Some(message) = MessageId::parse(&message) else {
+        return invalid_identity("message");
+    };
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.feedback(context, message, request)).await)
+}
+
+async fn branch_chat(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+    payload: Result<Json<BranchChatRequest>, JsonRejection>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.branch_chat(context, chat, request)).await)
+}
+
+async fn retry_turn(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+    payload: Result<Json<RetryTurnRequest>, JsonRejection>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    match call(move || client.retry_turn(context, chat, request)).await {
+        Ok(stream) => sse_response(stream),
+        Err(failure) => ai_failure(status_for(&failure), failure),
+    }
+}
+
+async fn export_chat(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+    payload: Result<Json<ExportChatRequest>, JsonRejection>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.export_chat(context, chat, request)).await)
+}
+
+async fn read_export(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(export): Path<String>,
+) -> Response {
+    let Some(export) = DocumentExportId::parse(&export) else {
+        return invalid_identity("export");
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.read_export(context, export)).await)
+}
+
+async fn send_turn(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(chat): Path<String>,
+    payload: Result<Json<SendTurnRequest>, JsonRejection>,
+) -> Response {
+    let Some(chat) = ChatId::parse(&chat) else {
+        return invalid_identity("chat");
+    };
+    let request = match json_request(payload) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+    if request.chat_id != chat {
+        return ai_failure(
+            StatusCode::BAD_REQUEST,
+            Failure {
+                code: "invalid_request".into(),
+                message: "The chat path and request identity differ.".into(),
+                retryable: false,
+                details: Default::default(),
+            },
+        );
+    }
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    match call(move || client.send_turn(context, request)).await {
+        Ok(stream) => sse_response(stream),
+        Err(failure) => ai_failure(status_for(&failure), failure),
+    }
+}
+
+async fn read_attempt(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(attempt): Path<String>,
+) -> Response {
+    let Some(attempt) = InferenceAttemptId::parse(&attempt) else {
+        return invalid_identity("attempt");
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.read_attempt(context, attempt)).await)
+}
+
+async fn cancel_attempt(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(attempt): Path<String>,
+) -> Response {
+    let Some(attempt) = InferenceAttemptId::parse(&attempt) else {
+        return invalid_identity("attempt");
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.cancel_attempt(context, attempt)).await)
+}
+
+async fn approve_tool_call(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(tool): Path<String>,
+    body: axum::body::Bytes,
+) -> Response {
+    let Some(tool) = ToolInvocationId::parse(&tool) else {
+        return invalid_identity("tool");
+    };
+    let choice = match tool_decision_choice(&body) {
+        Ok(choice) => choice,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.approve_tool_call(context, tool, choice)).await)
+}
+
+/// The optional decision body: absent for a workspace tool, the chosen
+/// option for a local agent's permission request. An empty body is no
+/// choice, so the clients that predate the body keep working unchanged.
+fn tool_decision_choice(body: &[u8]) -> Result<Option<String>, Response> {
+    if body.iter().all(u8::is_ascii_whitespace) {
+        return Ok(None);
+    }
+    serde_json::from_slice::<ToolDecisionRequest>(body)
+        .map(|request| request.choice)
+        .map_err(|_| {
+            ai_failure(
+                StatusCode::BAD_REQUEST,
+                Failure {
+                    code: "invalid_request".into(),
+                    message: "The tool decision body is invalid.".into(),
+                    retryable: false,
+                    details: Default::default(),
+                },
+            )
+        })
+}
+
+async fn deny_tool_call(
+    State(state): State<Arc<GatewayState>>,
+    Extension(principal): Extension<GatewayPrincipal>,
+    Path(tool): Path<String>,
+    body: axum::body::Bytes,
+) -> Response {
+    let Some(tool) = ToolInvocationId::parse(&tool) else {
+        return invalid_identity("tool");
+    };
+    let choice = match tool_decision_choice(&body) {
+        Ok(choice) => choice,
+        Err(response) => return response,
+    };
+    let (client, context) = match admitted(&state, principal, AiScope::Chat) {
+        Ok(values) => values,
+        Err(response) => return response,
+    };
+    answer(call(move || client.deny_tool_call(context, tool, choice)).await)
+}
+
+fn admitted(
+    state: &GatewayState,
+    principal: GatewayPrincipal,
+    required: AiScope,
+) -> Result<(koru_ai_client::Client, RequestContext), Response> {
+    if !principal
+        .scopes
+        .iter()
+        .any(|scope| scope == required.as_str())
+    {
+        return Err(ai_failure(
+            StatusCode::FORBIDDEN,
+            Failure {
+                code: "forbidden".into(),
+                message: "The gateway session does not permit this AI operation.".into(),
+                retryable: false,
+                details: Default::default(),
+            },
+        ));
+    }
+    let Some(client) = state.ai_client() else {
+        return Err(ai_failure(
+            StatusCode::SERVICE_UNAVAILABLE,
+            unavailable_failure(),
+        ));
+    };
+    let scopes = principal
+        .scopes
+        .iter()
+        .filter_map(|scope| AiScope::parse(scope))
+        .collect();
+    Ok((
+        client,
+        RequestContext {
+            principal: AiPrincipal {
+                label: principal.label,
+                scopes,
+            },
+            trace_id: uuid::Uuid::new_v4().to_string(),
+            deadline_millis: None,
+        },
+    ))
+}
+
+async fn call<T, F>(operation: F) -> Result<T, Failure>
+where
+    T: Send + 'static,
+    F: FnOnce() -> Result<T, Failure> + Send + 'static,
+{
+    let started = std::time::Instant::now();
+    let result = tokio::task::spawn_blocking(operation)
+        .await
+        .map_err(|_| unavailable_failure())?;
+    tracing::debug!(
+        target: "koru_ai::gateway",
+        response_type = std::any::type_name::<T>(),
+        outcome = if result.is_ok() { "ok" } else { "failure" },
+        elapsed_ms = started.elapsed().as_secs_f64() * 1_000.0,
+        "AI facade delegation completed"
+    );
+    result
+}
+
+fn answer<T: serde::Serialize>(result: Result<T, Failure>) -> Response {
+    match result {
+        Ok(value) => Json(value).into_response(),
+        Err(failure) => ai_failure(status_for(&failure), failure),
+    }
+}
+
+fn json_request<T>(payload: Result<Json<T>, JsonRejection>) -> Result<T, Response> {
+    payload.map(|Json(value)| value).map_err(|_| {
+        ai_failure(
+            StatusCode::BAD_REQUEST,
+            Failure {
+                code: "invalid_request".into(),
+                message: "The AI request body is invalid.".into(),
+                retryable: false,
+                details: Default::default(),
+            },
+        )
+    })
+}
+
+fn sse_response(response: koru_ai_api::AiResponseStream) -> Response {
+    let attempt_id = response.accepted.attempt_id;
+    let first = sse_bytes("accepted", &response.accepted);
+    let (sender, receiver) = tokio::sync::mpsc::channel(SSE_CAPACITY);
+    tokio::task::spawn_blocking(move || {
+        let mut event_count = 0_u64;
+        let mut terminal = false;
+        while let Ok(event) = response.events.recv() {
+            event_count = event_count.saturating_add(1);
+            terminal |= event.event.is_terminal();
+            if sender.blocking_send(sse_bytes("event", &event)).is_err() {
+                tracing::warn!(
+                    target: "koru_ai::stream",
+                    attempt = %attempt_id,
+                    event_count,
+                    terminal,
+                    "AI gateway response client disconnected"
+                );
+                return;
+            }
+        }
+        if terminal {
+            tracing::debug!(
+                target: "koru_ai::stream",
+                attempt = %attempt_id,
+                event_count,
+                "AI gateway response stream reached a terminal event"
+            );
+        } else {
+            tracing::warn!(
+                target: "koru_ai::stream",
+                attempt = %attempt_id,
+                event_count,
+                "AI gateway response source ended before a terminal event"
+            );
+        }
+    });
+    struct State {
+        first: Option<Bytes>,
+        receiver: tokio::sync::mpsc::Receiver<Bytes>,
+    }
+    let body = Body::from_stream(stream::unfold(
+        State {
+            first: Some(first),
+            receiver,
+        },
+        |mut state| async move {
+            let next = match state.first.take() {
+                Some(first) => Some(first),
+                None => state.receiver.recv().await,
+            };
+            next.map(|bytes| (Ok::<_, Infallible>(bytes), state))
+        },
+    ));
+    let mut response = Response::new(body);
+    response.headers_mut().insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("text/event-stream; charset=utf-8"),
+    );
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-cache"));
+    response
+}
+
+fn model_pull_sse_response(response: koru_ai_api::ModelPullResponseStream) -> Response {
+    let first = sse_bytes("accepted", &response.accepted);
+    let (sender, receiver) = tokio::sync::mpsc::channel(SSE_CAPACITY);
+    tokio::task::spawn_blocking(move || {
+        while let Ok(event) = response.events.recv() {
+            if sender.blocking_send(sse_bytes("event", &event)).is_err() {
+                break;
+            }
+        }
+    });
+    struct State {
+        first: Option<Bytes>,
+        receiver: tokio::sync::mpsc::Receiver<Bytes>,
+    }
+    let body = Body::from_stream(stream::unfold(
+        State {
+            first: Some(first),
+            receiver,
+        },
+        |mut state| async move {
+            let next = match state.first.take() {
+                Some(first) => Some(first),
+                None => state.receiver.recv().await,
+            };
+            next.map(|bytes| (Ok::<_, Infallible>(bytes), state))
+        },
+    ));
+    let mut response = Response::new(body);
+    response.headers_mut().insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("text/event-stream; charset=utf-8"),
+    );
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-cache"));
+    response
+}
+
+fn sse_bytes<T: serde::Serialize>(name: &str, value: &T) -> Bytes {
+    let json = serde_json::to_string(value).expect("AI SSE values serialize");
+    Bytes::from(format!("event: {name}\ndata: {json}\n\n"))
+}
+
+fn invalid_identity(kind: &str) -> Response {
+    ai_failure(
+        StatusCode::BAD_REQUEST,
+        Failure {
+            code: "invalid_id".into(),
+            message: format!("The {kind} identity is invalid."),
+            retryable: false,
+            details: Default::default(),
+        },
+    )
+}
+
+fn status_for(failure: &Failure) -> StatusCode {
+    match failure.code.as_str() {
+        "invalid_request" | "invalid_id" => StatusCode::BAD_REQUEST,
+        "forbidden" => StatusCode::FORBIDDEN,
+        "not_found" | "chat_not_found" => StatusCode::NOT_FOUND,
+        "chat_busy" | "idempotency_conflict" | "model_pull_active" => StatusCode::CONFLICT,
+        "deadline_exceeded" | "ai_worker_timeout" => StatusCode::GATEWAY_TIMEOUT,
+        "ai_worker_saturated"
+        | "ai_unavailable"
+        | "ai_context_unavailable"
+        | "ai_provider_management_unavailable" => StatusCode::SERVICE_UNAVAILABLE,
+        _ => StatusCode::INTERNAL_SERVER_ERROR,
+    }
+}
+
+fn unavailable_failure() -> Failure {
+    Failure {
+        code: "ai_unavailable".into(),
+        message: "The AI service is not available.".into(),
+        retryable: true,
+        details: Default::default(),
+    }
+}
+
+fn ai_failure(status: StatusCode, failure: Failure) -> Response {
+    let mut response = Json(failure).into_response();
+    *response.status_mut() = status;
+    response
+}

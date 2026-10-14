@@ -1,0 +1,16 @@
+[package]
+rust-version.workspace = true
+name = "koru-relay-preference"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The machine-local relay on/off preference shared by every installed Koru channel."
+
+[dependencies]
+koru-channel = { path = "../koru-channel" }
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

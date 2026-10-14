@@ -1,0 +1,33 @@
+[package]
+rust-version.workspace = true
+name = "koru-import-google-docs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Google Docs import: OAuth + Google Picker + Markdown export, into Koru documents."
+
+[dependencies]
+koru-import = { path = "../koru-import" }
+# The Markdown semantic conversion. Google's `files.export(text/markdown)` is
+# Markdown, so this crate is thin: OAuth + Picker + one export call + handing
+# the text to the importer below, never a second document-format parser.
+koru-import-markdown = { path = "../koru-import-markdown" }
+koru-oauth-credentials = { path = "../koru-oauth-credentials", features = ["desktop"] }
+koru-oauth-loopback = { path = "../koru-oauth-loopback" }
+koru-store-core = { path = "../koru-store-core" }
+koru-core = { path = "../koru-core" }
+# The OAuth registration is build configuration, not a literal: read through
+# koru-env's `value`, which is the environment first and then what a release
+# baked in (`koru_env::BAKED`). See docs/contributing/operations/RUNBOOK.md.
+koru-env = { path = "../koru-env" }
+# OAuth2 mechanics (PKCE + refresh), blocking via reqwest so no tokio runtime
+# enters the desktop shell. Shared Koru crates own callback transport and the
+# credential-vault boundary; this crate keeps Google's policy.
+oauth2 = { version = "5", default-features = false, features = ["reqwest-blocking"] }
+reqwest.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+koru-device = { path = "../koru-device" }
+tempfile.workspace = true

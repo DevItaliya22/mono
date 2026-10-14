@@ -1,0 +1,38 @@
+[package]
+rust-version.workspace = true
+name = "koru-network-iroh"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Iroh endpoint and QUIC adapter for Koru's device network edge."
+
+[dependencies]
+koru-account-session = { path = "../koru-account-session" }
+rand_core.workspace = true
+blake3.workspace = true
+# `Connection::paths_stream()` is a `Stream`, and D246's watcher has to await
+# its next snapshot. Only `StreamExt::next` is used.
+futures-util.workspace = true
+iroh.workspace = true
+koru-device = { path = "../koru-device" }
+koru-env = { path = "../koru-env" }
+koru-network-edge = { path = "../koru-network-edge" }
+koru-pairing = { path = "../koru-pairing" }
+koru-replication = { path = "../koru-replication" }
+koru-store-core = { path = "../koru-store-core" }
+koru-sync-control = { path = "../koru-sync-control" }
+loro.workspace = true
+loro-protocol.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+koru-account-core = { path = "../koru-account-core" }
+ed25519-dalek.workspace = true
+koru-relay-test-support = { path = "../koru-relay-test-support" }
+tempfile.workspace = true
+tokio = { workspace = true, features = ["test-util"] }
+uuid.workspace = true

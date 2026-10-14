@@ -1,0 +1,17 @@
+[package]
+rust-version.workspace = true
+name = "koru-delegate-preamble"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Finds and validates the delegated-agent preamble a user may have edited, falling back to the bundled copy; it judges nothing about what the text says."
+
+# **A leaf, and a small one.** The delegate worker (P1.6) calls `resolve`
+# once per run, off any thread that answers a person, and hands the text to
+# the provider. The crate links `koru-i18n` for the one sentence a surface
+# shows when an edited copy could not be used, and `std`'s filesystem for
+# the read — no run vocabulary, no database, no wire, no process, no
+# surface. `src/tests/dependency.rs` is the fence.
+[dependencies]
+koru-i18n = { path = "../koru-i18n" }

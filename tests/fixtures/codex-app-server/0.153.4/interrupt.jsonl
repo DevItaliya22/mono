@@ -1,0 +1,8 @@
+{"method":"turn/start","id":5,"params":{"threadId":"<thread-id>","input":[{"type":"text","text":"<fixture-text>"}]}}
+{"method":"thread/status/changed","params":{"threadId":"<thread-id>","status":{"type":"active","activeFlags":[]}},"emittedAtMs":0}
+{"id":5,"result":{"turn":{"id":"<turn-id>","items":[],"itemsView":"notLoaded","status":"inProgress","error":null,"startedAt":null,"completedAt":null,"durationMs":null}}}
+{"method":"turn/interrupt","id":6,"params":{"threadId":"<thread-id>","turnId":"<turn-id>"}}
+{"method":"turn/started","params":{"threadId":"<thread-id>","turn":{"id":"<turn-id>","items":[],"itemsView":"notLoaded","status":"inProgress","error":null,"startedAt":0,"completedAt":null,"durationMs":null}},"emittedAtMs":0}
+{"id":6,"result":{}}
+{"method":"thread/status/changed","params":{"threadId":"<thread-id>","status":{"type":"idle"}},"emittedAtMs":2}
+{"method":"turn/completed","params":{"threadId":"<thread-id>","turn":{"id":"<turn-id>","items":[],"itemsView":"notLoaded","status":"interrupted","error":null,"startedAt":0,"completedAt":2,"durationMs":2}},"emittedAtMs":2}

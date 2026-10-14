@@ -1,0 +1,27 @@
+[package]
+rust-version.workspace = true
+name = "koru-session-backend"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+image = { version = "0.25", default-features = false, features = ["png"] }
+koru-channel = { path = "../koru-channel" }
+koru-clipboard = { path = "../koru-clipboard" }
+koru-ipc = { path = "../koru-ipc" }
+koru-session-client = { path = "../koru-session-client" }
+koru-session-profiles = { path = "../koru-session-profiles" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+koru-session-view = { path = "../koru-session-view" }
+koru-session-wire = { path = "../koru-session-wire" }
+tracing.workspace = true
+vello.workspace = true
+
+[dev-dependencies]
+koru-session-client = { path = "../koru-session-client", features = ["test-transport"] }
+koru-session-host = { path = "../koru-session-host", features = ["no-provider-probes"] }
+tempfile.workspace = true
+tokio.workspace = true
+uuid.workspace = true

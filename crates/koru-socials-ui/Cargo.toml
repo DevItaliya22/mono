@@ -1,0 +1,31 @@
+[package]
+rust-version.workspace = true
+name = "koru-socials-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[features]
+default = []
+no-reader = ["koru-socials-x/no-network", "koru-socials-reddit/no-network", "koru-socials-linkedin/no-network"]
+
+[dependencies]
+koru-socials = { path = "../koru-socials" }
+koru-socials-store = { path = "../koru-socials-store" }
+koru-socials-x = { path = "../koru-socials-x" }
+koru-socials-auth = { path = "../koru-socials-auth" }
+koru-socials-reddit = { path = "../koru-socials-reddit" }
+koru-socials-linkedin = { path = "../koru-socials-linkedin" }
+koru-api-client = { path = "../koru-api-client" }
+koru-store-core = { path = "../koru-store-core" }
+koru-channel = { path = "../koru-channel" }
+koru-i18n = { path = "../koru-i18n" }
+koru-draw = { path = "../koru-draw" }
+koru-ui = { path = "../koru-ui" }
+koru-core = { path = "../koru-core" }
+koru-keys = { path = "../koru-keys" }
+vello.workspace = true
+winit.workspace = true
+chrono.workspace = true
+uuid.workspace = true

@@ -1,0 +1,29 @@
+[package]
+rust-version.workspace = true
+name = "koru-artifact-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "What an artifact is — families, immutable versions, provenance and the permission vocabulary — and the ports a store of them implements; it holds no bytes and no HTTP."
+
+# **A leaf, like `koru-delegate-core`.** The artifact store, its routes, the
+# MCP tools of P1.11 and the surface of P1.13 all speak these types, so this
+# crate links only the vocabulary it reuses — `ArtifactVersionId`, `RunId`,
+# `AttemptGeneration` and `ArtifactTitle` from the run vocabulary, `BlobHash`
+# and `WorkspaceId` through it — plus serde, uuid and an optional schema
+# derive. `src/tests/dependency.rs` is the fence.
+[features]
+default = []
+schema = ["dep:schemars", "koru-delegate-core/schema"]
+
+[dependencies]
+# `ArtifactVersionId`, `RunId`, `AttemptGeneration`, `ArtifactTitle`, and
+# through it `BlobHash`, `WorkspaceId`, `ProfileId`, `DeviceId`.
+koru-delegate-core = { path = "../koru-delegate-core" }
+schemars = { workspace = true, optional = true }
+serde = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }

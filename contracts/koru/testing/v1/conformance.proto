@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: MPL-2.0
+
+syntax = "proto3";
+
+package koru.testing.v1;
+
+import "koru/v1/commands.proto";
+import "koru/v1/errors.proto";
+import "koru/v1/events.proto";
+import "koru/v1/model.proto";
+
+option java_multiple_files = true;
+option java_package = "app.koru.contract.testing.v1";
+option swift_prefix = "KORT";
+
+message ConformanceScenario {
+  string name = 1;
+  koru.v1.DocumentProjection initial = 2;
+  repeated koru.v1.DocumentCommandEnvelope commands = 3;
+  koru.v1.DocumentProjection expected = 4;
+  repeated koru.v1.DocumentEventEnvelope expected_events = 5;
+  optional koru.v1.ErrorCode expected_error = 6;
+}

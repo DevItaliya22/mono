@@ -1,0 +1,28 @@
+[package]
+rust-version.workspace = true
+name = "koru-api-discovery"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Narrow desktop rendezvous for the public Koru API gateway."
+
+[features]
+default = []
+server = ["koru-ipc/tokio", "dep:tokio"]
+
+[dependencies]
+koru-ipc = { path = "../koru-ipc" }
+# The first-party grant a window presents at admission. Naming the type rather
+# than carrying an opaque string is the `koru-store-wire` lesson one layer out:
+# a redacted `Debug` and an expiry that both ends agree about, instead of two
+# spellings of "some token". It is a serde-only leaf, so this stays a narrow
+# rendezvous crate.
+koru-agent-wire = { path = "../koru-agent-wire" }
+serde.workspace = true
+tokio = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }
+tempfile.workspace = true
+

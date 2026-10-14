@@ -1,0 +1,23 @@
+[package]
+rust-version.workspace = true
+name = "koru-settings"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Koru settings authority: the closed registry, defaults, validation, migration, storage classification, file persistence, and change facts."
+
+# **The authority is a leaf, and the dependency test below this line is the
+# fence.** It is hosted inside the API gateway process, so a UI crate reaching
+# in here would put parley and vello behind an HTTP handler; an async runtime
+# would put a second one beside the gateway's. `directories` is here for one
+# call — the `desktop-v1.json` location the desktop already uses — and every
+# test builds its paths from an injected root instead.
+[dependencies]
+directories.workspace = true
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

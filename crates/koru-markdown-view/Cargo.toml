@@ -1,0 +1,47 @@
+[package]
+rust-version.workspace = true
+name = "koru-markdown-view"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "One Markdown surface: a Markdown file read as a Koru document, drawn the way Koru draws a document, edited, and written back through the exporter."
+
+# **One surface, two hosts, no second dialect.** Everything here is
+# composition: the importer makes the document, the exporter writes it back,
+# and `koru-markdown` draws a block. This crate adds the projection between
+# them — which blocks are on screen, where they sit, and the edit buffer —
+# and nothing that knows what a run, a version, a gateway or a file path is.
+# `src/tests/dependency.rs` is the fence.
+[dependencies]
+# Markdown in: the same parser file import and rich clipboard paste use, so
+# a rendered document and an imported one cannot be two different documents.
+koru-import-markdown = { path = "../koru-import-markdown" }
+# Markdown out: the same serializer the Export menu writes, so what a save
+# puts on disk is what every other export of the same document would be.
+koru-export-markdown = { path = "../koru-export-markdown" }
+# `BlobSource`, which the exporter asks for images. This surface has no blob
+# store and says so by answering nothing.
+koru-export = { path = "../koru-export" }
+# The node model itself — `WorkspaceDoc`, in memory, made out of bytes this
+# surface was handed. **Not a way to reach a stored document**: nothing here
+# opens a store, and no host hands one in.
+koru-core = { path = "../koru-core" }
+# The one Markdown renderer: headings, lists, emphasis, code, links, tables
+# and rules, in Koru's document tokens. This crate lays blocks out; it does
+# not decide what one looks like.
+koru-markdown = { path = "../koru-markdown" }
+# Drawing: the palette, the text engine, the scene helpers.
+koru-draw = { path = "../koru-draw" }
+# The multi-line composer an edit is typed into.
+koru-ui = { path = "../koru-ui" }
+# Every string a person reads, in eight languages, and every size through
+# `koru_i18n::number::bytes`.
+koru-i18n = { path = "../koru-i18n" }
+# The laid-out text a measured block is kept as, so drawing measures
+# nothing. `koru-markdown` hands these back.
+parley.workspace = true
+# The one id a rendered document carries, and it is a constant.
+uuid.workspace = true
+vello.workspace = true
+winit.workspace = true

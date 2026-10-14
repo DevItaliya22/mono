@@ -1,0 +1,54 @@
+{
+  "blob_mapping": {
+    "expect": {
+      "blob_hash": "b3:abababababababababababababababababababababababababababababababab",
+      "blob_identity_key_version": 1,
+      "cloud_object_id": "af32851e7bb216462b5ea4e4e613b87a7e6b73c36db14c3e6a1dfab34321b8bd",
+      "wek_version": 5,
+      "workspace_id": "71717171-7171-7171-7171-717171717171"
+    },
+    "header_len": 62,
+    "note": "No plaintext BlobHash exists server-side. The row's key is the CloudObjectId; the BlobHash is inside the ciphertext.",
+    "record": "000100010020717171717171717171717171717171710000000500000001af32851e7bb216462b5ea4e4e613b87a7e6b73c36db14c3e6a1dfab34321b8bd0c45f28173ecdb95b51c22c6ad41216ee9b08759c84408019e522eaaa5459586deb783f7ec8a7eb49c4a7ec55077a9effcc0b7157d6c9d4dfd1fa20874afadb20f5fb22c87610e853bd0b0e5e89ab1160e630f0cdb564ad0c0b1e2af81e13a998d463128cc075b2ae79737ff2bb06bda2791f0435671a12426d07c45bc78dc28edb152dd4779ea25f36084bc0434ed",
+    "wek": "e03092af715865c86e8276e312a00dd0167efb715e11d36651af86d39e4658cd"
+  },
+  "cases": [
+    {
+      "blob_hash": "b3:abababababababababababababababababababababababababababababababab",
+      "cloud_object_id": "af32851e7bb216462b5ea4e4e613b87a7e6b73c36db14c3e6a1dfab34321b8bd",
+      "identity_key_version": 1,
+      "identity_root": "08e3ad20cb7235b00789908569f3b01a8b0bdb12e7cd84328dfb218cb64e2b43",
+      "name": "the same blob in the same workspace gets the same id",
+      "workspace_id": "71717171-7171-7171-7171-717171717171"
+    },
+    {
+      "blob_hash": "b3:abababababababababababababababababababababababababababababababab",
+      "cloud_object_id": "4e7760868e4e7b7afa90c5d6c31875f8d619114d7d3bfb2c73918ca485fc5087",
+      "identity_key_version": 2,
+      "identity_root": "08e3ad20cb7235b00789908569f3b01a8b0bdb12e7cd84328dfb218cb64e2b43",
+      "name": "a second identity-key version is a separate axis",
+      "workspace_id": "71717171-7171-7171-7171-717171717171"
+    },
+    {
+      "blob_hash": "b3:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+      "cloud_object_id": "2f201e7b2871d37f936dcbabb3cb68d8fc4e094dd9a2cfcbc2516d054e091035",
+      "identity_key_version": 1,
+      "identity_root": "08e3ad20cb7235b00789908569f3b01a8b0bdb12e7cd84328dfb218cb64e2b43",
+      "name": "a different blob in the same workspace",
+      "workspace_id": "71717171-7171-7171-7171-717171717171"
+    },
+    {
+      "blob_hash": "b3:abababababababababababababababababababababababababababababababab",
+      "cloud_object_id": "72f40af206e6e933275e8fe128b2c80914235307e8a1ad76950a9f82eeac28d7",
+      "identity_key_version": 1,
+      "identity_root": "f51ea510d93851b931a6c7511e64c08b3b14f7e636af3a024cbc92156fbe0890",
+      "name": "the same blob under an independent key in another workspace is uncorrelated",
+      "workspace_id": "72727272-7272-7272-7272-727272727272"
+    }
+  ],
+  "claim": "Prevents CROSS-WORKSPACE equality correlation, assuming every workspace's identity key is independently random. It intentionally still reveals equality and dedup WITHIN one workspace. It hides no length, and it is not an integrity check on the object.",
+  "construction": "subkey = BLAKE3::derive_key(\"koru.do/workspace-crypto/v1 blob-identity-root -> cloud-object-id subkey\", root); CloudObjectId = BLAKE3::keyed_hash(subkey, \"koru:cloud-object-id:v1\\0\" || workspace_id || u32be(identity_key_version) || u32be(len(blob_hash)) || blob_hash)",
+  "format": "CloudObjectId and BlobMappingRecordV1",
+  "format_version": 1,
+  "never": "WorkspaceBlobIdentityKey is never an encryption key. Its one use goes through a derived purpose subkey."
+}

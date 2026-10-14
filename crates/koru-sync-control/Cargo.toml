@@ -1,0 +1,24 @@
+[package]
+rust-version.workspace = true
+name = "koru-sync-control"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Transport-neutral Agent-to-Store replication control contract."
+
+[dependencies]
+koru-device = { path = "../koru-device" }
+koru-pairing = { path = "../koru-pairing" }
+koru-store-core = { path = "../koru-store-core" }
+serde.workspace = true
+# Only to validate a control-plane origin's shape. Parsing a URL is not
+# reaching one: this crate opens no socket and never will.
+url.workspace = true
+uuid.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+# Only to prove a gossip batch at the sanity bound fits in one control frame.
+koru-ipc = { path = "../koru-ipc" }
+serde_json.workspace = true

@@ -1,0 +1,21 @@
+# Code owners: a pull request touching these paths needs a code owner's review
+# before it can merge (branch protection on main requires it).
+#
+# These are the paths that decide what CI runs, what the repository's scripts,
+# launchers and git hooks do on a contributor's machine, how cargo builds,
+# which third-party code is fetched and how it is patched, and what a release
+# contains and how it is verified. The maintainers are listed in
+# GOVERNANCE.md.
+
+/.github/                @sliechti
+/scripts/                @sliechti
+/koru.bat                @sliechti
+/koru.sh                 @sliechti
+/.githooks/              @sliechti
+/.cargo/                 @sliechti
+/crates/koru-release/    @sliechti
+/deny.toml               @sliechti
+/rust-toolchain.toml     @sliechti
+/Cargo.toml              @sliechti
+/Cargo.lock              @sliechti
+/third-party/            @sliechti

@@ -1,0 +1,111 @@
+{
+  "case": "04-bidi-mixed-direction-document",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "Arabic, including the mixed-direction fixture line with its explicit bidi control characters.",
+  "covers": [
+    "D65",
+    "PRINCIPLES.md#internationalization-is-structural"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "الخطة الفصلية",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 25
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "نص حكيم له سر قاطع وذو شأن عظيم مكتوب على ثوب أخضر ومغلف بجلد أزرق.",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 119
+                  }
+                ]
+              },
+              {
+                "id": "n3",
+                "parent": null,
+                "ordinal": 2,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "مرحبا ‫Koru Store‬ — الإصدار ٣ (v3) جاهز.",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 64
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 13 = 13",
+    "    doc-1/n2 (paragraph): node.text 67 = 67",
+    "    doc-1/n3 (paragraph): node.text 41 = 41",
+    "  document doc-1: 121",
+    "  -> documents_units 121 + files_bytes 0 = 121",
+    "account: documents_units 121 + files_bytes 0 = 121"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 121,
+        "files_bytes": 0,
+        "logical_usage_units": 121,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 121,
+      "files_bytes": 0,
+      "logical_usage_units": 121,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "The two U+202B / U+202C bidi controls in the third node are each one scalar value and are counted. Content passes through byte-exactly and is never interpreted or stripped; direction is a rendering decision that never reaches accounting.",
+    "NON-NORMATIVE: under UTF-8 bytes this document would cost 208 LU instead of 121.",
+    "Was 313 under the superseded revision.",
+    "Strings are koru_store_core::fixtures SAMPLES[\"ar\"] and BIDI_LINE."
+  ]
+}

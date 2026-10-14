@@ -1,0 +1,86 @@
+{
+  "event_id": "00000000-0000-4000-8000-00000000ee17",
+  "name": "delegate.run.usage",
+  "version": 1,
+  "occurred_at_ms": 1756000023000,
+  "actor": {
+    "kind": "agent",
+    "id": "00000000-0000-4000-8000-000000000001",
+    "token": "delegate"
+  },
+  "origin": {
+    "device_id": "00000000-0000-4000-8000-0000000000a2",
+    "session_id": "00000000-0000-4000-8000-0000000000a1"
+  },
+  "scope": {
+    "profile_id": "00000000-0000-4000-8000-0000000000a3",
+    "workspace_id": "00000000-0000-4000-8000-000000000003"
+  },
+  "subject": {
+    "kind": "document",
+    "id": "00000000-0000-4000-8000-000000000002"
+  },
+  "correlation_id": "00000000-0000-4000-8000-00000000ee00",
+  "attrs": {
+    "cached_input_unavailable_turns": {
+      "t": "count",
+      "v": 3
+    },
+    "complete": {
+      "t": "flag",
+      "v": false
+    },
+    "elapsed_ms": {
+      "t": "int",
+      "v": 65000
+    },
+    "human_turns": {
+      "t": "count",
+      "v": 1
+    },
+    "input": {
+      "t": "count",
+      "v": 1200
+    },
+    "input_unavailable_turns": {
+      "t": "count",
+      "v": 1
+    },
+    "interventions": {
+      "t": "count",
+      "v": 2
+    },
+    "models": {
+      "t": "count",
+      "v": 1
+    },
+    "orchestrator_turns": {
+      "t": "count",
+      "v": 3
+    },
+    "outcome": {
+      "t": "token",
+      "v": "completed"
+    },
+    "output": {
+      "t": "count",
+      "v": 400
+    },
+    "output_unavailable_turns": {
+      "t": "count",
+      "v": 0
+    },
+    "run": {
+      "t": "id",
+      "v": "00000000-0000-4000-8000-000000000001"
+    },
+    "tool_calls": {
+      "t": "count",
+      "v": 12
+    },
+    "turns_with_usage": {
+      "t": "count",
+      "v": 3
+    }
+  }
+}

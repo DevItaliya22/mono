@@ -1,0 +1,45 @@
+[package]
+rust-version.workspace = true
+name = "koru-chats-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Chats surface: every AI chat, newest first, with who answered it — one component for the workspace navigator and the standalone chat window."
+
+# **The dependency list is the point**, as it is for `koru-artifacts-ui`.
+# One component, two hosts (AGENTUX I5): the workspace window's navigator and
+# the standalone chat window's floating pane. So it may not name either
+# host — no `koru-ai-ui` (which hosts it, and would be a cycle), no
+# `koru-workspace`, no `koru-editor`, no `koru-workspace-host`.
+# `src/tests/dependency.rs` pins that.
+[features]
+default = []
+# **Never dial a gateway.** For a *host's* tests: `cfg(test)` covers this
+# crate's own and cannot cover anybody else's, because a dependency is never
+# compiled with it. Turned on as a dev-dependency, which resolver 2+ keeps
+# out of the normal build. See `ChatsSurface::new`.
+no-reader = []
+
+[dependencies]
+# The vocabulary: a chat, who answers it, and the one failure shape whose
+# stable codes this surface renders.
+koru-ai-core = { path = "../koru-ai-core" }
+koru-ai-wire = { path = "../koru-ai-wire" }
+# The gateway, as this surface reaches it.
+koru-api-client = { path = "../koru-api-client" }
+# Which build this is, so the surface dials the gateway its own cargo
+# invocation built.
+koru-channel = { path = "../koru-channel" }
+# Every word a person reads, in all eight, and every time through the one
+# formatter.
+koru-i18n = { path = "../koru-i18n" }
+# Drawing: the palette, the text engine, the scene helpers, the icons.
+koru-draw = { path = "../koru-draw" }
+# `draw_icon` alone — the one place an icon glyph's font is chosen.
+koru-shell-chrome = { path = "../koru-shell-chrome" }
+vello.workspace = true
+winit.workspace = true
+
+[dev-dependencies]
+uuid.workspace = true

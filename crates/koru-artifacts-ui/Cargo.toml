@@ -1,0 +1,60 @@
+[package]
+rust-version.workspace = true
+name = "koru-artifacts-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Artifacts surface: what a delegated run produced, and the files it left that are not results yet."
+
+# **The dependency list is the point**, as it is for `koru-search-ui`. No
+# `koru-core`, no `koru-workspace`, no `koru-editor`, no
+# `koru-workspace-host` — this surface is a projection of the Artifact
+# Store, not of a document, and the host that draws it need not own one.
+# `src/tests/dependency.rs` pins that.
+[features]
+default = []
+# **Never dial a gateway.** For a *host's* tests: `cfg(test)` covers this
+# crate's own and cannot cover anybody else's, because a dependency is never
+# compiled with it. Turned on as a dev-dependency, which resolver 2+ keeps
+# out of the normal build. See `ArtifactsSurface::new`.
+no-reader = []
+
+[dependencies]
+# The vocabulary: a family, a version, provenance, a run's folder listing,
+# and the one failure shape whose stable codes this surface renders.
+koru-artifact-wire = { path = "../koru-artifact-wire" }
+# The gateway, as this surface reaches it.
+koru-api-client = { path = "../koru-api-client" }
+# Which build this is, so the surface dials the gateway its own cargo
+# invocation built.
+koru-channel = { path = "../koru-channel" }
+koru-env = { path = "../koru-env" }
+# Every word a person reads, in all eight, and every time and size through
+# the one formatter.
+koru-i18n = { path = "../koru-i18n" }
+# **The Markdown surface the run views also draw with.** A result is a
+# Markdown file; this is the one crate that reads one as a Koru document and
+# writes it back. It is handed bytes and reaches no store of its own, which
+# is why it can sit under a column whose whole point is that it is not a
+# projection of a document.
+koru-markdown-view = { path = "../koru-markdown-view" }
+# The blob listing that answers *does this device hold the content* (D27).
+koru-store-core = { path = "../koru-store-core" }
+# Drawing: the palette, the text engine, the scene helpers, the icons.
+koru-draw = { path = "../koru-draw" }
+# `draw_icon` alone — the one place an icon glyph's font is chosen, so this
+# surface's rows cannot draw a Phosphor codepoint in the UI face.
+koru-shell-chrome = { path = "../koru-shell-chrome" }
+# The one normalisation of a cursor shape, so the result tab cannot answer a
+# different arrow over a control than every other surface in the window.
+koru-ui = { path = "../koru-ui" }
+# To *print* a chord, through the one seam every hint in the app goes
+# through, and to name the shortcut that shows this column.
+koru-keys = { path = "../koru-keys" }
+vello.workspace = true
+winit.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+uuid.workspace = true

@@ -1,0 +1,32 @@
+[package]
+rust-version.workspace = true
+name = "koru-account-session"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Provider-neutral account session and temporary-flow security policy."
+
+[features]
+# The in-memory repository and fakes of `src/account/tests.rs`, for the hosted
+# account service's tests, which are not in this repository.
+test-support = ["dep:pollster", "dep:uuid"]
+
+[dependencies]
+argon2.workspace = true
+base64.workspace = true
+ed25519-dalek.workspace = true
+koru-account-core = { path = "../koru-account-core" }
+koru-device = { path = "../koru-device" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+ring.workspace = true
+zeroize.workspace = true
+pollster = { workspace = true, optional = true }
+uuid = { workspace = true, optional = true }
+
+[dev-dependencies]
+koru-device = { path = "../koru-device" }
+pollster.workspace = true
+uuid.workspace = true

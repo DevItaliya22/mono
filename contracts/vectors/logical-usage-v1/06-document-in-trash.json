@@ -1,0 +1,94 @@
+{
+  "case": "06-document-in-trash",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "Document 02, flagged trashed_at in the workspace listing (ADR-95: a stamp on the manifest entry, content intact).",
+  "covers": [
+    "D39"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": 1789000000000
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "The quick brown fox jumps over the lazy dog.",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 44
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 14 = 14",
+    "    doc-1/n2 (paragraph): node.text 44 = 44",
+    "  document doc-1: 58",
+    "  -> documents_units 58 + files_bytes 0 = 58",
+    "account: documents_units 58 + files_bytes 0 = 58"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 58,
+        "files_bytes": 0,
+        "logical_usage_units": 58,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 58,
+      "files_bytes": 0,
+      "logical_usage_units": 58,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "The expected total is identical to vector 02. Recoverable Trash counts until permanent purge (D39): the bytes are still stored and the bin is a place somebody restores from.",
+    "The point of this case is unchanged by the 2026-09-05 decisions; only the number moved, 186 -> 58.",
+    "The input differs from 02 only in listing.trashed_at. A subtree inheriting an ancestor's stamp is treated identically (apply_inherited_trash)."
+  ]
+}

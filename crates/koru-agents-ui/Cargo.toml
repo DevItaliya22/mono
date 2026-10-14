@@ -1,0 +1,19 @@
+[package]
+rust-version.workspace = true
+name = "koru-agents-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+koru-i18n = { path = "../koru-i18n" }
+koru-session-observability = { path = "../koru-session-observability" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+koru-session-view = { path = "../koru-session-view" }
+koru-draw = { path = "../koru-draw" }
+# The composer's hover tooltip. This pulls `winit` into the normal tree —
+# koru-ui links it for its own text-field and cursor modules — but this crate
+# names no winit type and owns no event loop; `src/tests.rs` pins both facts.
+koru-ui = { path = "../koru-ui" }
+vello.workspace = true

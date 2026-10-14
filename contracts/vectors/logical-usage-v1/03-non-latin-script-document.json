@@ -1,0 +1,96 @@
+{
+  "case": "03-non-latin-script-document",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "The same two-node shape as 02, written in Japanese. This is where the character-vs-byte decision becomes money.",
+  "covers": [
+    "D65",
+    "PRINCIPLES.md#internationalization-is-structural"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "四半期計画",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 15
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "いろはにほへと ちりぬるを — 漢字とカタカナとひらがな、ﾊﾝｶｸ も。",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 100
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 5 = 5",
+    "    doc-1/n2 (paragraph): node.text 36 = 36",
+    "  document doc-1: 41",
+    "  -> documents_units 41 + files_bytes 0 = 41",
+    "account: documents_units 41 + files_bytes 0 = 41"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 41,
+        "files_bytes": 0,
+        "logical_usage_units": 41,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 41,
+      "files_bytes": 0,
+      "logical_usage_units": 41,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "Characters: 5 + 36 = 41.",
+    "NON-NORMATIVE, recording the decision: under UTF-8 bytes the same document would cost 115 LU — 2.80x more for writing the same thing in Japanese. The CTO settled this as characters on 2026-09-05.",
+    "Was 169 under the superseded revision.",
+    "Strings are koru_store_core::fixtures SAMPLES[\"ja\"]."
+  ]
+}

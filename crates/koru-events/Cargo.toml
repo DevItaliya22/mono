@@ -1,0 +1,25 @@
+[package]
+rust-version.workspace = true
+name = "koru-events"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "What a Koru event is — envelope, names, registry, attribute policy, and the telemetry wire shapes — and nothing that stores, transmits, or reacts to one."
+
+# **A leaf, deliberately.** The events worker, the SDK, the store's feed and —
+# later — the metrics ingest service and the flow-rule engine all name these
+# declarations, so a renamed field breaks every build rather than arriving as a
+# silent `None` (the koru-store-wire lesson). It links no HTTP, no runtime, no
+# database and no node model. `serde_json` is here because a telemetry
+# projection *is* a JSON object by contract, not because anything in this crate
+# transmits one.
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+# The OpenAPI/AsyncAPI documents are generated from these types, so the schema
+# and the bytes come from one declaration.
+schemars = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]

@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "contract": "regional-bootstrap.final.md",
+  "scope": "US placement and account home-region foundation; route vectors are not frozen here",
+  "deployment": [
+    { "region": "US", "result": "US" },
+    { "region": "EU", "error": "region_unavailable" }
+  ],
+  "account_home_region": [
+    { "observation": "active_us", "result": "US" },
+    { "observation": "active_eu", "error": "region_unavailable" },
+    { "observation": "missing", "error": "unauthenticated" },
+    { "observation": "disabled", "error": "unauthenticated" },
+    { "observation": "repository_unavailable", "error": "server_unavailable" },
+    { "observation": "repository_corrupt", "error": "server_unavailable" }
+  ],
+  "migration": {
+    "version": 202609100011,
+    "predecessor": 202609100010,
+    "enum": "account.koru_account_home_region",
+    "labels": ["US"],
+    "column": "account.koru_identities.home_region",
+    "nullable": false,
+    "default": "US",
+    "backfill": "US",
+    "explicit_insert": "US",
+    "reject": ["NULL", "EU", "unknown"],
+    "preserve": ["identity_id", "display_name", "status", "terms", "timestamps", "auth_identities", "sessions", "constraints", "indexes", "historical_migration_checksums"],
+    "new_tables": 0,
+    "new_indexes": 0,
+    "new_foreign_keys": 0,
+    "new_triggers": 0
+  }
+}

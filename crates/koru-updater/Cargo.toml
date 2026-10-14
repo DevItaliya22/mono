@@ -1,0 +1,33 @@
+[package]
+rust-version.workspace = true
+name = "koru-updater"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "External staged installer and rollback helper for Koru."
+
+[dependencies]
+koru-channel = { path = "../koru-channel" }
+koru-free-space = { path = "../koru-free-space" }
+koru-update = { path = "../koru-update" }
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys.workspace = true
+
+# One call: `kill(pid, 0)`, to ask whether Koru has exited before overwriting
+# the installation it is running from. There is no portable way to ask, and the
+# `/proc` answer this replaced is a Linux-only fact that macOS silently failed.
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+
+# The updater ships in every package and is the process that raises the UAC
+# prompt, so it gets an icon and a version block like the other three.
+[build-dependencies]
+koru-winres = { path = "../koru-winres" }
+
+[dev-dependencies]
+tempfile.workspace = true

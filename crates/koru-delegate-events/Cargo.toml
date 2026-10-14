@@ -1,0 +1,32 @@
+[package]
+rust-version.workspace = true
+name = "koru-delegate-events"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The only place a `delegate.*` event name is spelled — one typed builder per run or schedule registry row."
+
+# **A leaf, deliberately.** The orchestrator's `RunEvents` adapter (P1.6)
+# maps its closed `RunFact` onto these builders; `runs.db`'s pending list
+# re-publishes what they built under the same `EventId`; the events worker's
+# own tests drive a run's lifecycle through the real journal with them. So
+# this crate links exactly the vocabularies whose ids and closed enums it
+# turns into attributes, and nothing that publishes, stores, transports or
+# draws. `src/tests/dependency.rs` is the fence.
+[dependencies]
+# `ArtifactFamilyId` — the one artifact id the run vocabulary does not mint.
+koru-artifact-core = { path = "../koru-artifact-core" }
+# `RunId`, `RunAttemptId`, `AttemptGeneration`, `TurnIdentity`, `StepKind`'s
+# closed payload enums, `UsageFact`, `EconomicsSummary`, `Rating`, and the
+# ids it re-exports from the store and the session protocol.
+koru-delegate-core = { path = "../koru-delegate-core" }
+# `Draft`, `EmitContext`, `Envelope`, `event_name!`, `validate`.
+koru-events = { path = "../koru-events" }
+# `CachedInputRelationship` (wire v14) and `ErrorCode`, which the run
+# vocabulary speaks but does not re-export.
+koru-session-protocol = { path = "../koru-session-protocol" }
+uuid = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }

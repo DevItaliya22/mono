@@ -1,0 +1,95 @@
+# **The package and the binary it ships are both `koru-voice-worker`.**
+#
+# The contract crate is already called `koru-voice` (`crates/koru-voice`), and
+# two packages cannot share a name in one workspace. The same split already
+# exists one layer down: `apps/koru-store-server` ships `koru-store-server.exe`
+# beside `crates/koru-store-core`. So the *package* takes the `-worker` suffix
+# the roadmap already uses for this process in prose. `[[bin]]` pins that same
+# shipped file name. Keep it synchronized with `koru_update::exe::VOICE`, the
+# release/signing inventory, updater quiescence, Agent sibling resolution,
+# launchers, logs, docs, and tests named by Koru Agent roadmap Plan 1.1. A
+# partial rename makes the worker buildable but neither launchable nor safely
+# replaceable.
+[package]
+rust-version.workspace = true
+name = "koru-voice-worker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Koru voice worker: it opens the microphone, hosts a speech engine, and performs the effects koru_voice::Session emits. Audio never leaves this process."
+
+[[bin]]
+name = "koru-voice-worker"
+path = "src/main.rs"
+
+[lib]
+name = "koru_voice_worker"
+path = "src/lib.rs"
+
+[features]
+# **Refuse to open a capture device.**
+#
+# On in `[dev-dependencies]` below, and `a_test_build_never_opens_an_audio_device`
+# asserts it is still on. It is a *feature* rather than a `#[cfg(test)]` for the
+# reason `koru-search-ui`'s `no-reader` exists: a dependency is never compiled
+# with `cfg(test)`, so a guard inside this crate would stop covering the moment
+# anything above it grew a test. Nothing above it does yet — Plan 1.4's client
+# suites will — and building the guard the wrong way now is how that gets found
+# by somebody's microphone light coming on during `cargo test`.
+no-capture = []
+
+[dependencies]
+# The vocabulary and the state machine. This binary performs the `Effect`s
+# `Session` emits and reimplements none of it (ADR-249).
+koru-voice = { path = "../../crates/koru-voice" }
+# Which models are on this machine, and the lease that stops another channel
+# pruning one mid-dictation. Consumed through the `ModelStore` trait, so the
+# worker's own suite runs against a store that never touches a disk.
+koru-voice-models = { path = "../../crates/koru-voice-models" }
+# Only for the `Granted` in `ModelStore::install`'s signature. The worker
+# installs nothing and reads no consent record — the gate is the controller's
+# and the store's, and Q-V72 records why a process with no host directory is
+# not the place to read machine-local state.
+koru-voice-consent = { path = "../../crates/koru-voice-consent" }
+# Both product speech engines are always present. The repository launchers
+# provision sherpa's pinned native archive before Cargo runs, so its build
+# script never fetches an unverified artifact on its own.
+koru-voice-sherpa = { path = "../../crates/koru-voice-sherpa", features = ["runtime"] }
+koru-voice-whisper = { path = "../../crates/koru-voice-whisper", features = ["runtime"] }
+# The endpoint, the framing and the blocking listener. The whole transport.
+koru-ipc = { path = "../../crates/koru-ipc" }
+# Which channel this build is, and where its Store root is — `--root` overrides
+# it, and both answers go to `Endpoint::for_service_root` so a rooted worker and
+# a rooted client meet while an unrooted one finds nothing.
+koru-channel = { path = "../../crates/koru-channel" }
+# `KORU_VOICE_IDLE_UNLOAD` and `KORU_VOICE_IDLE_EXIT` are declared there or they
+# are invisible to `koru.bat envs` and to reference/ENV.md.
+koru-env = { path = "../../crates/koru-env" }
+# File logging under `<store root>/logs/`, daily rotation, seven files, the
+# shared panic hook. An executable's concern, which is why it is a leaf crate
+# rather than something a library inherits.
+koru-log = { path = "../../crates/koru-log" }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+# The supervisor bootstrap's root and image fingerprints, the same primitive and
+# the same spelling `koru-network-bridge` already uses for the gateway's.
+blake3 = { workspace = true }
+# The microphone. Nothing else in the workspace may name it — audio never
+# crosses the socket, so this is the only process that opens a device.
+cpal = { workspace = true }
+
+[dev-dependencies]
+# **`no-capture` under test.** See the feature's note: a package may name itself
+# here, and cargo unifies the feature onto the library only while building this
+# package's test targets. Without it a `cargo test` would open whatever
+# microphone the machine has.
+koru-voice-worker = { path = ".", features = ["no-capture"] }
+# The redaction test installs its own subscriber with
+# `tracing::subscriber::with_default` — thread-local, so it neither fights
+# `try_init` nor leaks into the suites running beside it — and reads back every
+# line the worker emitted at TRACE.
+tracing-subscriber = { workspace = true }
+tempfile = { workspace = true }

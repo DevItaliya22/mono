@@ -1,0 +1,18 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "error": {
+    "code": -32000,
+    "message": "Authentication required",
+    "data": {
+      "authMethods": [{
+        "id": "redacted-method",
+        "name": "REDACTED",
+        "description": "REDACTED",
+        "type": "terminal",
+        "args": ["login"],
+        "env": {}
+      }]
+    }
+  }
+}

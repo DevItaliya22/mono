@@ -1,0 +1,16 @@
+[package]
+rust-version.workspace = true
+name = "koru-markdown"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Read-only Markdown layout and drawing with Koru design tokens."
+
+[dependencies]
+koru-import-markdown = { path = "../koru-import-markdown" }
+koru-blocks = { path = "../koru-blocks" }
+koru-core = { path = "../koru-core" }
+koru-draw = { path = "../koru-draw" }
+parley.workspace = true
+vello.workspace = true

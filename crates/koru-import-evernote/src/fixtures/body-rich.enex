@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE en-export SYSTEM "http://xml.evernote.com/pub/evernote-export3.dtd">
+<en-export>
+  <note>
+    <title>Formatted note</title>
+    <content><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
+<en-note><p>English مرحبا 中文 שלום</p><div>first<br/>second</div><h1>Heading one</h1><h6>Heading six</h6><p><strong>bold世界</strong> <em>italic</em> <u>under</u> <s>strike</s> <code>inline</code> <span style="background-color: #ffff00">yellow</span> <span style="background-color: chartreuse">plain</span> <span style="color: red; font-family: serif; font-size: 72px; margin: 30px">unstyled</span></p><ul><li>bullet one<ol><li>nested number</li></ol></li><li>bullet two</li></ul><blockquote>quoted text</blockquote><pre>let x = 1;&#10;line two</pre><code>block code</code><hr/><p><a href="https://example.com/path">Web site</a> <a href="mailto:person@example.com">Mail us</a> <a href="evernote:///view/1/s1/guid/guid/">Evernote</a></p><p><span style="display: none !important">secret text</span>visible text</p></en-note>]]></content>
+    <guid>body-rich-guid</guid>
+  </note>
+</en-export>

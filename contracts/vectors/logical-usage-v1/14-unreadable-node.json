@@ -1,0 +1,137 @@
+{
+  "case": "14-unreadable-node",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "One node of one document will not read. The tolerant projection walk would log it and skip it.",
+  "covers": [
+    "D39",
+    "D29"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "The quick brown fox jumps over the lazy dog.",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 44
+                  }
+                ],
+                "read_error": "node content will not decode"
+              }
+            ],
+            "state": "USAGE_UNKNOWN"
+          },
+          {
+            "document": "doc-2",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "The quick brown fox jumps over the lazy dog.",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 44
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "  document doc-1: USAGE_UNKNOWN -> the document has no value; it propagates",
+    "    doc-2/n1 (paragraph): node.text 14 = 14",
+    "    doc-2/n2 (paragraph): node.text 44 = 44",
+    "  document doc-2: 58",
+    "  -> USAGE_UNKNOWN: the workspace component has no value",
+    "account: USAGE_UNKNOWN propagates from an unknown workspace; the aggregate has no value"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "USAGE_UNKNOWN",
+        "documents_units": null,
+        "files_bytes": null,
+        "logical_usage_units": null,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "USAGE_UNKNOWN",
+      "documents_units": null,
+      "files_bytes": null,
+      "logical_usage_units": null,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "An unreadable node is unknown, not empty. Accounting cannot know that a node it could not read had no text — and with structure free, 'it probably cost nothing anyway' is exactly the reasoning D39 forbids.",
+    "The forbidden answers are 14 for doc-1 (skipping the node the way walk::project does, which would make the workspace read 72), 58 (charging doc-1 its previous value), and any figure derived from stored blob bytes.",
+    "doc-2's own value is still computable and is why the fault is diagnosable; the workspace and the account are nonetheless unknown, because a partial total is not a total.",
+    "Effect: new durable receipts are refused with USAGE_UNKNOWN. Reads, downloads and restore are unaffected, and local editing never fails."
+  ]
+}

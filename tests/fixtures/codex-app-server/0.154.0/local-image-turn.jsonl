@@ -1,0 +1,4 @@
+{"method":"turn/start","id":4,"params":{"threadId":"<thread-id>","input":[{"type":"text","text":"<fixture-text>"},{"type":"localImage","path":"<absolute-fixture-path>/probe.png","detail":"low"}]}}
+{"id":4,"result":{"turn":{"id":"<turn-id>","items":[],"itemsView":"notLoaded","status":"inProgress","error":null,"startedAt":null,"completedAt":null,"durationMs":null}}}
+{"method":"item/started","params":{"item":{"type":"imageView","id":"<image-item-id>","path":"<absolute-fixture-path>/probe.png"},"threadId":"<thread-id>","turnId":"<turn-id>","startedAtMs":0},"emittedAtMs":0}
+{"method":"item/completed","params":{"item":{"type":"imageView","id":"<image-item-id>","path":"<absolute-fixture-path>/probe.png"},"threadId":"<thread-id>","turnId":"<turn-id>","completedAtMs":1},"emittedAtMs":1}

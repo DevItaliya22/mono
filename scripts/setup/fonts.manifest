@@ -1,0 +1,14 @@
+# Font files pinned by SHA-256, keyed by their path under assets/fonts/ (where
+# scripts/setup/fetch-fonts.* writes them).
+#
+# Rendering inputs whose exact bytes are part of fixed terminal cell geometry.
+google-fonts-revision=ade3d1533e06b2b1462ffcde8e08b129627ca360
+JetBrainsMono.ttf=48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda
+JetBrainsMono-Italic.ttf=85ae2a5cd3f56baf1ce1c21a851322c58e3d8fbe8e8ad4a4d090a820dd7fe558
+# The Android app's three static faces (apps/android, Theme.kt), in
+# assets/fonts/android/. Google Fonts' own static instances of the families
+# above, at the API version that names them; the exact bytes the Android app
+# has always bundled.
+android/Inter-Regular.ttf=1b08e7fc267a5c7e1d614100f604b83e7e8a0be241f0f288faa2b3ac93a683ba
+android/Inter-Medium.ttf=8c883f63b2c4157d997319f2c8bc6995ed4357ef371940d31ca159004a4aae63
+android/Manrope-SemiBold.ttf=6bad1a774228464cc88b8b0271555b266f7a3c64a7bedf15e165fdab4f6ac0ce

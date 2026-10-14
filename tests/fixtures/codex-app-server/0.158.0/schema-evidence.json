@@ -1,0 +1,65 @@
+{
+  "cli_version": "0.158.0",
+  "protocol_version": "v2",
+  "schema_sha256": "5742a9a7dd41a8b44dca3138f506e013620d4a93573c792b1e5881c053f169a7",
+  "required_client_methods": [
+    "initialize",
+    "model/list",
+    "thread/start",
+    "turn/start",
+    "turn/interrupt"
+  ],
+  "required_server_notifications": [
+    "item/agentMessage/delta",
+    "item/started",
+    "item/completed",
+    "thread/tokenUsage/updated",
+    "turn/completed"
+  ],
+  "required_server_requests": [
+    "item/commandExecution/requestApproval",
+    "item/fileChange/requestApproval",
+    "item/permissions/requestApproval"
+  ],
+  "required_input_modalities": [
+    "text",
+    "image"
+  ],
+  "model_identity_notifications": [
+    "model/rerouted"
+  ],
+  "additive_server_requests_unhandled": [
+    "account/chatgptAuthTokens/refresh",
+    "attestation/generate",
+    "item/tool/call",
+    "item/tool/requestUserInput",
+    "mcpServer/elicitation/request"
+  ],
+  "additive_notifications_ignored": [
+    "thread/started",
+    "turn/started",
+    "thread/status/changed",
+    "mcpServer/startupStatus/updated",
+    "hook/started",
+    "hook/completed",
+    "account/rateLimits/updated",
+    "remoteControl/status/changed",
+    "item/plan/delta",
+    "item/reasoning/summaryPartAdded",
+    "item/reasoning/summaryTextDelta",
+    "item/reasoning/textDelta",
+    "turn/diff/updated",
+    "turn/plan/updated",
+    "model/safetyBuffering/updated",
+    "model/verification",
+    "guardianWarning",
+    "warning",
+    "deprecationNotice",
+    "configWarning"
+  ],
+  "recording_provenance": {
+    "schema": "Generated on Windows on 2026-09-29 with the normally installed codex-cli 0.158.0 through scripts/probe-codex-app-server.ps1 (twice, same digest); every required token present. The server-request set is the 0.156.1 set; the adapter's required notifications and model/rerouted are all present.",
+    "handshake": "The opt-in no-prompt factory handshake (live_codex_no_prompt_handshake_lists_models_when_opted_in) completed initialize and model/list against the installed CLI; no thread or prompt.",
+    "jsonl": "No replay fixtures for this version. The 0.154.0 replay set is the boundary fixture; a model turn under 0.158.0 has not been recorded."
+  }
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<en-export>
+  <note>
+    <title>Complete tagged</title>
+    <content><![CDATA[<en-note><p>kept</p></en-note>]]></content>
+    <tag>#kept</tag>
+  </note>
+  <note>
+    <title>Incomplete tagged</title>
+    <content><![CDATA[<en-note><p>dropped</p></en-note>]]></content>
+    <tag>#must-not-exist</tag>

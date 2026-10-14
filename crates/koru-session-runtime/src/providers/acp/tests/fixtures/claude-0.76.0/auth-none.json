@@ -1,0 +1,13 @@
+{
+  "jsonrpc": "2.0",
+  "method": "_auth/status_update",
+  "params": {
+    "authStatus": {
+      "kind": "none",
+      "label": "<redacted-label>",
+      "account": {
+        "email": "<redacted-account>"
+      }
+    }
+  }
+}

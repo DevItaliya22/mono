@@ -1,0 +1,134 @@
+// SPDX-License-Identifier: MPL-2.0
+
+//! The Explore heading's compact actions menu.
+//!
+//! The pane owns popover lifetime; this module owns the mode-dependent action
+//! vocabulary and the one button that opens it. Keeping those together means a
+//! new heading action cannot be drawn without also being reachable.
+
+use koru_draw::geometry::Rect;
+use koru_draw::text::TextEngine;
+use koru_draw::{icons, scene, theme};
+use vello::Scene;
+use vello::kurbo::Affine;
+
+use super::NavigatorMode;
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub enum Action {
+    Import,
+    CollapseAll,
+    ExpandAll,
+}
+
+/// **Empty is a real answer**, and the tasks rail is what makes it one: there
+/// is nothing to import into a queue and nothing to fold in it, so the mode
+/// offers no actions and [`button`] draws none. A menu that opened on nothing
+/// would be a control advertising something that is not there — the same
+/// argument that keeps the context column's toggle hidden while its sections
+/// are empty.
+pub(super) fn available(mode: NavigatorMode) -> &'static [Action] {
+    match mode {
+        NavigatorMode::Documents => &[Action::Import, Action::CollapseAll, Action::ExpandAll],
+        NavigatorMode::Files => &[Action::Import],
+        NavigatorMode::Tasks => &[],
+        // No Import: the Agents projection is read-only (Q-E4). The folds are
+        // the pane's own furniture, so those two stay.
+        NavigatorMode::Agents => &[Action::CollapseAll, Action::ExpandAll],
+        // The artifacts column offers nothing at the workspace level: what
+        // it can do is on its rows, and a menu of nothing is a dead end.
+        NavigatorMode::Artifacts => &[],
+        // Nor does the Chats view: *New chat* heads its own list, and a menu
+        // holding it a second time would be two doors to one room.
+        NavigatorMode::Chats | NavigatorMode::Socials => &[],
+        // Nor Canvases: nothing imports as a canvas, and a flat list has no
+        // folds to collapse or expand.
+        NavigatorMode::Canvases => &[],
+    }
+}
+
+pub(super) fn button(band: Rect, modes_right: f32) -> Rect {
+    let w = band.h.min(theme::CAPTION_H);
+    if band.w <= 0.0 || band.x + band.w - modes_right < w {
+        return Rect::new(band.x + band.w, band.y, 0.0, band.h);
+    }
+    Rect::new(band.x + band.w - w, band.y, w, band.h)
+}
+
+// `search_button` and `at` used to live here, each deriving its answer from
+// `button(band, modes_right)` a second time. They are `ExploreView`'s now,
+// because the `…` can be **absent** — a mode with no actions draws none — and
+// the search icon has to take that room back. Two functions deriving the
+// button's rect from the premise rather than from the button is exactly how a
+// hidden control leaves a gap where it used to be.
+
+pub(super) fn draw_search_button(
+    scene: &mut Scene,
+    root: Affine,
+    engine: &mut TextEngine,
+    button: Rect,
+    hot: bool,
+) {
+    if button.w > 0.0 {
+        koru_shell_chrome::tabs::draw_icon(
+            scene,
+            root,
+            engine,
+            icons::SEARCH,
+            button,
+            if hot {
+                theme::p().text
+            } else {
+                theme::p().text_dim
+            },
+        );
+    }
+}
+
+pub(super) fn draw_button(scene: &mut Scene, root: Affine, button: Rect, hot: bool) {
+    if button.w <= 0.0 {
+        return;
+    }
+    let p = theme::p();
+    scene::dots_three(scene, root, button, if hot { p.text } else { p.text_dim });
+}
+
+pub(super) fn glyph(action: Action) -> char {
+    match action {
+        Action::Import => icons::IMPORT,
+        Action::CollapseAll => icons::FOLD_ALL,
+        Action::ExpandAll => icons::UNFOLD_ALL,
+    }
+}
+
+/// The stable keyword this action is *identified* by — never its label.
+///
+/// Read by the accessibility projection, which puts it on a locator an external
+/// client can search for. *Import content…* is renamed and translated;
+/// `import` is neither. The same argument and the same shape as
+/// [`NavigatorMode::token`](super::NavigatorMode::token).
+pub(super) fn token(action: Action) -> &'static str {
+    match action {
+        Action::Import => "import",
+        Action::CollapseAll => "collapse-all",
+        Action::ExpandAll => "expand-all",
+    }
+}
+
+pub(super) fn label(action: Action, mode: NavigatorMode) -> &'static str {
+    match (action, mode) {
+        (Action::Import, NavigatorMode::Documents) => "Import content…",
+        (Action::Import, NavigatorMode::Files) => "Import files…",
+        // Unreachable through `available`, which offers Tasks nothing and
+        // Agents no Import; named rather than left to a `_` so a future task
+        // action has to pick a word.
+        (Action::Import, NavigatorMode::Tasks) => "Import content…",
+        (Action::Import, NavigatorMode::Agents) => "Import files…",
+        (Action::Import, NavigatorMode::Artifacts) => "Import files…",
+        (Action::Import, NavigatorMode::Chats) => "Import files…",
+        (Action::Import, NavigatorMode::Canvases) => "Import content…",
+        (Action::Import, NavigatorMode::Socials) => "Import files…",
+        (Action::CollapseAll, _) => "Collapse all",
+        (Action::ExpandAll, _) => "Expand all",
+    }
+}

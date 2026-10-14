@@ -1,0 +1,15 @@
+{
+  "kind": "devices",
+  "session": "77777777-7777-7777-7777-777777777777",
+  "generation": 4,
+  "devices": [
+    {
+      "name": "Microphone Array (Realtek(R) Audio)",
+      "default": true
+    },
+    {
+      "name": "Yeti Nano",
+      "default": false
+    }
+  ]
+}

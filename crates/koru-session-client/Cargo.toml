@@ -1,0 +1,21 @@
+[package]
+rust-version.workspace = true
+name = "koru-session-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Blocking direct client for the private Koru session host."
+
+[features]
+# In-memory peers for dependent-crate tests; ordinary builds expose no fixture API.
+test-transport = []
+
+[dependencies]
+base64.workspace = true
+koru-ipc = { path = "../koru-ipc" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+koru-session-wire = { path = "../koru-session-wire" }
+
+[dev-dependencies]
+tempfile = { workspace = true }

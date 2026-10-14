@@ -1,0 +1,52 @@
+[package]
+rust-version.workspace = true
+name = "koru-ipc"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "A per-user local endpoint, and how to talk over one. Knows no store, no agent, and no way to start either."
+
+[features]
+default = []
+# The async listener. Only a component that already has a Tokio runtime turns
+# this on. It is what keeps `tokio` out of a blocking client's dependency graph:
+# synchronous winit loops must not
+# acquire an async runtime by depending on the crate that finds a service.
+tokio = ["dep:tokio", "interprocess/tokio"]
+
+[dependencies]
+koru-env = { path = "../koru-env" }
+# Which channels exist, and where this channel keeps its data. A leaf that links
+# nothing — the whole reason an endpoint name can be checked here rather than by
+# the filesystem three frames down.
+koru-channel = { path = "../koru-channel" }
+interprocess = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true, optional = true }
+
+# `windows-sys` reads this process's SID out of its access token, and
+# `widestring` turns the SDDL string into what interprocess's
+# `SecurityDescriptor::deserialize` takes. Both versions match interprocess's
+# own **deliberately**: a second `windows-sys` in the graph would compile twice
+# and, worse, give `U16CStr` two incompatible identities. This is why the
+# workspace's own `windows-sys` (0.59) is not used here.
+[target.'cfg(windows)'.dependencies]
+widestring = "1"
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_System_Threading",
+] }
+
+# For `geteuid` alone: keeping two users' sockets apart in a shared temp
+# directory, and checking a peer's credentials.
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+# No `tokio` here, deliberately, not even as a dev-dependency. Everything this
+# crate's own suite drives is blocking — a listener on a thread and a client on
+# another — and a dev-dependency would compile a runtime on every `cargo test`
+# of the crate whose whole point is that a client need not have one.

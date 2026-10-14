@@ -1,0 +1,111 @@
+{
+  "case": "22-grandfathered-threshold-after-migration",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "An account whose usage a version migration raises from 92 GB to 104 GB. The case fixes the number a durable receipt is refused against, and how that number comes back down.",
+  "covers": [
+    "D81",
+    "D78",
+    "CTO 2026-09-05"
+  ],
+  "notes": [
+    "D81 promises that a migration alone never refuses an account. This vector is that promise turned into a number: without a persisted threshold, 'keeps accepting until its own writing crosses the line' does not say which line, and two implementations would disagree about when refusal starts.",
+    "account.grandfathered_threshold_units lives in the account row beside account.logical_usage_units. For every account never raised by a migration it equals the pool, so there is one rule and no special case.",
+    "Written at the migration switch inside the same single transaction as the new usage (contract 10.2 step 5), so no receipt can observe one without the other.",
+    "THE RATCHET IS THE ONE RULE THIS CONTRACT SUPPLIES RATHER THAN RECORDS. The CTO said usage-reducing operations bring an account back 'toward' 100 GB; 'toward' is directional but not exact. See contract 12.2 item L - it is flagged for correction at sign-off.",
+    "Consequence of the ratchet: while grandfathered, the account has NO headroom. It can converge, delete and reduce, but it cannot grow. That is correct - it is over its allowance, and grandfathering only stops it being refused for content it already had.",
+    "It cannot ratchet up. If it could, the account could delete to 98 and re-add, recovering headroom to 104 that it was never sold. Only a migration may raise it, and only by exactly the amount our own arithmetic moved.",
+    "Unchanged by this vector: a migration alone never refuses (D81), the notice list identifies affected accounts before the switch, local editing is never affected, and the usage-reducing staging lane is what carries the account from 104 back toward 100.",
+    "Figures are exact LU. Decimal GB throughout (D78): 1 GB = 1,000,000,000."
+  ],
+  "input": {
+    "account": "acct-1",
+    "pool_units": 100000000000,
+    "before_migration": {
+      "logical_usage_units": 92000000000,
+      "logical_usage_algorithm_version": 1,
+      "grandfathered_threshold_units": 100000000000,
+      "note": "an ordinary account: threshold equals the pool"
+    },
+    "migration": {
+      "to_algorithm_version": 2,
+      "shadow_logical_usage_units": 104000000000,
+      "note": "a hypothetical V2 that raises this account's usage; the value is known before the switch, which is what makes the notice list computable"
+    }
+  },
+  "derivation": [
+    "at the switch (contract 10.2 step 5, one transaction):",
+    "  logical_usage_units 92,000,000,000 -> 104,000,000,000, algorithm_version 1 -> 2",
+    "  grandfathered_threshold_units <- max(pool, post_migration_usage) = max(100,000,000,000, 104,000,000,000) = 104,000,000,000",
+    "  the account is NOT refused by the switch (D81)",
+    "step 1 - a durable receipt leaving usage at 103,000,000,000:",
+    "  103,000,000,000 <= threshold 104,000,000,000 -> ACCEPTED",
+    "  ratchet: threshold <- max(100,000,000,000, min(104,000,000,000, 103,000,000,000)) = 103,000,000,000",
+    "step 2 - a durable receipt that would take usage to 105,000,000,000:",
+    "  105,000,000,000 > threshold 103,000,000,000 -> REFUSED, ACCOUNT_OVER_QUOTA",
+    "  (it also exceeds the 104,000,000,000 the switch wrote, so the refusal holds under either reading)",
+    "  usage and threshold both unchanged by a refusal",
+    "step 3 - the account deletes down to 98,000,000,000:",
+    "  ratchet: threshold <- max(100,000,000,000, min(103,000,000,000, 98,000,000,000)) = max(100,000,000,000, 98,000,000,000) = 100,000,000,000",
+    "  fully back to normal; ordinary headroom returns",
+    "alternative branch from the switch - the account deletes to 102,000,000,000 instead:",
+    "  ratchet: threshold <- max(100,000,000,000, min(104,000,000,000, 102,000,000,000)) = 102,000,000,000",
+    "  still partly grandfathered"
+  ],
+  "expected": {
+    "at_the_switch": {
+      "logical_usage_units": 104000000000,
+      "algorithm_version": 2,
+      "grandfathered_threshold_units": 104000000000,
+      "refused_by_the_switch": false,
+      "rule": "grandfathered_threshold_units <- max(pool, post_migration_usage)"
+    },
+    "steps": [
+      {
+        "step": 1,
+        "operation": "durable receipt leaving usage at 104 GB minus 1 GB",
+        "resulting_usage_units": 103000000000,
+        "decision": "ACCEPTED",
+        "threshold_units_after": 103000000000,
+        "why": "103 GB does not exceed the threshold of 104 GB; the ratchet then follows usage down"
+      },
+      {
+        "step": 2,
+        "operation": "durable receipt that would take usage to 105 GB",
+        "resulting_usage_units": 105000000000,
+        "decision": "REFUSED",
+        "code": "ACCOUNT_OVER_QUOTA",
+        "threshold_units_after": 103000000000,
+        "usage_units_after": 103000000000,
+        "why": "105 GB exceeds the threshold; a refusal changes neither usage nor threshold"
+      },
+      {
+        "step": 3,
+        "operation": "the account deletes down to 98 GB",
+        "resulting_usage_units": 98000000000,
+        "decision": "ACCEPTED",
+        "threshold_units_after": 100000000000,
+        "why": "max(pool, min(103 GB, 98 GB)) = pool - fully back to normal, ordinary headroom returns"
+      }
+    ],
+    "alternative_branch": {
+      "from": "the switch, at 104 GB",
+      "operation": "the account deletes down to 102 GB",
+      "threshold_units_after": 102000000000,
+      "why": "max(pool, min(104 GB, 102 GB)) = 102 GB - still partly grandfathered"
+    },
+    "invariants": [
+      "grandfathered_threshold_units is never below the pool",
+      "grandfathered_threshold_units never increases except at a migration switch, and then only to max(pool, post_migration_usage)",
+      "a refusal changes neither usage nor threshold",
+      "local editing is never affected by any of this",
+      "an account that has never been raised by a migration has grandfathered_threshold_units == pool, so this is one rule with no special case"
+    ],
+    "must_not": [
+      "refuse the account on the strength of the migration itself (D81)",
+      "refuse against the pool rather than the threshold while the account is grandfathered",
+      "let the threshold rise when usage rises - deleting and re-adding must not restore headroom the account was never sold",
+      "let the threshold fall below the pool"
+    ]
+  }
+}

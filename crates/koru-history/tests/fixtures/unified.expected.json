@@ -1,0 +1,166 @@
+{
+  "rows": [
+    {
+      "Context": {
+        "depth": 1,
+        "done": null,
+        "heading": 2,
+        "kind": "paragraph",
+        "text": "Plans"
+      }
+    },
+    {
+      "Modified": {
+        "block": {
+          "depth": 1,
+          "done": null,
+          "heading": null,
+          "kind": "paragraph",
+          "text": "The red fox jumps."
+        },
+        "kind_changed": false,
+        "marks_changed": false,
+        "metadata_changed": false,
+        "spans": [
+          {
+            "tag": "Equal",
+            "text": "The"
+          },
+          {
+            "tag": "Equal",
+            "text": " "
+          },
+          {
+            "tag": "Delete",
+            "text": "brown"
+          },
+          {
+            "tag": "Insert",
+            "text": "red"
+          },
+          {
+            "tag": "Equal",
+            "text": " "
+          },
+          {
+            "tag": "Equal",
+            "text": "fox"
+          },
+          {
+            "tag": "Equal",
+            "text": " "
+          },
+          {
+            "tag": "Equal",
+            "text": "jumps"
+          },
+          {
+            "tag": "Equal",
+            "text": "."
+          }
+        ]
+      }
+    },
+    {
+      "Removed": {
+        "depth": 1,
+        "done": null,
+        "heading": null,
+        "kind": "paragraph",
+        "text": "An old note."
+      }
+    },
+    {
+      "Context": {
+        "depth": 1,
+        "done": null,
+        "heading": null,
+        "kind": "paragraph",
+        "text": "unchanged one"
+      }
+    },
+    {
+      "Context": {
+        "depth": 1,
+        "done": null,
+        "heading": null,
+        "kind": "paragraph",
+        "text": "unchanged two"
+      }
+    },
+    {
+      "Context": {
+        "depth": 1,
+        "done": null,
+        "heading": null,
+        "kind": "paragraph",
+        "text": "unchanged three"
+      }
+    },
+    {
+      "Reordered": {
+        "block": {
+          "depth": 1,
+          "done": null,
+          "heading": null,
+          "kind": "code",
+          "text": "let x = 1;\nlet y = 2;"
+        }
+      }
+    },
+    {
+      "Context": {
+        "depth": 1,
+        "done": null,
+        "heading": null,
+        "kind": "paragraph",
+        "text": "unchanged four"
+      }
+    },
+    {
+      "Modified": {
+        "block": {
+          "depth": 1,
+          "done": true,
+          "heading": null,
+          "kind": "task",
+          "text": "ship it"
+        },
+        "kind_changed": false,
+        "marks_changed": false,
+        "metadata_changed": true,
+        "spans": [
+          {
+            "tag": "Equal",
+            "text": "ship"
+          },
+          {
+            "tag": "Equal",
+            "text": " "
+          },
+          {
+            "tag": "Equal",
+            "text": "it"
+          }
+        ]
+      }
+    },
+    {
+      "Added": {
+        "depth": 1,
+        "done": null,
+        "heading": null,
+        "kind": "paragraph",
+        "text": "A new closing thought."
+      }
+    }
+  ],
+  "stats": {
+    "added": 1,
+    "modified": 2,
+    "moved": 0,
+    "removed": 1,
+    "reordered": 1,
+    "unchanged": 5
+  }
+}

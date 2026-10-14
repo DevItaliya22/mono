@@ -1,0 +1,24 @@
+[package]
+rust-version.workspace = true
+name = "koru-app-shell"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The app shell: host-provided surfaces behind identical chrome across chromed windows. Owns the tab manager, the pane slots, the banner slot state and the anchored popover; can open nothing itself."
+
+[dependencies]
+# The furniture geometry. Rects, slots and indices — the arithmetic this crate
+# performs a window with.
+koru-shell-chrome = { path = "../koru-shell-chrome" }
+koru-draw = { path = "../koru-draw" }
+# `popover::PopoverShell` and `caption::Action`. Names no node, no workspace and
+# no document (ADR-73), so taking it keeps this crate as portable as its charter.
+koru-ui = { path = "../koru-ui" }
+# The multi-window runner and the event discipline both runners share. This is
+# the one crate here that owns a loop, and that is the point: `koru-app-shell`
+# sits on `MultiWindowApp` and owns policy only (ADR-262).
+koru-window = { path = "../koru-window" }
+vello.workspace = true
+winit.workspace = true
+uuid.workspace = true

@@ -1,0 +1,76 @@
+[package]
+rust-version.workspace = true
+name = "koru-delegate-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The composition koru-agent.exe --worker delegate runs: the orchestrator over runs.db, the Store reached through the gateway and the session host over its IPC, answering the gateway's /v1/runs over a private endpoint."
+
+# **A library, and the role's whole composition.** `koru-agent.exe --worker
+# delegate` calls `run_supervised` here the way `--worker sessions` calls
+# `koru_session_host::run_supervised`: one launch path, one composition.
+# It links what a host needs to reach the world — the ledger, the Store
+# client, the session client, the worker mechanism — and no surface: the
+# dependency test forbids `winit`, `vello`, `parley` and every `koru-*`
+# window crate, so a delegate worker never links a window.
+[lib]
+name = "koru_delegate_host"
+path = "src/lib.rs"
+
+[features]
+# Process integration tests advance the scheduler without waiting for real
+# minute boundaries. The shipping composition has no alternate clock.
+test-support = []
+
+[dependencies]
+blake3.workspace = true
+# The bounded bootstrap reader and the parent-death watcher.
+koru-agent-worker = { path = "../koru-agent-worker" }
+# The Store, through the gateway (§4.2: never a direct SQLite open).
+koru-api-client = { path = "../koru-api-client" }
+# The bodies of `/v1/artifacts/authorities`: what issuing a run authority
+# takes and what it answers with (P1.11).
+koru-artifact-wire = { path = "../koru-artifact-wire" }
+koru-channel = { path = "../koru-channel" }
+# The /v1/runs wire and the frames this worker answers.
+koru-delegate-api = { path = "../koru-delegate-api" }
+# What a run was given: the capture, the layout, the manifest (P1.7).
+koru-delegate-context = { path = "../koru-delegate-context" }
+koru-delegate-core = { path = "../koru-delegate-core" }
+# The only place a `delegate.*` event name is spelled (P1.8).
+koru-delegate-events = { path = "../koru-delegate-events" }
+koru-delegate-document = { path = "../koru-delegate-document" }
+koru-delegate-preamble = { path = "../koru-delegate-preamble" }
+koru-delegate-runtime = { path = "../koru-delegate-runtime" }
+koru-delegate-schedule = { path = "../koru-delegate-schedule" }
+koru-delegate-scope = { path = "../koru-delegate-scope" }
+koru-delegate-sqlite = { path = "../koru-delegate-sqlite" }
+koru-env = { path = "../koru-env" }
+koru-events = { path = "../koru-events" }
+koru-ipc = { path = "../koru-ipc" }
+koru-log = { path = "../koru-log" }
+# The session host at protocol v15.
+koru-session-client = { path = "../koru-session-client" }
+# Which provider a profile launches.
+koru-session-profiles = { path = "../koru-session-profiles" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+# `SubscriptionUpdate`: the two streams a session's connection carries.
+koru-session-wire = { path = "../koru-session-wire" }
+# One device-local value: where a run that belongs to no project does its
+# work (ADR-362). Read, never written — the authority that writes is the
+# gateway's.
+koru-settings = { path = "../koru-settings" }
+koru-store-client = { path = "../koru-store-client" }
+# The store's own error codes, which the two wire adapters map at the seam.
+koru-store-core = { path = "../koru-store-core" }
+koru-time-zone = { path = "../koru-time-zone" }
+loro = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+koru-session-client = { path = "../koru-session-client", features = ["test-transport"] }
+tempfile = { workspace = true }

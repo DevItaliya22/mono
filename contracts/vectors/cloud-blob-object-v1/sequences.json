@@ -1,0 +1,86 @@
+[
+  {
+    "id": "S01",
+    "note": "The ordinary upload. Nothing is durable until the object exists and the API has re-read authorization.",
+    "steps": ["allocate", "patch:0", "patch:1", "complete", "verify:ok", "publish", "report", "commit"],
+    "durable_after": "commit",
+    "mapping_before_bytes": false
+  },
+  {
+    "id": "S02",
+    "note": "Killed between two chunks. The staging file's synced length is the truth; HEAD reports it and the client resumes there.",
+    "steps": ["allocate", "patch:0", "kill:worker", "restart:worker", "head", "patch:1", "complete", "verify:ok", "publish", "report", "commit"],
+    "head_returns": "one chunk",
+    "resends": 0
+  },
+  {
+    "id": "S03",
+    "note": "Killed during verification. The session is still verifying, not durable; verification runs again from the whole file.",
+    "steps": ["allocate", "patch:0", "patch:1", "complete", "kill:worker", "restart:worker", "verify:ok", "publish", "report", "commit"],
+    "durable_after": "commit",
+    "reverifies": true
+  },
+  {
+    "id": "S04",
+    "note": "Killed between the rename and the report. The object exists named by a live upload row; startup reconciliation finishes the same transaction. This is the case that must never leave a mapping without bytes.",
+    "steps": ["allocate", "patch:0", "patch:1", "complete", "verify:ok", "publish", "kill:worker", "restart:worker", "reconcile", "report", "commit"],
+    "durable_after": "commit",
+    "mapping_before_bytes": false
+  },
+  {
+    "id": "S05",
+    "note": "The API is down when the worker reports. Bytes are already safe; only durability waits. The worker retries and the report is idempotent.",
+    "steps": ["allocate", "patch:0", "patch:1", "complete", "verify:ok", "publish", "kill:api", "report:fails", "restart:api", "report", "commit"],
+    "durable_after": "commit",
+    "resends": 0
+  },
+  {
+    "id": "S06",
+    "note": "The API is down mid-upload. PATCH needs no API, so bytes keep arriving; the upload stalls only when it needs a new capability.",
+    "steps": ["allocate", "patch:0", "kill:api", "patch:1", "capability_expires", "renew:fails", "restart:api", "renew", "patch:2", "complete", "verify:ok", "publish", "report", "commit"],
+    "bytes_flow_while_api_down": true
+  },
+  {
+    "id": "S07",
+    "note": "Cloud is turned off mid-upload. The admitted chunk may finish; finalization is refused and nothing becomes durable.",
+    "steps": ["allocate", "patch:0", "epoch_moves", "patch:1:finishes", "complete", "verify:ok", "publish", "report:fenced"],
+    "durable_after": null,
+    "reclaims": ["staging", "object"]
+  },
+  {
+    "id": "S08",
+    "note": "Two devices race on the same picture. Allocation is idempotent by (workspace, incarnation, hash), so they converge on one session and one locator.",
+    "steps": ["allocate:A", "allocate:B", "patch:A", "patch:B:conflict", "complete:A", "verify:ok", "publish", "report", "commit"],
+    "sessions": 1,
+    "locators": 1
+  },
+  {
+    "id": "S09",
+    "note": "Corrupt bytes. Verification fails, the staging file is quarantined, and no mapping is written. A clean retry starts a new session.",
+    "steps": ["allocate", "patch:0", "patch:1", "complete", "verify:mismatch", "quarantine"],
+    "durable_after": null,
+    "mapping_before_bytes": false,
+    "publishes": false
+  },
+  {
+    "id": "S10",
+    "note": "The download. Association is written last, so a successful metadata lookup can never point at a partial file.",
+    "steps": ["read_capability", "get:range:0", "kill:client", "restart:client", "get:range:resume", "hash:ok", "install_object", "write_association", "announce"],
+    "association_before_bytes": false,
+    "resends": 0
+  },
+  {
+    "id": "S11",
+    "note": "A download whose bytes do not hash. Quarantined, never rendered, never associated.",
+    "steps": ["read_capability", "get:full", "hash:mismatch", "quarantine"],
+    "association_before_bytes": false,
+    "renders": false
+  },
+  {
+    "id": "S12",
+    "note": "A session that expires without progress is reclaimed; one that keeps progressing is not.",
+    "steps": ["allocate", "idle:8d", "reclaim"],
+    "reclaims": ["staging"],
+    "variant": { "steps": ["allocate", "patch:0", "idle:6d", "patch:1", "idle:6d", "patch:2"], "reclaims": [] }
+  }
+]

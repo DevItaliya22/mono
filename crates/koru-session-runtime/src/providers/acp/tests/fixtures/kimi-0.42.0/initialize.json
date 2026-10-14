@@ -1,0 +1,19 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": 1,
+    "agentCapabilities": {
+      "mcpCapabilities": {
+        "http": true,
+        "sse": true
+      }
+    },
+    "authMethods": [
+      {
+        "id": "<login-method>",
+        "name": "<login>"
+      }
+    ]
+  }
+}

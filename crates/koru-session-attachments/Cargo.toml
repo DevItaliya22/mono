@@ -1,0 +1,16 @@
+[package]
+rust-version.workspace = true
+name = "koru-session-attachments"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Root-confined validation and storage for Koru session attachments."
+
+[dependencies]
+image = { version = "0.25", default-features = false, features = ["gif", "jpeg", "png", "webp"] }
+koru-session-paths = { path = "../koru-session-paths" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+
+[dev-dependencies]
+tempfile.workspace = true

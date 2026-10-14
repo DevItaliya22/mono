@@ -1,0 +1,198 @@
+{
+  "vectors": "host-control-v1/principals",
+  "source": "docs/cloud-platform/amendments/HOST-CONTROL.final.md §2 and §3",
+  "note": "Type sketches with synthetic identifiers. No case contains a credential, a bearer token or an endpoint secret: endpoint_id values are public Ed25519 keys, derived from fixed all-one-byte secrets so the vector is reproducible.",
+  "principals": [
+    {
+      "case": "H1",
+      "kind": "device",
+      "valid": true,
+      "why": "The device arm is unchanged from bridge 1 apart from its tag.",
+      "json": {
+        "kind": "device",
+        "device": {
+          "device_id": "01010101-0101-4101-8101-010101010101",
+          "relationship_id": "02020202-0202-4202-8202-020202020202",
+          "endpoint_id": [237, 73, 40, 198, 40, 209, 194, 198, 234, 233, 3, 56, 144, 89, 149, 97, 41, 89, 39, 58, 92, 99, 249, 54, 54, 193, 70, 20, 172, 135, 55, 209],
+          "authorization_revision": 9
+        }
+      }
+    },
+    {
+      "case": "H2",
+      "kind": "cloud",
+      "valid": true,
+      "why": "The Cloud arm, exactly the §2 field list and order. No lease or worker id (D231).",
+      "json": {
+        "kind": "cloud",
+        "cloud": {
+          "version": 1,
+          "permit_id": "11111111-1111-4111-9111-111111111111",
+          "account_id": "22222222-2222-4222-a222-222222222222",
+          "profile_id": "33333333-3333-4333-b333-333333333333",
+          "dataset": {
+            "kind": "workspace",
+            "workspace_id": "44444444-4444-4444-8444-444444444444",
+            "incarnation_id": "55555555-5555-4555-9555-555555555555",
+            "logical_replica_id": "66666666-6666-4666-a666-666666666666"
+          },
+          "client_endpoint_id": [202, 147, 172, 23, 5, 24, 112, 113, 214, 123, 131, 199, 255, 14, 254, 129, 8, 232, 236, 69, 48, 87, 93, 119, 38, 135, 147, 51, 219, 218, 190, 124],
+          "worker_endpoint_id": [110, 122, 28, 221, 41, 176, 183, 143, 209, 58, 244, 197, 89, 143, 239, 244, 239, 42, 151, 22, 110, 60, 166, 242, 228, 251, 252, 205, 128, 80, 91, 241],
+          "credential_id": "77777777-7777-4777-b777-777777777777",
+          "authorization_version": 3,
+          "membership_epoch": 4,
+          "cloud_access_epoch": 5,
+          "authority_workspace_id": "88888888-8888-4888-8888-888888888888",
+          "authority_workspace_incarnation_id": "99999999-9999-4999-9999-999999999999",
+          "control_session_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+          "account_generation": 2,
+          "session_generation": 1,
+          "expires_at_seconds": 1800000000
+        }
+      }
+    },
+    {
+      "case": "H3",
+      "kind": "cloud",
+      "valid": false,
+      "why": "An unknown field closes admission; it is not ignored and it does not select the other arm.",
+      "json": {
+        "kind": "cloud",
+        "cloud": {
+          "version": 1,
+          "permit_id": "11111111-1111-4111-9111-111111111111",
+          "account_id": "22222222-2222-4222-a222-222222222222",
+          "profile_id": "33333333-3333-4333-b333-333333333333",
+          "dataset": {
+            "kind": "workspace",
+            "workspace_id": "44444444-4444-4444-8444-444444444444",
+            "incarnation_id": "55555555-5555-4555-9555-555555555555",
+            "logical_replica_id": "66666666-6666-4666-a666-666666666666"
+          },
+          "client_endpoint_id": [202, 147, 172, 23, 5, 24, 112, 113, 214, 123, 131, 199, 255, 14, 254, 129, 8, 232, 236, 69, 48, 87, 93, 119, 38, 135, 147, 51, 219, 218, 190, 124],
+          "worker_endpoint_id": [110, 122, 28, 221, 41, 176, 183, 143, 209, 58, 244, 197, 89, 143, 239, 244, 239, 42, 151, 22, 110, 60, 166, 242, 228, 251, 252, 205, 128, 80, 91, 241],
+          "credential_id": "77777777-7777-4777-b777-777777777777",
+          "authorization_version": 3,
+          "membership_epoch": 4,
+          "cloud_access_epoch": 5,
+          "authority_workspace_id": "88888888-8888-4888-8888-888888888888",
+          "authority_workspace_incarnation_id": "99999999-9999-4999-9999-999999999999",
+          "control_session_id": "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa",
+          "account_generation": 2,
+          "session_generation": 1,
+          "expires_at_seconds": 1800000000,
+          "lease_id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+        }
+      }
+    },
+    {
+      "case": "H4",
+      "kind": "cloud",
+      "valid": false,
+      "why": "An unknown tag is refused. There is no untagged fallback, so this never decodes as a device.",
+      "json": {
+        "kind": "worker",
+        "cloud": {
+          "version": 1,
+          "permit_id": "11111111-1111-4111-9111-111111111111"
+        }
+      }
+    },
+    {
+      "case": "H5",
+      "kind": "device",
+      "valid": false,
+      "why": "The device payload is not flattened into the tagged object; a version-1 body is refused by bridge 2.",
+      "json": {
+        "kind": "device",
+        "device_id": "01010101-0101-4101-8101-010101010101",
+        "relationship_id": "02020202-0202-4202-8202-020202020202",
+        "endpoint_id": [237, 73, 40, 198, 40, 209, 194, 198, 234, 233, 3, 56, 144, 89, 149, 97, 41, 89, 39, 58, 92, 99, 249, 54, 54, 193, 70, 20, 172, 135, 55, 209],
+        "authorization_revision": 9
+      }
+    },
+    {
+      "case": "H6",
+      "kind": "device",
+      "valid": false,
+      "why": "A Cloud payload under the device tag is refused rather than downcast.",
+      "json": {
+        "kind": "device",
+        "cloud": {
+          "version": 1,
+          "permit_id": "11111111-1111-4111-9111-111111111111"
+        }
+      }
+    }
+  ],
+  "targets": [
+    {
+      "case": "H7",
+      "kind": "device",
+      "valid": true,
+      "why": "The device target is the existing peer dial.",
+      "json": {
+        "kind": "device",
+        "device_id": "01010101-0101-4101-8101-010101010101"
+      }
+    },
+    {
+      "case": "H8",
+      "kind": "cloud",
+      "valid": true,
+      "why": "A Cloud target names a permit and a dataset and nothing else: no socket, issuer or credential.",
+      "json": {
+        "kind": "cloud",
+        "permit_id": "11111111-1111-4111-9111-111111111111",
+        "dataset": {
+          "kind": "profile",
+          "profile_id": "33333333-3333-4333-b333-333333333333",
+          "lineage_id": "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+          "logical_replica_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+        }
+      }
+    },
+    {
+      "case": "H9",
+      "kind": "cloud",
+      "valid": false,
+      "why": "A caller-supplied address is an unknown field and closes admission.",
+      "json": {
+        "kind": "cloud",
+        "permit_id": "11111111-1111-4111-9111-111111111111",
+        "dataset": {
+          "kind": "profile",
+          "profile_id": "33333333-3333-4333-b333-333333333333",
+          "lineage_id": "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+          "logical_replica_id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+        },
+        "relay_url": "https://example.invalid"
+      }
+    },
+    {
+      "case": "H10",
+      "kind": "device",
+      "valid": false,
+      "why": "A device target carrying a permit is refused: a permit cannot authorize a peer protocol token.",
+      "json": {
+        "kind": "device",
+        "device_id": "01010101-0101-4101-8101-010101010101",
+        "permit_id": "11111111-1111-4111-9111-111111111111"
+      }
+    },
+    {
+      "case": "H11",
+      "kind": "cloud",
+      "valid": false,
+      "why": "An unknown dataset arm is refused; a Cloud dataset is exactly the frozen tagged union.",
+      "json": {
+        "kind": "cloud",
+        "permit_id": "11111111-1111-4111-9111-111111111111",
+        "dataset": {
+          "kind": "account",
+          "profile_id": "33333333-3333-4333-b333-333333333333"
+        }
+      }
+    }
+  ]
+}

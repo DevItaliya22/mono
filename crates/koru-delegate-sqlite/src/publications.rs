@@ -1,0 +1,351 @@
+// SPDX-License-Identifier: MPL-2.0
+
+//! The pending-publication list: §7.1's retry queue, §17.1's second step.
+//!
+//! A lifecycle fact, an artifact-registration reply or a usage fact is
+//! committed here **before** it is published, under the stable `EventId`
+//! the journal dedupes on. A lost acknowledgement is answered by retrying
+//! the same id; a retried `enqueue` finds its row; an acknowledged row
+//! stays, because a row is a fact. It is a retry queue, not a second audit
+//! service: nothing reads it to say what happened, only to say what has
+//! not yet been said.
+//!
+//! **The body is content.** It comes back only inside [`PublicationBody`],
+//! whose `Debug` prints its length and never its text.
+//!
+//! The one thing read here about what *has* been said is retry identity:
+//! [`RunsDb::publication`] and [`RunsDb::publications`] answer a row's
+//! `EventId` and the moment it was queued, acknowledged or not, so a
+//! re-publication after a restart — and every later row of a run, which
+//! correlates to the id its `created` fact was published under — carries
+//! the identity the first delivery carried rather than a fresh one.
+//!
+//! Queue order is insertion order (`rowid`), never UUID order or wall time:
+//! multiple facts can share a clock tick, and the clock can move backwards.
+//! Rows are retained after acknowledgement; rowids are not exposed as identity.
+
+use std::fmt;
+
+use koru_delegate_core::{EventId, PendingPublication, PublicationKind, RunId};
+use rusqlite::{OptionalExtension, params};
+
+use crate::{
+    LedgerError, RunsDb, WriteOp, WriteOutcome,
+    domains::{parse_publication_kind, publication_token},
+    intents::parse_run,
+};
+
+/// The envelope a retry re-sends. Redacting `Debug`.
+#[derive(Clone, PartialEq, Eq)]
+pub struct PublicationBody(String);
+
+impl PublicationBody {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Debug for PublicationBody {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "PublicationBody(<{} bytes>)", self.0.len())
+    }
+}
+
+/// One publication not yet acknowledged, with what re-sending it needs.
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct OpenPublication {
+    pub event: EventId,
+    pub run: RunId,
+    pub kind: PublicationKind,
+    pub body: PublicationBody,
+    /// Delivery attempts so far.
+    pub attempts: u32,
+    pub queued_at_ms: i64,
+}
+
+/// One publication as recorded, acknowledged or not. What a publisher
+/// asks when it needs the identity a fact was first sent under.
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct PublicationRecord {
+    pub event: EventId,
+    pub run: RunId,
+    pub kind: PublicationKind,
+    pub body: PublicationBody,
+    pub attempts: u32,
+    /// The moment the fact was queued — its own moment, because a fact is
+    /// queued as it is committed (§17.1).
+    pub queued_at_ms: i64,
+    pub acknowledged_at_ms: Option<i64>,
+}
+
+const RECORD_COLUMNS: &str =
+    "event_id, run_id, kind, body_json, attempts, queued_at_ms, acknowledged_at_ms";
+
+fn records(
+    conn: &rusqlite::Connection,
+    sql: &str,
+    params: impl rusqlite::Params,
+) -> Result<Vec<PublicationRecord>, LedgerError> {
+    let mut statement = conn
+        .prepare(sql)
+        .map_err(|error| LedgerError::sql("read publications", error))?;
+    let rows = statement
+        .query_map(params, |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, String>(3)?,
+                row.get::<_, i64>(4)?,
+                row.get::<_, i64>(5)?,
+                row.get::<_, Option<i64>>(6)?,
+            ))
+        })
+        .map_err(|error| LedgerError::sql("read publications", error))?;
+    let mut records = Vec::new();
+    for row in rows {
+        let (event, run, kind, body, attempts, queued_at_ms, acknowledged_at_ms) =
+            row.map_err(|error| LedgerError::sql("read publications", error))?;
+        records.push(PublicationRecord {
+            event: parse_event(&event)?,
+            run: parse_run(&run)?,
+            kind: parse_publication_kind(&kind)?,
+            body: PublicationBody(body),
+            attempts: attempts_of(attempts)?,
+            queued_at_ms,
+            acknowledged_at_ms,
+        });
+    }
+    Ok(records)
+}
+
+impl RunsDb {
+    /// One publication by its id, acknowledged or not; `None` for an id
+    /// never queued.
+    pub fn publication(&self, event: EventId) -> Result<Option<PublicationRecord>, LedgerError> {
+        Ok(records(
+            self.conn(),
+            &format!("SELECT {RECORD_COLUMNS} FROM pending_publications WHERE event_id = ?1"),
+            params![event.to_string()],
+        )?
+        .pop())
+    }
+
+    /// Every publication of a run, oldest first, acknowledged included —
+    /// the first lifecycle row is the `created` fact whose id every later
+    /// row of the run correlates to.
+    pub fn publications(&self, run: RunId) -> Result<Vec<PublicationRecord>, LedgerError> {
+        records(
+            self.conn(),
+            &format!(
+                "SELECT {RECORD_COLUMNS} FROM pending_publications
+                  WHERE run_id = ?1
+                  ORDER BY rowid"
+            ),
+            params![run.to_storage()],
+        )
+    }
+
+    /// Commit a publication before it travels. The event id is the key: a
+    /// retry is already applied, whatever it carries, because an event is
+    /// one event forever.
+    pub fn enqueue(
+        &mut self,
+        event: EventId,
+        run: RunId,
+        kind: PublicationKind,
+        body_json: &str,
+    ) -> Result<WriteOutcome, LedgerError> {
+        serde_json::from_str::<serde_json::Value>(body_json)
+            .map_err(|_| LedgerError::BodyNotJson)?;
+        self.write(WriteOp::Enqueue, |tx, now| {
+            let known: Option<i64> = tx
+                .query_row(
+                    "SELECT 1 FROM pending_publications WHERE event_id = ?1",
+                    params![event.to_string()],
+                    |row| row.get(0),
+                )
+                .optional()
+                .map_err(|error| LedgerError::sql("read a publication", error))?;
+            if known.is_some() {
+                return Ok(WriteOutcome::AlreadyApplied);
+            }
+            tx.execute(
+                "INSERT INTO pending_publications
+                   (event_id, run_id, kind, body_json, attempts, queued_at_ms)
+                 VALUES (?1, ?2, ?3, ?4, 0, ?5)",
+                params![
+                    event.to_string(),
+                    run.to_storage(),
+                    publication_token(kind),
+                    body_json,
+                    now
+                ],
+            )
+            .map_err(|error| LedgerError::sql("enqueue a publication", error))?;
+            Ok(WriteOutcome::Applied)
+        })
+    }
+
+    /// The unacknowledged publications, oldest first, at most `limit`.
+    pub fn open_publications(&self, limit: usize) -> Result<Vec<OpenPublication>, LedgerError> {
+        self.open_publications_for(None, limit)
+    }
+
+    /// A bounded drain for one run, independent of other runs' backlogs.
+    pub fn open_publications_for(
+        &self,
+        run: Option<RunId>,
+        limit: usize,
+    ) -> Result<Vec<OpenPublication>, LedgerError> {
+        let mut statement = self
+            .conn()
+            .prepare(
+                "SELECT event_id, run_id, kind, body_json, attempts, queued_at_ms
+                   FROM pending_publications
+                  WHERE acknowledged_at_ms IS NULL
+                    AND (?2 IS NULL OR run_id = ?2)
+                  ORDER BY rowid
+                  LIMIT ?1",
+            )
+            .map_err(|error| LedgerError::sql("list open publications", error))?;
+        let rows = statement
+            .query_map(
+                params![
+                    i64::try_from(limit).unwrap_or(i64::MAX),
+                    run.map(|id| id.to_string())
+                ],
+                |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, String>(1)?,
+                        row.get::<_, String>(2)?,
+                        row.get::<_, String>(3)?,
+                        row.get::<_, i64>(4)?,
+                        row.get::<_, i64>(5)?,
+                    ))
+                },
+            )
+            .map_err(|error| LedgerError::sql("list open publications", error))?;
+        let mut open = Vec::new();
+        for row in rows {
+            let (event, run, kind, body, attempts, queued_at_ms) =
+                row.map_err(|error| LedgerError::sql("list open publications", error))?;
+            open.push(OpenPublication {
+                event: parse_event(&event)?,
+                run: parse_run(&run)?,
+                kind: parse_publication_kind(&kind)?,
+                body: PublicationBody(body),
+                attempts: attempts_of(attempts)?,
+                queued_at_ms,
+            });
+        }
+        Ok(open)
+    }
+
+    /// The bus, the artifact service or the Run document confirmed it. A
+    /// retry after a lost answer is already applied; an id never queued is
+    /// [`LedgerError::UnknownPublication`].
+    pub fn acknowledge(&mut self, event: EventId) -> Result<WriteOutcome, LedgerError> {
+        self.write(WriteOp::Acknowledge, |tx, now| {
+            let acknowledged: Option<Option<i64>> = tx
+                .query_row(
+                    "SELECT acknowledged_at_ms FROM pending_publications WHERE event_id = ?1",
+                    params![event.to_string()],
+                    |row| row.get(0),
+                )
+                .optional()
+                .map_err(|error| LedgerError::sql("read a publication", error))?;
+            match acknowledged {
+                None => Err(LedgerError::UnknownPublication),
+                Some(Some(_)) => Ok(WriteOutcome::AlreadyApplied),
+                Some(None) => {
+                    tx.execute(
+                        "UPDATE pending_publications SET acknowledged_at_ms = ?2
+                          WHERE event_id = ?1",
+                        params![event.to_string(), now],
+                    )
+                    .map_err(|error| LedgerError::sql("acknowledge a publication", error))?;
+                    Ok(WriteOutcome::Applied)
+                }
+            }
+        })
+    }
+
+    /// One more delivery attempt was made. Returns the new count; the
+    /// bound is the caller's policy.
+    pub fn bump_attempts(&mut self, event: EventId) -> Result<u32, LedgerError> {
+        self.write(WriteOp::BumpAttempts, |tx, _| {
+            let changed = tx
+                .execute(
+                    "UPDATE pending_publications SET attempts = attempts + 1
+                      WHERE event_id = ?1",
+                    params![event.to_string()],
+                )
+                .map_err(|error| LedgerError::sql("count a delivery attempt", error))?;
+            if changed == 0 {
+                return Err(LedgerError::UnknownPublication);
+            }
+            let attempts: i64 = tx
+                .query_row(
+                    "SELECT attempts FROM pending_publications WHERE event_id = ?1",
+                    params![event.to_string()],
+                    |row| row.get(0),
+                )
+                .map_err(|error| LedgerError::sql("read a publication", error))?;
+            attempts_of(attempts)
+        })
+    }
+
+    /// The run's open publications as the vocabulary crate carries them —
+    /// ids, kinds and counts, no body.
+    pub fn pending_publications(&self, run: RunId) -> Result<Vec<PendingPublication>, LedgerError> {
+        let mut statement = self
+            .conn()
+            .prepare(
+                "SELECT event_id, kind, attempts FROM pending_publications
+                  WHERE run_id = ?1 AND acknowledged_at_ms IS NULL
+                  ORDER BY rowid",
+            )
+            .map_err(|error| LedgerError::sql("list open publications", error))?;
+        let rows = statement
+            .query_map(params![run.to_storage()], |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, i64>(2)?,
+                ))
+            })
+            .map_err(|error| LedgerError::sql("list open publications", error))?;
+        let mut pending = Vec::new();
+        for row in rows {
+            let (event, kind, attempts) =
+                row.map_err(|error| LedgerError::sql("list open publications", error))?;
+            pending.push(PendingPublication {
+                event: parse_event(&event)?,
+                kind: parse_publication_kind(&kind)?,
+                attempts: attempts_of(attempts)?,
+            });
+        }
+        Ok(pending)
+    }
+}
+
+fn parse_event(value: &str) -> Result<EventId, LedgerError> {
+    uuid::Uuid::parse_str(value)
+        .map(EventId)
+        .map_err(|_| LedgerError::Corrupt {
+            table: "pending_publications",
+            column: "event_id",
+        })
+}
+
+fn attempts_of(value: i64) -> Result<u32, LedgerError> {
+    u32::try_from(value).map_err(|_| LedgerError::Corrupt {
+        table: "pending_publications",
+        column: "attempts",
+    })
+}
+
+#[cfg(test)]
+mod tests;

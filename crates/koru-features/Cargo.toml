@@ -1,0 +1,32 @@
+[package]
+rust-version.workspace = true
+name = "koru-features"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Which product surfaces this build shows: Koru Cloud, agents, tasks, Koru AI, reminders, canvases and Socials. The leaf every UI crate asks."
+
+# **Zero dependencies, and that is the point** — the same rule as koru-env and
+# koru-channel. Every flag is read with `option_env!` *here and nowhere else*,
+# because `option_env!` is evaluated when the crate that spells it is compiled
+# (the trap `koru-release::package::run_cargo` documents for the channel): one
+# reader means one compilation decides, so every binary in a release
+# invocation agrees on what is shown.
+[features]
+default = []
+# Test builds only. Crates that read a flag turn this on in their
+# `[dev-dependencies]`: with it the default is **every surface on** (so the
+# suites written before the flags keep exercising tasks, agents, AI, reminders
+# and Cloud), the process environment is ignored (so a developer's shell cannot
+# change a test's answer), and `testing::with` lets one test opt into a
+# simplified product on its own thread. A release or dev build never compiles
+# it — cargo unifies a dev-dependency's features only into builds that compile
+# dev targets.
+testing = []
+
+[dependencies]
+
+[dev-dependencies]
+# Only to prove the truthiness rule is koru-env's, byte for byte.
+koru-env = { path = "../koru-env" }

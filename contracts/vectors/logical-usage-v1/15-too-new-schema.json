@@ -1,0 +1,110 @@
+{
+  "case": "15-too-new-schema",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "A document whose schema version is newer than the server understands.",
+  "covers": [
+    "D29",
+    "D65"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [],
+            "state": "CLOUD_SCHEMA_UPDATE_REQUIRED",
+            "document_schema": {
+              "found": 9,
+              "understood": 6
+            }
+          },
+          {
+            "document": "doc-2",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "The quick brown fox jumps over the lazy dog.",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 44
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "  document doc-1: CLOUD_SCHEMA_UPDATE_REQUIRED -> the document has no value; it propagates",
+    "    doc-2/n1 (paragraph): node.text 14 = 14",
+    "    doc-2/n2 (paragraph): node.text 44 = 44",
+    "  document doc-2: 58",
+    "  -> CLOUD_SCHEMA_UPDATE_REQUIRED: the workspace component has no value",
+    "account: CLOUD_SCHEMA_UPDATE_REQUIRED propagates from an unknown workspace; the aggregate has no value"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "CLOUD_SCHEMA_UPDATE_REQUIRED",
+        "documents_units": null,
+        "files_bytes": null,
+        "logical_usage_units": null,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "CLOUD_SCHEMA_UPDATE_REQUIRED",
+      "documents_units": null,
+      "files_bytes": null,
+      "logical_usage_units": null,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "koru_projection::worker checks WorkspaceDoc::compatibility() before walking and, on Compatibility::TooNew, marks the document and returns without projecting. A document the server cannot fully interpret has fields it cannot see — including, possibly, a new kind of text — so any number it produced would be an under-count.",
+    "A separate code from USAGE_UNKNOWN because the remedy differs: deploy a Cloud that understands the schema. Nothing about the customer's document is wrong.",
+    "The deployment-ordering rule exists so this state is not reachable in production: Cloud understands a schema version in every region before any client that can write it is released."
+  ]
+}

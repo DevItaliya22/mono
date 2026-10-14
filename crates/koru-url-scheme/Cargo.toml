@@ -1,0 +1,25 @@
+[package]
+rust-version.workspace = true
+name = "koru-url-scheme"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Whether this build opens koru:// links. Four per-user registry keys, and the state of them."
+
+# A sibling of `koru-autostart` rather than part of it. That crate's whole API
+# is "one value under Run", and it only ever *opens* keys that already exist; a
+# URL scheme is a tree of four keys that must be created. The ~50 duplicated
+# lines of `wide`/`RegSetValueExW` are the price of neither crate growing an
+# abstraction the other does not want. **A third caller means extracting
+# `koru-registry`** -- see TECHDEBT.
+
+[dependencies]
+
+# One dependency, on one platform. Everywhere else this crate is a stub that
+# answers `Unsupported`, so nothing that links it acquires anything at all.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_System_Registry",
+] }

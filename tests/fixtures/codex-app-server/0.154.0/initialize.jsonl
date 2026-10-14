@@ -1,0 +1,5 @@
+{"method":"initialize","id":1,"params":{"clientInfo":{"name":"koru_terminal","title":"Koru Terminal","version":"qualification"},"capabilities":{"experimentalApi":false}}}
+{"id":1,"result":{"userAgent":"koru_terminal/0.154.0 (<platform>)","codexHome":"<codex-home>","platformFamily":"<platform>","platformOs":"<platform>"}}
+{"method":"initialized","params":{}}
+{"method":"model/list","id":2,"params":{"limit":100}}
+{"id":2,"result":{"data":[{"id":"fixture-default","model":"default-model","isDefault":true,"inputModalities":["text","image"]},{"id":"fixture-model-1","model":"fixture-model-1","isDefault":false,"inputModalities":["text","image"]},{"id":"fixture-model-2","model":"fixture-model-2","isDefault":false,"inputModalities":["text","image"]},{"id":"fixture-model-3","model":"fixture-model-3","isDefault":false,"inputModalities":["text","image"]},{"id":"fixture-model-4","model":"fixture-model-4","isDefault":false,"inputModalities":["text","image"]},{"id":"fixture-model-5","model":"fixture-model-5","isDefault":false,"inputModalities":["text"]}],"nextCursor":null}}

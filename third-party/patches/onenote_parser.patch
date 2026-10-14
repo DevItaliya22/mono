@@ -1,0 +1,169 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 1b0c3fd..9ef4ba6 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -127,3 +127,7 @@ version = "3.15"
+ 
+ [dev-dependencies.yare]
+ version = "3.0.0"
++
++# Keep this isolated dependency from being inferred as a member of the outer
++# repository workspace when the worktree itself lives beneath that checkout.
++[workspace]
+diff --git a/src/onenote/outline.rs b/src/onenote/outline.rs
+index ab97152..be86f9c 100644
+--- a/src/onenote/outline.rs
++++ b/src/onenote/outline.rs
+@@ -15,6 +15,7 @@ use crate::onestore::ObjectSpace;
+ /// [\[MS-ONE\] 2.2.20]: https://docs.microsoft.com/en-us/openspecs/office_file_formats/ms-one/b25fa331-e07e-474e-99c9-b3603b7bf937
+ #[derive(Clone, Debug)]
+ pub struct Outline {
++    link_target_id: String,
+     pub(crate) child_level: u8,
+     pub(crate) list_spacing: Option<f32>,
+     pub(crate) indents: Vec<f32>,
+@@ -34,6 +35,11 @@ pub struct Outline {
+ }
+ 
+ impl Outline {
++    /// The OneNote object id used by internal links to this outline.
++    pub fn link_target_id(&self) -> &str {
++        &self.link_target_id
++    }
++
+     /// Contents of this outline.
+     pub fn items(&self) -> &[OutlineItem] {
+         &self.items
+@@ -178,11 +184,17 @@ impl OutlineItem {
+ /// [\[MS-ONE\] 2.2.22]: https://docs.microsoft.com/en-us/openspecs/office_file_formats/ms-one/7dcc1618-46ee-4912-b918-ab4df1b52315
+ #[derive(Clone, Debug)]
+ pub struct OutlineGroup {
++    link_target_id: String,
+     pub(crate) child_level: u8,
+     pub(crate) outlines: Vec<OutlineItem>,
+ }
+ 
+ impl OutlineGroup {
++    /// The OneNote object id used by internal links to this outline group.
++    pub fn link_target_id(&self) -> &str {
++        &self.link_target_id
++    }
++
+     /// The nesting level of this outline group's contents.
+     ///
+     /// See [\[MS-ONE\] 2.3.8].
+@@ -206,6 +218,7 @@ impl OutlineGroup {
+ /// [\[MS-ONE\] 2.2.21]: https://docs.microsoft.com/en-us/openspecs/office_file_formats/ms-one/d47760a6-6f1f-4fd5-b2ad-a51fe5a72c21
+ #[derive(Clone, Debug)]
+ pub struct OutlineElement {
++    link_target_id: String,
+     pub(crate) contents: Vec<Content>,
+ 
+     pub(crate) list_contents: Vec<List>,
+@@ -216,6 +229,11 @@ pub struct OutlineElement {
+ }
+ 
+ impl OutlineElement {
++    /// The OneNote object id used by internal links to this outline element.
++    pub fn link_target_id(&self) -> &str {
++        &self.link_target_id
++    }
++
+     /// The outline element's contents.
+     pub fn contents(&self) -> &[Content] {
+         &self.contents
+@@ -274,6 +292,7 @@ pub(crate) fn parse_outline(
+         .collect::<Result<_>>()?;
+ 
+     let outline = Outline {
++        link_target_id: format_link_target_id(outline_id),
+         items,
+         child_level: data.child_level,
+         list_spacing: data.list_spacing,
+@@ -348,6 +367,7 @@ fn parse_outline_group(
+         .collect::<Result<_>>()?;
+ 
+     let group = OutlineGroup {
++        link_target_id: format_link_target_id(group_id),
+         child_level: data.child_level,
+         outlines,
+     };
+@@ -390,6 +410,7 @@ pub(crate) fn parse_outline_element(
+         .collect::<Result<_>>()?;
+ 
+     let element = OutlineElement {
++        link_target_id: format_link_target_id(element_id),
+         child_level: data.child_level,
+         list_spacing: data.list_spacing,
+         children,
+@@ -399,3 +420,29 @@ pub(crate) fn parse_outline_element(
+ 
+     Ok(element)
+ }
++
++/// OneNote writes an extended GUID in hyperlinks as `{GUID}&HEX_VALUE`.
++fn format_link_target_id(id: ExGuid) -> String {
++    format!("{}&{:X}", id.guid, id.value)
++}
++
++#[cfg(test)]
++mod link_target_tests {
++    use super::format_link_target_id;
++    use crate::fsshttpb::data::exguid::ExGuid;
++    use crate::shared::guid::Guid;
++    use uuid::Uuid;
++
++    #[test]
++    fn an_extended_guid_uses_onenotes_hyperlink_spelling() {
++        let id = ExGuid {
++            guid: Guid(Uuid::parse_str("65aae0af-75fe-05c5-07b5-3e406fe22be2").unwrap()),
++            value: 0xE,
++        };
++
++        assert_eq!(
++            format_link_target_id(id),
++            "{65AAE0AF-75FE-05C5-07B5-3E406FE22BE2}&E"
++        );
++    }
++}
+diff --git a/src/onenote/section.rs b/src/onenote/section.rs
+index f7c5b66..f2e434b 100644
+--- a/src/onenote/section.rs
++++ b/src/onenote/section.rs
+@@ -22,6 +22,7 @@ pub enum SectionEntry {
+ /// [\[MS-ONE\] 2.2.17]: https://docs.microsoft.com/en-us/openspecs/office_file_formats/ms-one/6913913f-b7d1-4b29-ab09-231ea3835ac2
+ #[derive(Clone, Debug)]
+ pub struct Section {
++    source_file_name: String,
+     display_name: String,
+     page_series: Vec<PageSeries>,
+     color: Option<Color>,
+@@ -29,6 +30,11 @@ pub struct Section {
+ }
+ 
+ impl Section {
++    /// The source `.one` filename used to locate this section in internal links.
++    pub fn source_file_name(&self) -> &str {
++        &self.source_file_name
++    }
++
+     /// The section name.
+     pub fn display_name(&self) -> &str {
+         &self.display_name
+@@ -81,7 +87,7 @@ pub(crate) fn parse_section(store: &(impl OneStore + ?Sized), filename: String)
+ 
+     let display_name = metadata
+         .display_name
+-        .unwrap_or(filename)
++        .unwrap_or_else(|| filename.clone())
+         .trim_end_matches(".one")
+         .to_string();
+ 
+@@ -92,6 +98,7 @@ pub(crate) fn parse_section(store: &(impl OneStore + ?Sized), filename: String)
+         .collect::<Result<_>>()?;
+ 
+     Ok(Section {
++        source_file_name: filename,
+         display_name,
+         page_series,
+         color: metadata.color,

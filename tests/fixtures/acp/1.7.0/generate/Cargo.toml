@@ -1,0 +1,13 @@
+[package]
+name = "koru-acp-schema-fixture"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+# Separate workspace: schemars is a maintenance tool, never enabled in Koru.
+[workspace]
+
+[dependencies]
+agent-client-protocol-schema = { version = "=1.7.0", default-features = false, features = ["schemars"] }
+schemars = "=1.2.2"
+serde_json = "=1.0.149"

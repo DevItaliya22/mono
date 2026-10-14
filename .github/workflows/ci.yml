@@ -1,0 +1,262 @@
+# Public CI: tests, formatting, clippy, licenses and advisories, the
+# repository checks (script tests, SPDX headers, the publish scan, Markdown
+# links) and sign-off, on every push and pull request.
+#
+# The rules: GitHub-hosted runners only, a read-only GITHUB_TOKEN, no
+# pull_request_target, no secrets, and every third-party action pinned to a
+# full commit SHA (the tag is in the comment above each one; Dependabot moves
+# both). The job names are the required checks on `main`, so renaming a job
+# means changing branch protection too.
+#
+# **docs/ is never checked out.** It is a submodule pointing at the
+# maintainers' private koru-docs repository; nothing builds or tests from it,
+# and this workflow has no credentials for it. Every checkout below says
+# `submodules: false` so that stays true if the action's default changes.
+#
+# What runs where, honestly: Koru's targets are Windows, Android and Apple
+# (GOVERNANCE.md). The app is built and tested on Windows only. Linux
+# runs the checks that do not depend on the platform: formatting, cargo-deny,
+# the repository checks and sign-off. Nothing here claims the workspace builds
+# on Linux.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch or pull request cancels the older run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # sccache caches dependency builds across runs; incremental units are not
+  # cacheable and a CI build never benefits from them.
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  repository:
+    name: repository checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # actions/checkout v6.1.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          submodules: false
+      - name: Check script regressions
+        run: python3 -m unittest discover -s scripts/checks -p 'test_*.py'
+      - name: Check SPDX headers
+        run: python3 scripts/checks/spdx-headers.py --check
+      - name: Check the public source export
+        shell: bash
+        run: |
+          export_dir="$RUNNER_TEMP/koru-public-source"
+          mkdir -p "$export_dir"
+          git archive HEAD | tar -x -C "$export_dir"
+          python3 scripts/checks/oss-scan.py "$export_dir"
+          python3 scripts/checks/oss-links.py "$export_dir"
+
+  fmt:
+    name: fmt
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # actions/checkout v6.1.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          submodules: false
+      - name: rustfmt
+        run: rustup component add rustfmt
+      # .cargo/config.toml makes sccache the rustc wrapper; formatting compiles
+      # nothing, so the wrapper is switched off rather than installed (an
+      # empty RUSTC_WRAPPER overrides the config key).
+      - name: cargo fmt --check
+        env:
+          RUSTC_WRAPPER: ""
+        run: cargo fmt --all --check
+
+  cargo-deny:
+    name: cargo-deny
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # `cargo metadata` asks rustc for its version through the configured
+      # wrapper (sccache, from .cargo/config.toml). Nothing is compiled here,
+      # so the wrapper is switched off rather than installed.
+      RUSTC_WRAPPER: ""
+    steps:
+      # actions/checkout v6.1.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          submodules: false
+      # cargo-deny reads the full dependency graph, which includes the patched
+      # third-party crates the workspace names by path (third-party/README.md).
+      - name: Fetch third-party code
+        run: bash scripts/setup/fetch-third-party.sh
+      # EmbarkStudios/cargo-deny-action v2.1.1. Licenses, advisories, bans
+      # and sources, as configured in deny.toml.
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25
+        with:
+          command: check advisories bans licenses sources
+
+  dco:
+    name: DCO
+    # Only a pull request has commits to check; a push to main carries
+    # commits that were checked as a pull request first.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # actions/checkout v6.1.0. The full history, so the range between the
+      # base and the pull request's head can be read.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          submodules: false
+          fetch-depth: 0
+      - name: Every commit is signed off
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        # A PR cannot replace the checker used to approve its own commits.
+        run: |
+          git show "$BASE:scripts/checks/dco-check.py" > "$RUNNER_TEMP/dco-check.py"
+          python3 "$RUNNER_TEMP/dco-check.py" "$BASE..$HEAD"
+
+  clippy:
+    name: clippy
+    runs-on: windows-latest
+    timeout-minutes: 150
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
+      SHERPA_ONNX_ARCHIVE_DIR: ${{ github.workspace }}\third-party\sherpa-onnx\1.13.6
+      LIBCLANG_PATH: C:\Program Files\LLVM\bin
+    steps:
+      # actions/checkout v6.1.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          submodules: false
+      - name: clippy
+        run: rustup component add clippy
+      # Three crates are built from patched source fetched from crates.io and
+      # checked against the pins in third-party/fetch.manifest; the
+      # workspace names them by path, so nothing below resolves without them.
+      - name: Fetch third-party code
+        shell: pwsh
+        run: ./scripts/setup/fetch-third-party.ps1
+      # mozilla-actions/sccache-action v0.0.11
+      - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba
+      # The voice runtime links upstream's TTS-free sherpa-onnx archive, which
+      # the fetch script downloads and refuses unless it matches its pin. It is
+      # cached until the pins in that script change; the fetch then verifies
+      # the cached copy, as it would any file already in place.
+      # actions/cache v6.1.0
+      - id: sherpa
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: third-party/sherpa-onnx/1.13.6
+          key: sherpa-no-tts-${{ runner.os }}-${{ hashFiles('scripts/setup/fetch-voice-runtime.ps1') }}
+      - name: Fetch the sherpa-onnx archive
+        shell: pwsh
+        run: ./scripts/setup/fetch-voice-runtime.ps1
+      # Clippy at the workspace's own level: no lint configuration exists, so
+      # warnings are reported and deny-by-default lints fail the job. Making
+      # warnings errors is a decision for later.
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-targets --locked
+
+  test:
+    name: ${{ matrix.name }}
+    runs-on: windows-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: test (windows)
+            toolchain: pinned
+          - name: MSRV (windows)
+            toolchain: msrv
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
+      SHERPA_ONNX_ARCHIVE_DIR: ${{ github.workspace }}\third-party\sherpa-onnx\1.13.6
+      LIBCLANG_PATH: C:\Program Files\LLVM\bin
+    steps:
+      # actions/checkout v6.1.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          submodules: false
+      - name: Select the declared Rust toolchain
+        shell: pwsh
+        run: |
+          $version = if ('${{ matrix.toolchain }}' -eq 'msrv') {
+            python -c "import tomllib; print(tomllib.load(open('Cargo.toml', 'rb'))['workspace']['package']['rust-version'])"
+          } else {
+            python -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])"
+          }
+          if ($LASTEXITCODE -ne 0 -or $version -notmatch '^\d+\.\d+(\.\d+)?$') { throw 'Invalid Rust toolchain version' }
+          rustup toolchain install $version --profile minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "RUSTUP_TOOLCHAIN=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+      # (see the clippy job)
+      - name: Fetch third-party code
+        shell: pwsh
+        run: ./scripts/setup/fetch-third-party.ps1
+      # mozilla-actions/sccache-action v0.0.11
+      - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba
+      # actions/cache v6.1.0 (see the clippy job)
+      - id: sherpa
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: third-party/sherpa-onnx/1.13.6
+          key: sherpa-no-tts-${{ runner.os }}-${{ hashFiles('scripts/setup/fetch-voice-runtime.ps1') }}
+      - name: Fetch the sherpa-onnx archive
+        shell: pwsh
+        run: ./scripts/setup/fetch-voice-runtime.ps1
+      # The bundled fonts are fetched, not committed; the tests and the
+      # packaging checks read them. Pinned by scripts/setup/fonts.manifest.
+      # actions/cache v6.1.0
+      - id: fonts
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: assets/fonts/
+          key: fonts-${{ hashFiles('scripts/setup/fonts.manifest', 'scripts/setup/fetch-fonts.ps1') }}
+      - name: Fetch fonts
+        if: steps.fonts.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: ./scripts/setup/fetch-fonts.ps1
+      - name: cargo test --workspace
+        run: cargo test --workspace --locked
+      - name: Windows setup and repository script regressions
+        if: matrix.toolchain == 'pinned'
+        run: python -m unittest discover -s scripts/checks -p 'test_*.py'
+      - name: Package and check the public build
+        if: matrix.toolchain == 'pinned'
+        shell: pwsh
+        run: |
+          cargo run --locked -p koru-release -- dist-local beta 0.0.0-ci
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $archives = @(Get-ChildItem -LiteralPath dist/cloud -Recurse -Filter '*.zip')
+          if ($archives.Count -ne 1) { throw 'Expected exactly one release archive' }
+          $destination = Join-Path $env:RUNNER_TEMP 'koru-package'
+          Expand-Archive -LiteralPath $archives[0].FullName -DestinationPath $destination
+          $apps = @(Get-ChildItem -LiteralPath $destination -Recurse -Filter koru.exe)
+          if ($apps.Count -ne 1) { throw 'Expected exactly one packaged Koru executable' }
+          $process = Start-Process -FilePath $apps[0].FullName -ArgumentList '--help' -WindowStyle Hidden -PassThru
+          if (-not $process.WaitForExit(30000)) {
+            $process.Kill()
+            throw 'Packaged Koru did not finish --help within 30 seconds'
+          }
+          if ($process.ExitCode -ne 0) { throw "Packaged Koru exited with $($process.ExitCode)" }

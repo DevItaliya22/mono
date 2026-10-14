@@ -1,0 +1,21 @@
+[package]
+rust-version.workspace = true
+name = "koru-oauth-credentials"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Scoped OS credential storage for native OAuth refresh tokens."
+
+[features]
+default = []
+desktop = ["dep:keyring"]
+
+[dependencies]
+blake3.workspace = true
+keyring = { workspace = true, optional = true }
+koru-device = { path = "../koru-device" }
+url.workspace = true
+zeroize.workspace = true
+serde.workspace = true
+serde_json.workspace = true

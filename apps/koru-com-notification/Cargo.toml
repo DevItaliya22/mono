@@ -1,0 +1,22 @@
+[package]
+rust-version.workspace = true
+name = "koru-com-notification"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Short-lived Windows COM broker for Koru reminder notification actions."
+
+[[bin]]
+name = "koru-com-notification"
+path = "src/main.rs"
+
+[dependencies]
+koru-agent = { path = "../koru-agent" }
+koru-log = { path = "../../crates/koru-log" }
+tracing.workspace = true
+
+[build-dependencies]
+koru-channel = { path = "../../crates/koru-channel" }
+koru-native-notifications = { path = "../../crates/koru-native-notifications" }
+koru-winres = { path = "../../crates/koru-winres" }

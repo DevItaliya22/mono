@@ -1,0 +1,45 @@
+{
+  "cli_version": "0.154.0",
+  "protocol_version": "v2",
+  "schema_sha256": "f3487938786b729cb6773dbc9e83a7efab9c78c845db7094e8f539f373cbacc9",
+  "required_client_methods": [
+    "initialize",
+    "model/list",
+    "thread/start",
+    "turn/start",
+    "turn/interrupt"
+  ],
+  "required_server_notifications": [
+    "item/agentMessage/delta",
+    "item/started",
+    "item/completed",
+    "thread/tokenUsage/updated",
+    "turn/completed"
+  ],
+  "required_server_requests": [
+    "item/commandExecution/requestApproval",
+    "item/fileChange/requestApproval",
+    "item/permissions/requestApproval"
+  ],
+  "required_input_modalities": [
+    "text",
+    "image"
+  ],
+  "model_identity_notifications": [
+    "model/rerouted"
+  ],
+  "additive_notifications_ignored": [
+    "thread/started",
+    "turn/started",
+    "thread/status/changed",
+    "mcpServer/startupStatus/updated",
+    "hook/started",
+    "hook/completed",
+    "account/rateLimits/updated",
+    "remoteControl/status/changed"
+  ],
+  "recording_provenance": {
+    "initialize.jsonl": "Sanitized projection of live initialize and model/list responses; no thread or prompt.",
+    "remaining_jsonl": "Schema-derived adapter boundary fixtures adapted from the 0.153.4 fixture set; not 0.154.0 model-turn recordings."
+  }
+}

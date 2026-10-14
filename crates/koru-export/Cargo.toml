@@ -1,0 +1,11 @@
+[package]
+rust-version.workspace = true
+name = "koru-export"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Format-independent document export contract for Koru."
+
+[dependencies]
+koru-core = { path = "../koru-core" }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qr_preparing">正在准备二维码扫描器…</string>
+    <string name="qr_unavailable">无法打开二维码扫描器。请检查网络连接和 Google Play 服务，然后重试或在下方粘贴连接代码。</string>
+</resources>

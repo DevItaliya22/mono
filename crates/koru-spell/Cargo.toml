@@ -1,0 +1,41 @@
+[package]
+rust-version.workspace = true
+name = "koru-spell"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Whether a word is spelled correctly, and what might replace it — the spell languages, the prose tokenizer, the dictionary manager, and the provider boundary that seals the engine. It knows no node, no row, no winit and no Loro: it is handed text with excluded ranges and answers with byte-ranged issues, and something else decides what is prose and how to draw."
+
+# **The dependencies are the charter, stated twice.**
+#
+# `spellbook` is the engine, pinned exactly because it calls itself alpha, and
+# it appears in `engine.rs` and nowhere else — a test walks the public API to
+# keep it that way, so the engine can be replaced per-language without the
+# editor noticing (spell-check plan, D1).
+#
+# `unicode-segmentation` is UAX #29 word boundaries, the same pin the diff
+# tokenizer and the editor's grapheme motion already cut on. `koru-i18n` is
+# where the BCP-47 tags this crate must not re-spell are declared; `koru-env`
+# is where `KORU_DICTIONARIES` is declared, because a name read without a row
+# there is invisible to `koru.bat envs` and to `reference/ENV.md`.
+#
+# **Not here, and not by accident:** no `koru-core`, no `parley`, no `winit`,
+# no Loro. Prose extraction and drawing live with the editor; this crate must
+# stay loadable by a test with no window.
+[dependencies]
+spellbook = { workspace = true }
+unicode-segmentation = { workspace = true }
+koru-i18n = { path = "../koru-i18n" }
+koru-env = { path = "../koru-env" }
+
+[dev-dependencies]
+# The corpus fixtures are JSON (spell-check plan §P1); serde stays out of the
+# crate proper because nothing in the public API serializes.
+serde = { workspace = true }
+serde_json = { workspace = true }
+# The license tests: `toml` parses the dictionary manifest the fetch scripts
+# write (`sources/tests.rs`), and `sha2` checks a fetched tree's notices
+# against their pins.
+sha2 = { workspace = true }
+toml = { workspace = true }

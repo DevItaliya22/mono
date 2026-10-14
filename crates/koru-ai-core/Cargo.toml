@@ -1,0 +1,24 @@
+[package]
+rust-version.workspace = true
+name = "koru-ai-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Provider-neutral Koru AI chat models, behavior, and ports."
+
+[features]
+default = []
+schema = ["dep:schemars", "koru-store-core/schema"]
+
+[dependencies]
+koru-store-core = { path = "../koru-store-core" }
+pulldown-cmark.workspace = true
+schemars = { workspace = true, optional = true }
+serde.workspace = true
+serde_json.workspace = true
+url.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

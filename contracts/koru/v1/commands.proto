@@ -1,0 +1,109 @@
+// SPDX-License-Identifier: MPL-2.0
+
+syntax = "proto3";
+
+package koru.v1;
+
+import "koru/v1/errors.proto";
+import "koru/v1/ids.proto";
+import "koru/v1/model.proto";
+
+option java_multiple_files = true;
+option java_package = "app.koru.contract.v1";
+option swift_prefix = "KOR";
+
+message CreateBlock {
+  BlockEnvelope block = 1;
+  uint32 sibling_index = 2;
+}
+message DeleteBlock {
+  BlockId block_id = 1;
+}
+message MoveBlock {
+  BlockId block_id = 1;
+  optional BlockId parent_id = 2;
+  uint32 sibling_index = 3;
+}
+message IndentBlock {
+  BlockId block_id = 1;
+}
+message OutdentBlock {
+  BlockId block_id = 1;
+}
+message InsertText {
+  BlockId block_id = 1;
+  uint32 at_utf8 = 2;
+  string text = 3;
+}
+message DeleteText {
+  BlockId block_id = 1;
+  TextRange range = 2;
+}
+message AddTextMark {
+  BlockId block_id = 1;
+  TextMark mark = 2;
+}
+message RemoveTextMark {
+  BlockId block_id = 1;
+  TextRange range = 2;
+  string kind = 3;
+}
+message SetBlockProperty {
+  BlockId block_id = 1;
+  oneof property {
+    bool done = 2;
+    Alignment alignment = 3;
+    uint32 heading_level = 4;
+    ListStyle list_style = 5;
+    ImageSize image_size = 6;
+    string language = 7;
+    string color = 8;
+  }
+}
+message ToggleTask {
+  BlockId block_id = 1;
+  bool done = 2;
+}
+message InsertInlineObject {
+  BlockId block_id = 1;
+  InlineObject object = 2;
+}
+message RemoveInlineObject {
+  BlockId block_id = 1;
+  InlineObjectId object_id = 2;
+}
+message AttachBlob {
+  BlockId block_id = 1;
+  BlobReference blob = 2;
+}
+message RenameDocument {
+  string title = 1;
+}
+
+message DocumentCommandEnvelope {
+  DocumentId document_id = 1;
+  string operation_id = 2;
+  oneof command {
+    CreateBlock create_block = 10;
+    DeleteBlock delete_block = 11;
+    MoveBlock move_block = 12;
+    IndentBlock indent_block = 13;
+    OutdentBlock outdent_block = 14;
+    InsertText insert_text = 15;
+    DeleteText delete_text = 16;
+    AddTextMark add_text_mark = 17;
+    RemoveTextMark remove_text_mark = 18;
+    SetBlockProperty set_block_property = 19;
+    ToggleTask toggle_task = 20;
+    InsertInlineObject insert_inline_object = 21;
+    RemoveInlineObject remove_inline_object = 22;
+    AttachBlob attach_blob = 23;
+    RenameDocument rename_document = 24;
+  }
+}
+
+message CommandResult {
+  string operation_id = 1;
+  uint64 revision = 2;
+  optional ServiceError error = 3;
+}

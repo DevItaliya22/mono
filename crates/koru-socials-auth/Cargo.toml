@@ -1,0 +1,21 @@
+[package]
+rust-version.workspace = true
+name = "koru-socials-auth"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Shared Socials credential ownership and native OAuth worker contracts."
+
+[features]
+default = []
+no-network = []
+
+[dependencies]
+fs2.workspace = true
+koru-api-client = { path = "../koru-api-client" }
+koru-channel = { path = "../koru-channel" }
+koru-device = { path = "../koru-device" }
+koru-oauth-credentials = { path = "../koru-oauth-credentials", features = ["desktop"] }
+reqwest.workspace = true
+zeroize.workspace = true

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<en-export>
+  <note><title>Complete note</title><content>&lt;en-note/&gt;</content><guid>complete-guid</guid></note>
+  <note><title>Incomplete note</title><content>&lt;en-note&gt;

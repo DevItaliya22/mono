@@ -1,0 +1,1589 @@
+{
+  "format": 1,
+  "authority": "TECHNICAL.final.md section 5",
+  "ids": {
+    "replica": "11111111-1111-4111-8111-111111111111",
+    "authority": "22222222-2222-4222-8222-222222222222",
+    "lineage": "33333333-3333-4333-8333-333333333333",
+    "worker": "44444444-4444-4444-8444-444444444444",
+    "lease": "55555555-5555-4555-8555-555555555555"
+  },
+  "digest_vectors": [
+    {
+      "id": "D1",
+      "kind": "place",
+      "dataset": "workspace",
+      "expected_epoch": 0,
+      "expected_lease": null,
+      "expected_expiry_millis": null,
+      "canonical_hex": "6b6f72752f636c6f75642f6c656173652d6f7065726174696f6e2f7631000111111111111141118111111111111111012222222222224222822222222222222233333333333343338333333333333333444444444444444484444444444444440000000000000000000000",
+      "sha256": "0cbaa3f4ba8e482cb6b9e7bd28829f1760bcede30d6216c9b269acf0a79298a6"
+    },
+    {
+      "id": "D2",
+      "kind": "place",
+      "dataset": "profile",
+      "expected_epoch": 0,
+      "expected_lease": null,
+      "expected_expiry_millis": null,
+      "canonical_hex": "6b6f72752f636c6f75642f6c656173652d6f7065726174696f6e2f7631000111111111111141118111111111111111022222222222224222822222222222222233333333333343338333333333333333444444444444444484444444444444440000000000000000000000",
+      "sha256": "4d5e0cfd7b04abe754add84f4bd012978951bcf64eee6878e791d5cad1b7c432"
+    },
+    {
+      "id": "D3",
+      "kind": "acquire",
+      "dataset": "workspace",
+      "expected_epoch": 0,
+      "expected_lease": null,
+      "expected_expiry_millis": null,
+      "canonical_hex": "6b6f72752f636c6f75642f6c656173652d6f7065726174696f6e2f7631000211111111111141118111111111111111012222222222224222822222222222222233333333333343338333333333333333444444444444444484444444444444440000000000000000000000",
+      "sha256": "9c8c256ad9c859c9b406beec778e88b52284c7bf4f1b497e982a4ef4767888d8"
+    },
+    {
+      "id": "D4",
+      "kind": "acquire",
+      "dataset": "profile",
+      "expected_epoch": 0,
+      "expected_lease": null,
+      "expected_expiry_millis": null,
+      "canonical_hex": "6b6f72752f636c6f75642f6c656173652d6f7065726174696f6e2f7631000211111111111141118111111111111111022222222222224222822222222222222233333333333343338333333333333333444444444444444484444444444444440000000000000000000000",
+      "sha256": "b45e8d2a3f16880353a331d2441d049e9f203dd406a006426edbffcb1368c3e3"
+    },
+    {
+      "id": "D5",
+      "kind": "renew",
+      "dataset": "workspace",
+      "expected_epoch": 1,
+      "expected_lease": "55555555-5555-4555-8555-555555555555",
+      "expected_expiry_millis": 31000,
+      "canonical_hex": "6b6f72752f636c6f75642f6c656173652d6f7065726174696f6e2f7631000311111111111141118111111111111111012222222222224222822222222222222233333333333343338333333333333333444444444444444484444444444444440000000000000001015555555555554555855555555555555500000000000079180000",
+      "sha256": "b6305022d5cbd7657683e6f0afe9459e7c1c84c64a530bb7940f4872636aecf5"
+    },
+    {
+      "id": "D6",
+      "kind": "renew",
+      "dataset": "profile",
+      "expected_epoch": 1,
+      "expected_lease": "55555555-5555-4555-8555-555555555555",
+      "expected_expiry_millis": 31000,
+      "canonical_hex": "6b6f72752f636c6f75642f6c656173652d6f7065726174696f6e2f7631000311111111111141118111111111111111022222222222224222822222222222222233333333333343338333333333333333444444444444444484444444444444440000000000000001015555555555554555855555555555555500000000000079180000",
+      "sha256": "bc5781f8f4f5d3a14dd12737221d36b039d4b2b0c84fd2550bed15ba052d758c"
+    },
+    {
+      "id": "D7",
+      "kind": "release",
+      "dataset": "workspace",
+      "expected_epoch": 1,
+      "expected_lease": "55555555-5555-4555-8555-555555555555",
+      "expected_expiry_millis": 31000,
+      "canonical_hex": "6b6f72752f636c6f75642f6c656173652d6f7065726174696f6e2f7631000411111111111141118111111111111111012222222222224222822222222222222233333333333343338333333333333333444444444444444484444444444444440000000000000001015555555555554555855555555555555500000000000079180000",
+      "sha256": "bb262af2a9a2dd2a72dc99d5a3b424dce1816e5ad40e660c25300890cfeed8fe"
+    },
+    {
+      "id": "D8",
+      "kind": "release",
+      "dataset": "profile",
+      "expected_epoch": 1,
+      "expected_lease": "55555555-5555-4555-8555-555555555555",
+      "expected_expiry_millis": 31000,
+      "canonical_hex": "6b6f72752f636c6f75642f6c656173652d6f7065726174696f6e2f7631000411111111111141118111111111111111022222222222224222822222222222222233333333333343338333333333333333444444444444444484444444444444440000000000000001015555555555554555855555555555555500000000000079180000",
+      "sha256": "726bcf5bebb0c1b439de573ff08ef2b1ed46174ab07a08426d6f67fed9a12538"
+    }
+  ],
+  "lease_vectors": [
+    {
+      "id": "L01",
+      "dataset": "workspace",
+      "name": "place epoch zero; no write authority",
+      "initial": null,
+      "command": {
+        "kind": "place",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "placed",
+        "epoch": 0,
+        "expiry": null
+      }
+    },
+    {
+      "id": "L02",
+      "dataset": "workspace",
+      "name": "first acquire",
+      "initial": {
+        "epoch": 0,
+        "lease": null,
+        "start": null,
+        "expiry": null,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-p",
+          "kind": "place",
+          "digest": "digest-p",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 0,
+        "lease": null,
+        "expiry": null,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "acquired",
+        "epoch": 1,
+        "expiry": 41000
+      }
+    },
+    {
+      "id": "L03",
+      "dataset": "workspace",
+      "name": "same worker cannot acquire live lease",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "lease_held",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L04",
+      "dataset": "workspace",
+      "name": "renew ten second cadence",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "renewed",
+        "epoch": 1,
+        "expiry": 41000
+      }
+    },
+    {
+      "id": "L05",
+      "dataset": "workspace",
+      "name": "renew just before expiry",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 30999,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "renewed",
+        "epoch": 1,
+        "expiry": 60999
+      }
+    },
+    {
+      "id": "L06",
+      "dataset": "workspace",
+      "name": "renew equality expired",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L07",
+      "dataset": "workspace",
+      "name": "renew late",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31001,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L08",
+      "dataset": "workspace",
+      "name": "release at equality",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "release",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "released",
+        "epoch": 2,
+        "expiry": null
+      }
+    },
+    {
+      "id": "L09",
+      "dataset": "workspace",
+      "name": "expired acquire combined single epoch advance",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "acquired",
+        "epoch": 2,
+        "expiry": 61000
+      }
+    },
+    {
+      "id": "L10",
+      "dataset": "workspace",
+      "name": "cross-slot expired acquisition",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31000,
+        "worker": "slot-b",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "storage_move_required",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L11",
+      "dataset": "workspace",
+      "name": "same operation exact original expired result",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-a",
+        "digest": "digest-a",
+        "now": 32000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "exact_retry",
+        "epoch": 1,
+        "expiry": 31000
+      }
+    },
+    {
+      "id": "L12",
+      "dataset": "workspace",
+      "name": "changed same-id expiry conflicts",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-a",
+        "digest": "digest-changed",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "operation_conflict",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L13",
+      "dataset": "workspace",
+      "name": "current denial wins over exact retry",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-a",
+        "digest": "digest-a",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "cloud_access_epoch_mismatch",
+        "ready": true
+      },
+      "expected": {
+        "result": "cloud_access_epoch_mismatch",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L14",
+      "dataset": "workspace",
+      "name": "stale epoch cannot renew",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 0,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L15",
+      "dataset": "workspace",
+      "name": "stale expected expiry cannot renew",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 30999,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L16",
+      "dataset": "workspace",
+      "name": "forgotten old ID indistinguishable at same millisecond",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "forgotten-old-id",
+        "digest": "digest-b",
+        "now": 1000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "renewed",
+        "epoch": 1,
+        "expiry": 31000
+      }
+    },
+    {
+      "id": "L17",
+      "dataset": "workspace",
+      "name": "expiry settlement clears entire tuple",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "settle",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "settled",
+        "epoch": 2,
+        "expiry": null,
+        "last": null
+      }
+    },
+    {
+      "id": "L18",
+      "dataset": "workspace",
+      "name": "settlement before expiry is read-only",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "settle",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 30999,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "unchanged",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L19",
+      "dataset": "workspace",
+      "name": "unready acquire refuses",
+      "initial": {
+        "epoch": 0,
+        "lease": null,
+        "start": null,
+        "expiry": null,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-p",
+          "kind": "place",
+          "digest": "digest-p",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 0,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": false
+      },
+      "expected": {
+        "result": "sync_unavailable",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L20",
+      "dataset": "workspace",
+      "name": "release keeps placement despite unready generation",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "release",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": false
+      },
+      "expected": {
+        "result": "released",
+        "epoch": 2,
+        "expiry": null
+      }
+    },
+    {
+      "id": "L21",
+      "dataset": "workspace",
+      "name": "wrong lineage is denied before replay",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-a",
+        "digest": "digest-a",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "replica_fenced",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L22",
+      "dataset": "workspace",
+      "name": "epoch overflow refuses without mutation",
+      "initial": {
+        "epoch": "9223372036854775807",
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "release",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": "9223372036854775807",
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L23",
+      "dataset": "profile",
+      "name": "place epoch zero; no write authority",
+      "initial": null,
+      "command": {
+        "kind": "place",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "placed",
+        "epoch": 0,
+        "expiry": null
+      }
+    },
+    {
+      "id": "L24",
+      "dataset": "profile",
+      "name": "first acquire",
+      "initial": {
+        "epoch": 0,
+        "lease": null,
+        "start": null,
+        "expiry": null,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-p",
+          "kind": "place",
+          "digest": "digest-p",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 0,
+        "lease": null,
+        "expiry": null,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "acquired",
+        "epoch": 1,
+        "expiry": 41000
+      }
+    },
+    {
+      "id": "L25",
+      "dataset": "profile",
+      "name": "same worker cannot acquire live lease",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "lease_held",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L26",
+      "dataset": "profile",
+      "name": "renew ten second cadence",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "renewed",
+        "epoch": 1,
+        "expiry": 41000
+      }
+    },
+    {
+      "id": "L27",
+      "dataset": "profile",
+      "name": "renew just before expiry",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 30999,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "renewed",
+        "epoch": 1,
+        "expiry": 60999
+      }
+    },
+    {
+      "id": "L28",
+      "dataset": "profile",
+      "name": "renew equality expired",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L29",
+      "dataset": "profile",
+      "name": "renew late",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31001,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L30",
+      "dataset": "profile",
+      "name": "release at equality",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "release",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "released",
+        "epoch": 2,
+        "expiry": null
+      }
+    },
+    {
+      "id": "L31",
+      "dataset": "profile",
+      "name": "expired acquire combined single epoch advance",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "acquired",
+        "epoch": 2,
+        "expiry": 61000
+      }
+    },
+    {
+      "id": "L32",
+      "dataset": "profile",
+      "name": "cross-slot expired acquisition",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31000,
+        "worker": "slot-b",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "storage_move_required",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L33",
+      "dataset": "profile",
+      "name": "same operation exact original expired result",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-a",
+        "digest": "digest-a",
+        "now": 32000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "exact_retry",
+        "epoch": 1,
+        "expiry": 31000
+      }
+    },
+    {
+      "id": "L34",
+      "dataset": "profile",
+      "name": "changed same-id expiry conflicts",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-a",
+        "digest": "digest-changed",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "operation_conflict",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L35",
+      "dataset": "profile",
+      "name": "current denial wins over exact retry",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-a",
+        "digest": "digest-a",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "cloud_access_epoch_mismatch",
+        "ready": true
+      },
+      "expected": {
+        "result": "cloud_access_epoch_mismatch",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L36",
+      "dataset": "profile",
+      "name": "stale epoch cannot renew",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 0,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L37",
+      "dataset": "profile",
+      "name": "stale expected expiry cannot renew",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 30999,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L38",
+      "dataset": "profile",
+      "name": "forgotten old ID indistinguishable at same millisecond",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "renew",
+        "id": "forgotten-old-id",
+        "digest": "digest-b",
+        "now": 1000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "renewed",
+        "epoch": 1,
+        "expiry": 31000
+      }
+    },
+    {
+      "id": "L39",
+      "dataset": "profile",
+      "name": "expiry settlement clears entire tuple",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "settle",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 31000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "settled",
+        "epoch": 2,
+        "expiry": null,
+        "last": null
+      }
+    },
+    {
+      "id": "L40",
+      "dataset": "profile",
+      "name": "settlement before expiry is read-only",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "settle",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 30999,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "unchanged",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L41",
+      "dataset": "profile",
+      "name": "unready acquire refuses",
+      "initial": {
+        "epoch": 0,
+        "lease": null,
+        "start": null,
+        "expiry": null,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-p",
+          "kind": "place",
+          "digest": "digest-p",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 0,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": false
+      },
+      "expected": {
+        "result": "sync_unavailable",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L42",
+      "dataset": "profile",
+      "name": "release keeps placement despite unready generation",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "release",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": false
+      },
+      "expected": {
+        "result": "released",
+        "epoch": 2,
+        "expiry": null
+      }
+    },
+    {
+      "id": "L43",
+      "dataset": "profile",
+      "name": "wrong lineage is denied before replay",
+      "initial": {
+        "epoch": 1,
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "acquire",
+        "id": "op-a",
+        "digest": "digest-a",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": 1,
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "replica_fenced",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    },
+    {
+      "id": "L44",
+      "dataset": "profile",
+      "name": "epoch overflow refuses without mutation",
+      "initial": {
+        "epoch": "9223372036854775807",
+        "lease": "lease-a",
+        "start": 1000,
+        "expiry": 31000,
+        "worker": "slot-a",
+        "last": {
+          "id": "op-a",
+          "kind": "acquire",
+          "digest": "digest-a",
+          "at": 1000
+        }
+      },
+      "command": {
+        "kind": "release",
+        "id": "op-b",
+        "digest": "digest-b",
+        "now": 11000,
+        "worker": "slot-a",
+        "epoch": "9223372036854775807",
+        "lease": "lease-a",
+        "expiry": 31000,
+        "authority": "ok",
+        "ready": true
+      },
+      "expected": {
+        "result": "replica_fenced",
+        "unchanged": true
+      }
+    }
+  ]
+}

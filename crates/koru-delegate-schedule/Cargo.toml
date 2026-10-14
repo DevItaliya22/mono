@@ -1,0 +1,26 @@
+[package]
+rust-version.workspace = true
+name = "koru-delegate-schedule"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Synced schedule vocabulary and ownership reduction for delegated work."
+
+[features]
+default = []
+schema = [
+    "dep:schemars",
+    "koru-delegate-core/schema",
+    "koru-recurrence/schema",
+]
+
+[dependencies]
+koru-delegate-core = { path = "../koru-delegate-core" }
+koru-recurrence = { path = "../koru-recurrence" }
+schemars = { workspace = true, optional = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+uuid = { workspace = true }

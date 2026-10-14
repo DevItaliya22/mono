@@ -1,0 +1,40 @@
+[package]
+rust-version.workspace = true
+name = "koru-workspaces-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The workspace-management controller: rows, lifecycle states, and asynchronous use of the typed workspace client."
+
+# **The dependency list is the charter.** This controller manages workspaces
+# without knowing what a document or a session is: no `koru-core`, no `koru-workspace`, no `koru-editor`, no
+# `koru-workspace-host`, no store server, no session client. `src/dependency.rs`
+# fails the build if any of them appears, in either direction — the same fence
+# `koru-settings-ui` puts around the Settings rows, for the same reason.
+[dependencies]
+# The typed workspace namespace — the catalog, the consequence, the operation —
+# and the catalog watch that says when to refetch. This surface reimplements
+# none of it, and it is the only surface entitled to call the destructive half.
+koru-api-client = { path = "../koru-api-client", default-features = false }
+# The lifecycle vocabulary the gateway and this surface share: which action,
+# what it would close, what it did.
+koru-api-wire = { path = "../koru-api-wire" }
+# What a workspace *is*, as the catalog answers it: the row, its ids, its
+# appearance tokens and its two lifecycle flags. Model types only — this crate
+# opens no store and runs no query.
+koru-store-core = { path = "../koru-store-core" }
+# Every string a person reads: the confirmation's words, the refusals and
+# the reasons a control is dimmed, keyed in eight.
+koru-i18n = { path = "../koru-i18n" }
+# The confirmation panel's state, which the controller holds while it asks.
+# The drawing that once made this crate depend on `koru-draw`, `vello` and
+# `winit` left with the Workspaces tab (ADR-449-onemanagetab).
+koru-ui = { path = "../koru-ui" }
+
+[features]
+# **What a host's suite feeds this controller**, as the gateway would have
+# answered: a consequence, a move's consequence, a refusal. A dependency is
+# never compiled with `cfg(test)`, so the host turns this on in its
+# `[dev-dependencies]` — never in a shipping build.
+fixtures = []

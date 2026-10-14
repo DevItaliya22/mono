@@ -1,0 +1,981 @@
+// SPDX-License-Identifier: MPL-2.0
+
+syntax = "proto3";
+
+package koru.api.v1;
+
+option java_multiple_files = true;
+option java_package = "app.koru.contract.api.v1";
+option swift_prefix = "KORAPI";
+
+// Mobile's platform-authenticated invocation context. It is carried by the
+// generated JNI/C bindings, never sent over a network, and replaces the
+// repeated ad-hoc string arguments of the removed JSON ABI.
+message HostContext {
+  string root = 1;
+  bytes secrets = 2;
+  string device_name = 3;
+  // This device's relay on/off value, read from the platform's local storage
+  // (SharedPreferences / UserDefaults) and applied when the host first opens.
+  // Absent means the shipped default: relays on.
+  optional bool relay_enabled = 4;
+}
+
+message HostStatusRequest {
+  HostContext host = 1;
+}
+message LinkDeviceRequest {
+  HostContext host = 1;
+  string code = 2;
+}
+message BuildPayload {
+  HostContext host = 1;
+  string app_version = 2;
+  string channel = 3;
+  optional string branch = 4;
+  optional string commit = 5;
+  optional string os = 6;
+  optional string os_version = 7;
+}
+message InventoryRequest {
+  HostContext host = 1;
+}
+message DocumentRequest {
+  HostContext host = 1;
+  string document_id = 2;
+}
+message BlobRequest {
+  HostContext host = 1;
+  string workspace_id = 2;
+  string hash = 3;
+}
+// ---------------------------------------------------------------------------
+// Blob transfer: `cloud-blob-object-v1` §10, and what a phone needs around it.
+//
+// The three messages below are the contract's, field for field. What §10 does
+// not carry is the envelope every mobile operation has — the `HostContext`
+// that says which installation is asking — so each method takes a request
+// message holding the context and the contract's own value, rather than the
+// contract's message being widened to carry a field only one platform has.
+// ---------------------------------------------------------------------------
+
+// One Workspace's blob transfer state, as a person reads it (§10, §15).
+// Ids, counts and stable codes only — never a filename, a title or a byte.
+message BlobTransferStatus {
+  string workspace_id = 1;
+  uint32 referenced = 2;
+  uint32 present = 3;
+  uint32 durable = 4;
+  uint32 uploading = 5;
+  uint32 downloading = 6;
+  uint32 missing = 7;
+  uint64 bytes_complete = 8;
+  uint64 bytes_total = 9;
+  // The stable code the pass is waiting on, or empty. A pause and a refusal
+  // are different codes here, deliberately: `network_metered` is not
+  // `mode_refuses_transport`, and a surface that showed one sentence for both
+  // would be the §13 defect this field exists to prevent.
+  string pending_reason = 10;
+  // The last code of something that actually went wrong. A metered pause
+  // never lands here — a person on a train has had no failure.
+  string last_failure_code = 11;
+  // Cloud coverage: whether Cloud holds this Workspace's documents **and** the
+  // pictures they reference. `complete`, `incomplete`, `superseded`, or empty
+  // when this device has not computed a claim yet — which is not the same as
+  // nothing being owed.
+  string coverage_state = 12;
+  // The one field a surface may turn into a tick. False whenever
+  // `coverage_state` is not `complete`, empty included.
+  bool current = 13;
+  // **Documents and pictures are counted separately**, so a missing picture
+  // never reads as a missing document. Zero when no claim has been computed.
+  uint32 documents_required = 14;
+  uint32 documents_missing = 15;
+  uint32 blobs_missing = 16;
+}
+
+// This device's network policy (D50). Device-wide rather than per Workspace:
+// it is a fact about the connection, not about the content.
+message BlobPolicy {
+  // The connection this device is on costs money or is capped.
+  bool metered = 1;
+  // The person allowed blob transfers on it anyway.
+  bool allow_on_metered = 2;
+  // The platform's data saver is on. Absent on a shim from before this field,
+  // which reads as off — the same answer that build gave.
+  bool low_data = 3;
+  // This device has no usable network at all.
+  bool offline = 4;
+}
+
+// One picture, asked for out loud. Carries through a metered pause (D50) and
+// goes to the front of the next pass.
+message BlobDownloadRequest {
+  string workspace_id = 1;
+  string blob_hash = 2;
+}
+
+message BlobStatusRequest {
+  HostContext host = 1;
+  string workspace_id = 2;
+}
+message SetBlobPolicyRequest {
+  HostContext host = 1;
+  BlobPolicy policy = 2;
+}
+message RequestBlobRequest {
+  HostContext host = 1;
+  BlobDownloadRequest request = 2;
+}
+
+// Write one blob to a file the platform names, for handing to another app.
+//
+// **A path, not bytes, and for the reason `import_file` already takes one: a
+// file can be a video.** `store.blob` answers with the whole payload in one
+// message, which is right for a picture a screen is about to draw and wrong
+// for anything a media player should stream. The host copies from the Store
+// to this path and never holds the file in memory.
+//
+// The destination is the platform's to choose. Android knows where its
+// app-private storage is and what it may grant a `content://` URI over; the
+// host knows neither and must not guess. It writes only where it is told,
+// after refusing a path that is not absolute.
+// What blob a `kind == "file"` document *is*.
+//
+// **Its own operation because opening one is refused.** A file is not a node
+// tree to walk, so `store.document` answers `document_is_file` deliberately —
+// which left a caller that wants to open the file with no way to reach its
+// hash at all. This is that way, and it reads the manifest and one node
+// rather than projecting a document nobody is going to draw.
+message FileBlobRequest {
+  HostContext host = 1;
+  string document_id = 2;
+}
+
+message FileBlob {
+  string hash = 1;
+  string mime_type = 2;
+  uint64 size = 3;
+  optional string error_code = 4;
+}
+
+message ExportBlobRequest {
+  HostContext host = 1;
+  string workspace_id = 2;
+  string hash = 3;
+  // Absolute path in the caller's own storage. Written atomically: readers
+  // never observe a partial file under this name.
+  string destination_path = 4;
+}
+
+message ExportedBlob {
+  // Bytes written, for a caller that wants to check its own expectation
+  // against what arrived.
+  uint64 size = 1;
+  // Absent on success; a stable code otherwise, the same vocabulary the other
+  // blob operations answer with.
+  optional string error_code = 2;
+}
+
+// Resume whatever this Workspace's transfers were doing when the process died:
+// the staging sweep and one reconciliation pass. The entry point Android's
+// WorkManager recovery calls, and the only thing it calls — a phone holds no
+// timer of its own while backgrounded (D244) and this does not become one.
+message BlobRecoverRequest {
+  HostContext host = 1;
+  string workspace_id = 2;
+}
+
+// **Clear local files** (rung 2's space reclaim): every copy of a file that
+// Koru Cloud holds leaves this device, and every reference stays. The engine
+// asks the control plane about each address before touching it; a phone only
+// asks, and reads the numbers back.
+message ReleaseBlobsRequest {
+  HostContext host = 1;
+  string workspace_id = 2;
+}
+
+message ReleasedBlobs {
+  uint32 referenced = 1;
+  // Copies that left this device.
+  uint32 released = 2;
+  uint64 bytes_freed = 3;
+  // Held here and not confirmed durable on Koru Cloud at the moment of
+  // asking. Untouched — each of these may be the only copy.
+  uint32 kept = 4;
+  uint32 not_held = 5;
+  // Absent on success; a stable code otherwise. A code beside non-zero counts
+  // means the control plane stopped part way, and the counts are what
+  // happened before it did.
+  optional string error_code = 6;
+}
+
+// The §11 announcement, on the path a phone actually has.
+//
+// A desktop wakes the document's room; Android has no room registry and its
+// surfaces re-read the Store through this same shim (D242), so an arrival is
+// something they ask about. `sequence` is monotonic per host lifetime: a
+// caller passes back the last one it saw and is told only what is new, so an
+// arrival is never missed and never shown twice.
+message BlobArrival {
+  string workspace_id = 1;
+  string blob_hash = 2;
+  uint64 sequence = 3;
+  int64 at_millis = 4;
+}
+message BlobArrivalsRequest {
+  HostContext host = 1;
+  // Empty for every Workspace this host has announced.
+  string workspace_id = 2;
+  uint64 after_sequence = 3;
+}
+message BlobArrivals {
+  repeated BlobArrival arrivals = 1;
+  // The newest sequence this host holds, whether or not it is in `arrivals`.
+  uint64 sequence = 2;
+  optional string error_code = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Cloud sync progress: the phone's copy of the desktop's Manage Profiles
+// Cloud sync section. The same two questions the desktop asks its Store over
+// HTTP (`cloud-sync` about a Workspace's manifest, and `cloud-sync/waiting`),
+// answered in process by the same Store services. Counts, ids, titles, stable
+// codes and device display names only — never a byte of content and never a
+// blob address.
+// ---------------------------------------------------------------------------
+
+message CloudSyncStatusRequest {
+  HostContext host = 1;
+  string workspace_id = 2;
+}
+
+// Whether a live Cloud permit covers this Workspace, and what it is doing.
+message CloudSyncPermit {
+  bool enabled = 1;
+  // The permit's stage — `reconciling`, `settled`, `unavailable`, … — or empty.
+  string stage = 2;
+  // The stage's stable lowercase code, or empty. Never a message.
+  string error_code = 3;
+}
+
+// The last committed coverage claim, documents counted apart from files.
+message CloudSyncCoverage {
+  // `complete`, `incomplete` or `superseded`. A superseded claim claims
+  // nothing, and a surface reads no number from it.
+  string state = 1;
+  uint32 documents_required = 2;
+  // Documents Cloud does not hold the sampled state of.
+  uint32 documents_missing = 3;
+}
+
+// The Workspace's files, as the Store's transfer report has them.
+message CloudSyncFiles {
+  uint32 referenced = 1;
+  uint32 present = 2;
+  uint32 durable = 3;
+  uint32 uploading = 4;
+  uint32 downloading = 5;
+  // Referenced, asked for, and parked by the last pass.
+  uint32 missing = 6;
+  // The stable code the pass is waiting on, or empty.
+  string pending_reason = 7;
+  // `upload` or `download`, or empty.
+  string direction = 8;
+  // `cloud` or `peer_direct`, or empty.
+  string path = 9;
+  uint32 unreadable_references = 10;
+  // A person paused this Workspace's file transfers (D256).
+  bool paused = 11;
+  // Absent when this device has not computed a claim since it started, which
+  // is not the same as nothing being owed.
+  CloudSyncCoverage coverage = 12;
+}
+
+// One Workspace's Cloud sync state. Asked about the Workspace's manifest
+// document, as the desktop asks: every field here is about the Workspace.
+message CloudSyncStatus {
+  string workspace_id = 1;
+  string manifest_document_id = 2;
+  // Absent when no live permit covers this Workspace — not on Cloud, or no
+  // Cloud context at all.
+  CloudSyncPermit sync = 3;
+  // Absent on a device with no blob engine, which is not zero.
+  CloudSyncFiles files = 4;
+  // Present only when the host could not answer at all.
+  optional string error_code = 5;
+}
+
+message CloudWaitingRequest {
+  HostContext host = 1;
+  string workspace_id = 2;
+}
+
+// One document that references a file Koru Cloud does not hold yet.
+message CloudWaitingDocument {
+  string document_id = 1;
+  // The manifest's title; empty when it has none, which a surface says in its
+  // own word for untitled.
+  string title = 2;
+  // Distinct files this document references that Cloud does not hold.
+  uint32 missing_files = 3;
+  // Display names of the devices known to have held those files, other than
+  // this one. Empty is a real answer: no device this one knows of holds them.
+  repeated string holders = 4;
+}
+
+message CloudWaitingDocuments {
+  string workspace_id = 1;
+  // Most files first, then by title.
+  repeated CloudWaitingDocument documents = 2;
+  // Present when the list could not be read — `blob_transfer_unavailable` on
+  // a device with no blob engine.
+  optional string error_code = 3;
+}
+
+message WorkspaceMutation {
+  HostContext host = 1;
+  string workspace_id = 2;
+  string action = 3;
+  string title = 4;
+}
+message ProfileMutation {
+  HostContext host = 1;
+  string profile_id = 2;
+  string action = 3;
+  string value = 4;
+}
+message DocumentMutation {
+  HostContext host = 1;
+  string document_id = 2;
+  string action = 3;
+  string title = 4;
+  // Present only for action "edit_text". The host applies a minimal text splice,
+  // never a replacement document projection.
+  DocumentTextEdit text_edit = 5;
+}
+message DocumentTextEdit {
+  string block_id = 1;
+  string before = 2;
+  string after = 3;
+  // Append a paragraph with this caller-owned id if it does not exist yet.
+  bool create_paragraph = 4;
+  // Split after applying the text edit, in the same durable update.
+  DocumentTextSplit split = 5;
+}
+message DocumentTextSplit {
+  string block_id = 1;
+  uint32 at_utf8 = 2;
+}
+message ImportFileRequest {
+  HostContext host = 1;
+  string workspace_id = 2;
+  string name = 3;
+  string mime = 4;
+  string path = 5;
+  optional string note = 6;
+}
+
+// The "ensure note" op: the one note a file carries, created (empty) when it
+// has none. Answers with the note's document id, ready to open like any other
+// document.
+message FileNoteRequest {
+  HostContext host = 1;
+  string document_id = 2;
+}
+
+// A delegated run as a phone reads it (P1.18): the Run document named by
+// its manifest id. Read-only on every device but the executing one (D15).
+message RunRequest {
+  HostContext host = 1;
+  string document_id = 2;
+}
+
+// One window of a run's activity, newest first: skip `newest_first_from`
+// of the newest entries, return at most `len`. Served from the run the host
+// already opened for `RunRequest` — a window costs no store read.
+message RunTimelineRequest {
+  HostContext host = 1;
+  string document_id = 2;
+  uint32 newest_first_from = 3;
+  uint32 len = 4;
+}
+message StartPairingRequest {
+  HostContext host = 1;
+}
+message CancelPairingRequest {
+  HostContext host = 1;
+}
+message DevicesRequest {
+  HostContext host = 1;
+}
+message DeviceHistoryRequest {
+  HostContext host = 1;
+  string device_id = 2;
+  optional int64 before = 3;
+}
+message UnlinkDeviceRequest {
+  HostContext host = 1;
+  string device_id = 2;
+}
+message RenameDeviceRequest {
+  HostContext host = 1;
+  string name = 2;
+}
+message ResetIdentityRequest {
+  HostContext host = 1;
+}
+message SetRelayRequest {
+  HostContext host = 1;
+  bool enabled = 2;
+}
+
+message HostStatus {
+  string state = 1;
+  optional string peer_name = 2;
+  optional string error_code = 3;
+}
+message LinkDeviceResult {
+  string state = 1;
+  optional string peer_name = 2;
+  optional string error_code = 3;
+}
+message MutationResult {
+  bool ok = 1;
+  string state = 2;
+  optional string error_code = 3;
+}
+message PairingOffer {
+  string state = 1;
+  optional string qr_payload = 2;
+  uint32 expires_in_seconds = 3;
+  optional string error_code = 4;
+}
+message BlobBytes {
+  bytes value = 1;
+  optional string error_code = 2;
+}
+message DocumentIdResult {
+  optional string document_id = 1;
+  optional string error_code = 2;
+}
+
+message InventoryProfile {
+  string id = 1;
+  string name = 2;
+  string locale = 3;
+  optional string icon = 4;
+  optional string leading_emoji = 5;
+  string display_name = 6;
+  optional string color = 7;
+  string account_binding = 8;
+}
+message InventoryWorkspace {
+  string id = 1;
+  string profile_id = 2;
+  string name = 3;
+  optional string icon = 4;
+  optional string color = 5;
+  optional string leading_emoji = 6;
+  string display_name = 7;
+  bool archived = 8;
+  optional int64 deleted_at_millis = 9;
+  int64 modified_at_millis = 10;
+}
+message InventoryDocument {
+  string id = 1;
+  string workspace_id = 2;
+  string title = 3;
+  string display_title = 4;
+  optional string leading_emoji = 5;
+  string kind = 6;
+  optional string mime = 7;
+  optional string note_id = 8;
+  // When this document last changed. Zero when the repository has no record,
+  // which sorts oldest rather than claiming a recency nobody measured.
+  int64 updated_at_millis = 9;
+}
+message Inventory {
+  repeated InventoryProfile profiles = 1;
+  repeated InventoryWorkspace workspaces = 2;
+  repeated InventoryDocument documents = 3;
+  uint32 deleted_workspaces = 4;
+  uint32 trashed_documents = 5;
+  uint32 failed_workspaces = 6;
+  optional string error_code = 7;
+  // Run and schedule documents the listing hides (P1.0 F6): a run is
+  // reached through its pill, never as a row.
+  uint32 hidden_runs = 8;
+}
+
+message BlockProperties {
+  optional string name = 1;
+  optional string icon = 2;
+  optional string color = 3;
+  bool done = 4;
+  string alignment = 5;
+  optional uint32 heading_level = 6;
+  optional string list_style = 7;
+  optional uint32 image_width = 8;
+  optional uint32 image_height = 9;
+  optional string language = 10;
+}
+message TextMark {
+  uint32 start_utf8 = 1;
+  uint32 end_utf8 = 2;
+  string kind = 3;
+  optional string value = 4;
+}
+message EntityReference {
+  string kind = 1;
+  optional string document_id = 2;
+  optional string node_id = 3;
+  optional string block_id = 4;
+  optional string url = 5;
+  optional string value = 6;
+}
+message InlineObject {
+  string id = 1;
+  uint32 anchor_utf8 = 2;
+  string role = 3;
+  optional string label = 4;
+  EntityReference reference = 5;
+}
+message RichText {
+  string text = 1;
+  repeated TextMark marks = 2;
+  repeated InlineObject inline_objects = 3;
+}
+message BlobReference {
+  string id = 1;
+  string mime_type = 2;
+  uint64 size = 3;
+  optional uint32 width = 4;
+  optional uint32 height = 5;
+}
+message Block {
+  string id = 1;
+  optional string parent_id = 2;
+  string kind = 3;
+  BlockProperties properties = 4;
+  optional RichText rich_text = 5;
+  optional BlobReference blob = 6;
+  optional EntityReference reference = 7;
+}
+message DocumentProjection {
+  string id = 1;
+  string workspace_id = 2;
+  string title = 3;
+  uint64 revision = 4;
+  repeated Block blocks = 5;
+  optional string error_code = 6;
+}
+
+// A result a delegated run produced, named with the device that holds its
+// bytes (D27). Opening it away from that device begins in M7.
+message RunResult {
+  string artifact_id = 1;
+  string held_by_device_id = 2;
+  // The holding device's current display name from this device's catalog;
+  // absent for a device this one has never met.
+  optional string held_by_device_name = 3;
+  bool held_here = 4;
+  string title = 5;
+  uint64 size_bytes = 6;
+  int64 registered_at_millis = 7;
+}
+
+// The run's economics summary as plain numbers (D39). A missing token
+// total is missing, never zero: `*_tokens` is absent when any turn failed to
+// report, and `*_unavailable_turns` says how many.
+message RunEconomics {
+  uint32 orchestrator_turns = 1;
+  uint32 human_turns = 2;
+  uint32 turns_with_usage = 3;
+  optional uint64 input_tokens = 4;
+  uint32 input_unavailable_turns = 5;
+  optional uint64 output_tokens = 6;
+  uint32 output_unavailable_turns = 7;
+  optional uint64 cached_input_tokens = 8;
+  uint32 cached_input_unavailable_turns = 9;
+  uint32 tool_calls = 10;
+  uint32 interventions = 11;
+  optional uint64 elapsed_ms = 12;
+  uint32 models = 13;
+  bool complete = 14;
+}
+
+// The header of a delegated run as a phone shows it. Every token is the
+// run vocabulary's own snake_case spelling (`koru-delegate-core`), so the
+// phone translates and never parses.
+message RunView {
+  string document_id = 1;
+  string workspace_id = 2;
+  string run_id = 3;
+  // Changes whenever the Run document's version does; the phone re-reads
+  // its windows when it moves and never on a timer of its own.
+  uint64 revision = 4;
+  // created | starting | running | interrupted | completed | failed |
+  // cancelled | awaiting_review | waiting_for_participant
+  string status = 5;
+  // Markers on a running run: approval_required | waiting_for_input |
+  // child_session_detected | finished_needing_attention.
+  repeated string attention = 6;
+  // orchestrator | handover_pending | human, while running.
+  optional string control = 7;
+  // The failure stage, when failed.
+  optional string failure_stage = 8;
+  // ended | unknown, when interrupted (§7.6).
+  optional string prior_attempt = 9;
+  // The agent profile key as text: `codex`, or a custom profile's id.
+  string agent = 10;
+  string objective = 11;
+  // none | project_root | project_folder | temporary
+  string scope_kind = 12;
+  uint32 context_count = 13;
+  string executing_device_id = 14;
+  optional string executing_device_name = 15;
+  // Whether this phone is the executing device (D16 names it otherwise).
+  bool executing_here = 16;
+  int64 created_at_millis = 17;
+  repeated RunResult results = 18;
+  RunEconomics economics = 19;
+  // good | not_good; absent until rated (D44).
+  optional string rating = 20;
+  optional string rating_note = 21;
+  optional int64 rated_at_millis = 22;
+  uint32 timeline_len = 23;
+  // The run was written by a newer build: what decoded is shown, and the
+  // phone says a newer Koru is needed for the rest.
+  bool needs_newer_koru = 24;
+  optional string error_code = 25;
+}
+
+// One entry of a run's activity (D45): ids, a step token, a time and
+// bounded counts — never content. `kind` is step | usage | gap; a gap is an
+// entry this build cannot decode, kept in its place.
+message RunTimelineRow {
+  string kind = 1;
+  optional string id = 2;
+  optional int64 at_millis = 3;
+  // The step token, when `kind` is step: run_created, started,
+  // turn_started, tools_completed, … as `StepKind` spells them.
+  optional string step = 4;
+  optional string originator = 5;
+  optional uint32 calls = 6;
+  optional uint32 failed = 7;
+  optional string outcome = 8;
+  optional uint32 artifacts_registered = 9;
+  optional string reason = 10;
+  optional string stage = 11;
+  optional string prior_attempt = 12;
+  optional string via = 13;
+  optional bool discovered = 14;
+  optional string rating = 15;
+  optional uint32 events_lost = 16;
+  uint32 refs = 17;
+  // Usage facts, when `kind` is usage.
+  optional uint64 input_tokens = 18;
+  optional uint64 output_tokens = 19;
+  optional uint64 cached_input_tokens = 20;
+  optional uint32 revision = 21;
+  optional string completeness = 22;
+}
+message RunTimelineWindow {
+  string document_id = 1;
+  uint32 newest_first_from = 2;
+  repeated RunTimelineRow rows = 3;
+  uint32 timeline_len = 4;
+  uint64 revision = 5;
+  optional string error_code = 6;
+}
+
+message StateEvent {
+  optional int64 event_id = 1;
+  int64 at_millis = 2;
+  string kind = 3;
+  optional string profile_id = 4;
+  optional string workspace_id = 5;
+  optional string document_id = 6;
+  optional string document_name = 7;
+  optional string blob_hash = 8;
+  optional string detail = 9;
+  optional uint64 items = 10;
+}
+message LinkedDevice {
+  string device_id = 1;
+  string display_name = 2;
+  int64 linked_at_millis = 3;
+  bool connected = 4;
+  optional int64 last_seen_millis = 5;
+  optional string introduced_by = 6;
+  optional string build_label = 7;
+  optional string build_drift = 8;
+  optional string build_severity = 9;
+  optional string update_needed_on = 10;
+  optional string connection = 11;
+  optional int64 last_sync_millis = 12;
+  repeated StateEvent history = 13;
+}
+message SyncEvent {
+  uint64 sequence = 1;
+  int64 at_millis = 2;
+  string direction = 3;
+  string peer = 4;
+  string stage = 5;
+  optional string workspace_id = 6;
+  optional uint64 items = 7;
+  optional string error_code = 8;
+}
+
+// The relay connection as the host's network runtime reads it now — the
+// mobile mirror of the desktop tray's status row. OFF means relays are
+// disabled by this device's own switch; DISCONNECTED covers both a relay
+// that died after connecting and one never reached. The host is empty when
+// no relay has been named yet (default-network configuration before the
+// first home-relay report).
+enum RelayState {
+  RELAY_STATE_UNSPECIFIED = 0;
+  RELAY_STATE_OFF = 1;
+  RELAY_STATE_CONNECTING = 2;
+  RELAY_STATE_CONNECTED = 3;
+  RELAY_STATE_DISCONNECTED = 4;
+}
+message RelayStatus {
+  RelayState state = 1;
+  string host = 2;
+}
+
+message DeviceList {
+  repeated LinkedDevice devices = 1;
+  optional LinkedDevice this_device = 2;
+  optional SyncEvent sync_event = 3;
+  optional string error_code = 4;
+  RelayStatus relay = 5;
+  // Durable local trust has no effective peer, or a device this device
+  // explicitly unlinked still has no fresh direct relationship.
+  bool relink_available = 6;
+}
+message DeviceHistory {
+  string device_id = 1;
+  repeated StateEvent events = 2;
+  optional int64 next_before = 3;
+  optional string error_code = 4;
+}
+
+// Account payloads are private platform IPC. Never log generated messages or
+// encoded bytes: native proof and vault messages contain secrets. Status is the
+// only diagnostic projection. Unknown command values fail closed.
+enum AccountAction {
+  ACCOUNT_ACTION_UNSPECIFIED = 0;
+  ACCOUNT_ACTION_START_GOOGLE = 1;
+  ACCOUNT_ACTION_CANCEL = 2;
+  ACCOUNT_ACTION_RETRY = 3;
+  ACCOUNT_ACTION_LOGOUT = 4;
+  ACCOUNT_ACTION_LIST_PROFILES = 5;
+  reserved 6;
+  reserved "ACCOUNT_ACTION_SELECT_PROFILE";
+  ACCOUNT_ACTION_RETRY_ENROLLMENT = 7;
+  ACCOUNT_ACTION_CANCEL_ENROLLMENT = 8;
+  ACCOUNT_ACTION_CONFIRM_ACCOUNT_CREATION = 9;
+  ACCOUNT_ACTION_CANCEL_ACCOUNT_CREATION = 10;
+  ACCOUNT_ACTION_SWITCH_ACCOUNT = 11;
+  ACCOUNT_ACTION_ADD_ACCOUNT = 12;
+  ACCOUNT_ACTION_SELECT_PROFILES = 13;
+  // Turn Koru Cloud on or off for one Profile of the signed-in account.
+  ACCOUNT_ACTION_SET_PROFILE_CLOUD_SYNC = 14;
+  // Read every local Profile's Cloud sync state. Changes nothing a person
+  // chose; the handler only activates what the Cloud has never held.
+  ACCOUNT_ACTION_INSPECT_CLOUD_SYNC = 15;
+  // Sign in with an email address and a password. The app opens a browser at
+  // the hosted page and waits on its existing return, exactly as
+  // ACCOUNT_ACTION_START_GOOGLE does; only the page differs.
+  //
+  // **16 and not 14**, which it held before this branch met cloud-storage-sync.
+  // Both sides claimed 14, and an enum number is the wire format: the Cloud
+  // sync actions are in Android builds under test on real devices, and this one
+  // has never been compiled for Android at all. The side that costs nothing to
+  // move is the side that moves.
+  ACCOUNT_ACTION_START_EMAIL = 16;
+  // Sign in with Apple. Apple has no Android sheet, so the host is asked to
+  // open a browser (BrowserSignInPrompt) and to hand back the verified App
+  // Link that returns from it (BrowserSignInReply).
+  ACCOUNT_ACTION_START_APPLE = 17;
+}
+message AccountCommandRequest {
+  HostContext host = 1;
+  uint32 version = 2;
+  uint64 requester = 3;
+  AccountAction action = 4;
+  uint64 generation = 5;
+  string locale = 6;
+  string profile_id = 7;
+  string account_id = 8;
+  optional uint64 expected_owner_scope = 9;
+  // Canonical sorted, unique Profile IDs; empty clears unfinished selection.
+  repeated string profile_ids = 10;
+  // SET_PROFILE_CLOUD_SYNC only: the switch's new position for profile_id.
+  // Absent on every other action; a missing value is never read as "off".
+  optional bool cloud_sync_enabled = 11;
+}
+message AccountCommandReply {
+  uint64 requester = 1;
+  uint64 generation = 2;
+  optional string error_code = 3;
+  uint64 owner_scope = 4;
+}
+message AccountPollRequest {
+  HostContext host = 1;
+  uint32 version = 2;
+  uint64 requester = 3;
+  uint64 after_sequence = 4;
+  // Diagnostics leave this false: SDK/vault prompts never reach the screen.
+  bool include_platform = 5;
+}
+message MobileAccountStatus {
+  bool capability = 1;
+  string stage = 2;
+  uint64 generation = 3;
+  uint32 profile_count = 4;
+  uint32 queue_depth = 5;
+  string enrollment_stage = 6;
+  optional string enrollment_profile_id = 7;
+  optional string failure_code = 8;
+  optional int64 retry_at_millis = 9;
+  optional string enrollment_failure_code = 10;
+  optional int64 enrollment_retry_at_millis = 11;
+  // Present on current hosts; includes queued and retry-owned operations for
+  // this poll's requester. Absence is unknown, never an idle acknowledgement.
+  optional bool requester_active = 12;
+  uint64 active_scope = 13;
+  optional string active_account_id = 14;
+  repeated MobileHeldAccount held_accounts = 15;
+  repeated MobileProfileEnrollment enrollments = 16;
+}
+message MobileProfileEnrollment {
+  string profile_id = 1;
+  string stage = 2;
+  optional string failure_code = 3;
+  optional int64 retry_at_millis = 4;
+}
+message MobileHeldAccount {
+  uint64 scope_id = 1;
+  string account_id = 2;
+  optional string auth_identity_id = 3;
+  string stage = 4;
+  bool credential_ready = 5;
+  optional string failure_code = 6;
+  repeated uint64 active_generations = 7;
+  optional bool requester_active = 8;
+}
+message MobileAccountProfile {
+  string account_id = 1;
+  string profile_id = 2;
+  optional string name = 3;
+  optional string locale = 4;
+  bool available_locally = 5;
+  bool available_remotely = 6;
+}
+
+// Present after a successful authorized Profile query, including zero rows.
+message MobileAccountSummary {
+  string display_name = 1;
+}
+message MobileAccountResult {
+  uint64 sequence = 1;
+  uint64 requester = 2;
+  uint64 generation = 3;
+  string kind = 4;
+  optional string error_code = 5;
+  repeated MobileAccountProfile profiles = 6;
+  reserved 7;
+  reserved "selected_profile_id";
+  MobileAccountSummary account = 8;
+  uint64 owner_scope = 9;
+  optional string selected_account_id = 10;
+  optional uint64 selected_scope = 11;
+  repeated MobileProfileEnrollment enrollments = 12;
+  // Present on a "cloud_sync" result: every local Profile of the signed-in
+  // account. A Profile absent from the list has no Cloud sync state here.
+  repeated MobileCloudSyncProfile cloud_sync = 13;
+}
+// One Profile's Cloud sync state on this device. Ids, booleans, counts and a
+// stable code only — never a Workspace name, a path or a credential.
+message MobileCloudSyncProfile {
+  string profile_id = 1;
+  bool enabled = 2;
+  // Workspaces this device holds for the Profile, and how many of them Koru
+  // Cloud has accepted, so a partly applied choice is visible rather than hidden.
+  uint32 workspaces = 3;
+  uint32 synced_workspaces = 4;
+  // Stable code of the last refusal while applying the choice.
+  optional string error_code = 5;
+}
+message NativeSignInPrompt {
+  uint64 generation = 1;
+  uint64 request_id = 2;
+  string nonce = 3;
+  int64 expires_at_millis = 4;
+  bool reauthentication = 5;
+  // Trusted hosted WEB client ID supplied by platform configuration.
+  string server_client_id = 6;
+}
+enum AccountVaultAction {
+  ACCOUNT_VAULT_ACTION_UNSPECIFIED = 0;
+  ACCOUNT_VAULT_ACTION_LOAD = 1;
+  ACCOUNT_VAULT_ACTION_STORE = 2;
+  ACCOUNT_VAULT_ACTION_CLEAR = 3;
+}
+message AccountVaultPrompt {
+  uint64 request_id = 1;
+  AccountVaultAction action = 2;
+  string entry = 3;
+  // Only STORE carries this opaque credential. Never in status or results.
+  optional bytes credential = 4;
+}
+// Open this provider page in a browser tab. A new request_id means a new page
+// (the collision proof opens a second one); open each request_id once.
+message BrowserSignInPrompt {
+  uint64 generation = 1;
+  uint64 request_id = 2;
+  string url = 3;
+}
+message AccountPollReply {
+  MobileAccountStatus status = 1;
+  repeated MobileAccountResult results = 2;
+  optional NativeSignInPrompt sign_in = 3;
+  optional AccountVaultPrompt vault = 4;
+  optional string error_code = 5;
+  optional BrowserSignInPrompt browser = 6;
+}
+message NativeSignInReply {
+  uint64 generation = 1;
+  uint64 request_id = 2;
+  optional bytes id_token = 3;
+  bool cancelled = 4;
+}
+message AccountVaultReply {
+  uint64 request_id = 1;
+  bool success = 2;
+  // LOAD only; absent means no stored credential. STORE success means durable.
+  optional bytes credential = 3;
+}
+// The App Link URL the browser returned to (it carries the one-use grant:
+// never log it), or cancelled when the person backed out of the tab.
+message BrowserSignInReply {
+  uint64 generation = 1;
+  uint64 request_id = 2;
+  optional string callback_url = 3;
+  bool cancelled = 4;
+}
+message AccountPlatformRequest {
+  HostContext host = 1;
+  uint32 version = 2;
+  uint64 requester = 3;
+  oneof response {
+    NativeSignInReply sign_in = 4;
+    AccountVaultReply vault = 5;
+    bool foreground = 6;
+    BrowserSignInReply browser = 7;
+  }
+}

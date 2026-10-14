@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Every string a person reads on Android, in the source language.
+
+    The seven `values-*/strings.xml` beside this one carry the same ids, and
+    they are complete: there is no `tools:ignore="MissingTranslation"` left in
+    this file and none should come back. Android *does* fall back to this file
+    for a key a language is missing — which is exactly why the suppression is
+    dangerous rather than harmless, since the fall-back is silent and looks
+    like a working screen with one English word in it.
+
+    Two kinds of string are deliberately not here. A `ClipData` label is a
+    debugging aid the system clipboard editor shows and no part of Koru draws.
+    A language's own name (`Español`, `日本語`) is written in itself in every
+    localization — see `SettingsScreen.kt`.
+-->
+<resources>
+    <!-- The product's name. `translatable="false"` is the difference between
+         "not translated yet" and "the same word in every language". -->
+    <string name="app_name" translatable="false">Koru</string>
+    <string name="profiles">Profiles</string>
+    <string name="workspaces">Workspaces</string>
+    <string name="workspace_options">Workspace options</string>
+    <string name="show_archived">Show archived</string>
+    <string name="show_deleted">Show deleted</string>
+    <string name="sort_by">Sort by</string>
+    <string name="last_modified">Last modified</string>
+    <string name="sort_az">A–Z</string>
+    <string name="sort_za">Z–A</string>
+    <string name="rename">Rename</string>
+    <string name="rename_workspace">Rename workspace</string>
+    <string name="rename_profile">Rename profile</string>
+    <string name="archive_workspace">Archive workspace</string>
+    <string name="unarchive_workspace">Unarchive workspace</string>
+    <string name="delete_workspace">Delete workspace</string>
+    <string name="restore_workspace">Restore workspace</string>
+    <string name="delete_workspace_named">Delete “%1$s”?</string>
+    <string name="delete_workspace_message">The workspace will move to Deleted and can be restored later.</string>
+    <string name="documents">Documents</string>
+    <string name="files">Files</string>
+    <string name="rename_document">Rename document</string>
+    <string name="move_to_trash">Move to trash</string>
+    <string name="add_note">Add note</string>
+    <string name="open_note">Open note</string>
+    <string name="note_optional">Note (optional)</string>
+    <string name="untitled">Untitled</string>
+    <string name="workspace_subtitle">Workspace</string>
+    <string name="document_subtitle">Document</string>
+    <string name="developer">Developer</string>
+    <string name="developer_subtitle">Diagnostics and implementation details</string>
+    <string name="create">Create</string>
+    <string name="create_named">Create %1$s</string>
+    <string name="open">Open</string>
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="done">Done</string>
+    <string name="save">Save</string>
+    <string name="select">Select</string>
+    <string name="delete">Delete</string>
+    <string name="name_or_title">Name or title</string>
+    <string name="empty_state">Nothing here yet</string>
+    <string name="share_to_koru">Share to Koru</string>
+    <string name="save_to_koru">Save to Koru</string>
+    <string name="saved_to_files">Saved to Files</string>
+    <string name="choose_profile">Choose a profile</string>
+    <string name="choose_workspace">Choose a workspace</string>
+    <string name="no_profiles_for_share">Create a profile in Koru before saving shared content.</string>
+    <string name="no_workspaces_for_share">This profile has no workspaces yet.</string>
+    <string name="more_shared_files">and %1$d more</string>
+    <plurals name="shared_file_count">
+        <item quantity="one">1 shared item</item>
+        <item quantity="other">%d shared items</item>
+    </plurals>
+    <plurals name="saved_file_count">
+        <item quantity="one">1 file is now available in this workspace.</item>
+        <item quantity="other">%d files are now available in this workspace.</item>
+    </plurals>
+    <string name="insert_reference">Reference</string>
+    <string name="add_paragraph">Paragraph</string>
+    <string name="add_task">Task</string>
+    <string name="add_list">List</string>
+    <string name="add_image">Image</string>
+    <string name="list_bullet">Bulleted list</string>
+    <string name="list_checkbox">Checklist</string>
+    <string name="list_numbered">Numbered list</string>
+    <string name="list_letter">Lettered list</string>
+    <string name="list_roman">Roman list</string>
+    <string name="unsupported_block">Unsupported block (%1$d) — preserved</string>
+    <string name="document_image">Document image</string>
+    <string name="image_unavailable">Image unavailable</string>
+    <string name="image_downloading">Downloading image…</string>
+    <string name="image_link_device">Link a device to download this image.</string>
+    <string name="image_waiting_for_device">Waiting for %1$s to come online.</string>
+    <string name="image_waiting_no_holder">No device online has it.</string>
+    <!-- Plan B5: what a person is told about a picture that has not arrived.
+         A pause is not a refusal (plan §13) and each pause has its own
+         sentence, because "waiting for Wi-Fi" and "this will never arrive"
+         are different things to be told. -->
+    <string name="image_paused_metered">Waiting for an unmetered connection.</string>
+    <string name="image_paused_low_data">Data saver is on, so this picture is waiting.</string>
+    <string name="image_paused_offline">Waiting for a connection.</string>
+    <string name="image_download_now">Download now</string>
+    <string name="image_no_room">This device does not have room for this picture.</string>
+    <string name="retry">Retry</string>
+    <string name="error_title">Koru could not complete that</string>
+    <string name="error_not_found">The requested item no longer exists.</string>
+    <string name="error_permission">You do not have permission for this action.</string>
+    <string name="error_unavailable">The service is temporarily unavailable.</string>
+    <string name="error_invalid">The requested change is not valid.</string>
+    <string name="error_unsupported">This version of Koru does not support that content.</string>
+    <string name="error_unknown">An unexpected error occurred.</string>
+
+    <!-- The reference pill's own name, for a reference that carries no label.
+         A URL and a label are shown as written — the value is the label. -->
+    <string name="open_document">Open document</string>
+    <string name="open_block">Open block</string>
+    <string name="person">Person</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="theme">Theme</string>
+    <string name="language">Language</string>
+    <string name="font">Font</string>
+    <string name="appearance_system">System</string>
+    <string name="appearance_light">Light</string>
+    <string name="appearance_dark">Dark</string>
+    <!-- Inter and Manrope are product names and are not listed here. -->
+    <string name="font_system_sans">System sans</string>
+    <string name="font_system_serif">System serif</string>
+    <string name="font_system_rounded">System rounded</string>
+    <string name="font_system_mono">System mono</string>
+
+    <!-- Diagnostics -->
+    <string name="platform">Platform</string>
+    <string name="app_version">App version/build</string>
+    <string name="contract_version">Contract version</string>
+    <string name="active_profile">Active profile ID</string>
+    <string name="active_workspace">Active workspace ID</string>
+    <string name="active_document">Active document ID</string>
+    <string name="locale">Locale</string>
+    <string name="service_implementation">Service implementation</string>
+    <string name="debug_info">Debug info</string>
+    <string name="workspace_id">Workspace id</string>
+    <string name="profile_id">Profile id</string>
+    <string name="archived">Archived</string>
+    <string name="deleted">Deleted</string>
+    <string name="modified">Modified</string>
+    <string name="icon">Icon</string>
+    <string name="color">Color</string>
+    <string name="yes">yes</string>
+    <string name="no">no</string>
+    <string name="copy_workspace_id">Copy workspace id</string>
+    <string name="workspace_id_copied">Workspace id copied</string>
+
+    <!-- Devices and linking -->
+    <string name="devices">Devices</string>
+    <string name="link_title">Link this device</string>
+    <string name="link_explainer">Scan the QR code shown by Koru on your computer. This phone will receive a complete local copy of your profiles, workspaces, and documents.</string>
+    <string name="scan_qr">Scan QR code</string>
+    <string name="enter_link_code">Enter link code</string>
+    <string name="link_device">Link device</string>
+    <string name="linking_device">Linking device…</string>
+    <string name="linked_device">Device linked</string>
+    <string name="native_unavailable">This build does not include the native sync library.</string>
+    <string name="new_device">New device</string>
+    <string name="linked_devices">Linked devices</string>
+    <string name="scan_this_code">Scan this code from Koru on your other device.</string>
+    <string name="device_link_qr">Device link QR code</string>
+    <string name="copy_link_code">Copy link code</string>
+    <string name="code_copied">Code copied</string>
+    <plurals name="code_expires_in">
+        <item quantity="one">Code expires in %1$d second</item>
+        <item quantity="other">Code expires in %1$d seconds</item>
+    </plurals>
+    <string name="link_code_failed">Could not create a link code (%1$s)</string>
+    <string name="try_again">Try again</string>
+    <string name="no_linked_devices">No linked devices</string>
+    <string name="this_device">This device</string>
+    <string name="long_press_to_rename">long-press to rename</string>
+    <string name="rename_device">Rename this device</string>
+    <string name="device_name">Device name</string>
+    <string name="unlink_device">Unlink</string>
+    <string name="device_online">Linked (online)</string>
+    <string name="device_online_via">Linked (online, %1$s)</string>
+    <!-- How a connection is reached. These are the words for the wire's
+         "direct" and "relay"; the value itself stays the wire's. -->
+    <string name="connection_direct">direct</string>
+    <string name="connection_relay">relay</string>
+    <string name="device_offline">Linked (offline)</string>
+    <string name="device_offline_last_seen">Linked (offline) · last seen %1$s</string>
+    <string name="not_syncing_update_this_device">Not syncing · update this device</string>
+    <string name="not_syncing_update_peer">Not syncing · update %1$s</string>
+    <string name="introduced_by">via %1$s</string>
+    <string name="last_synced">Last synced %1$s</string>
+    <string name="no_state_changes">No state changes received yet</string>
+    <string name="history_unavailable">Couldn’t load device history.</string>
+    <string name="history_empty">No catalog, profile, workspace, document, or blob changes have been received from this device.</string>
+
+    <!-- One row of a device's history. `kind` is the semantic value that
+         arrives on the wire; these are only its words. -->
+    <string name="event_document_updated_named">Updated “%1$s”</string>
+    <plurals name="operation_count">
+        <item quantity="one">%1$d op</item>
+        <item quantity="other">%1$d ops</item>
+    </plurals>
+    <string name="event_catalog_reconciled_detail">Reconciled %1$s</string>
+    <string name="event_catalog_reconciled">Catalog reconciled</string>
+    <string name="event_profile_created">Profile added</string>
+    <string name="event_profile_updated">Profile updated</string>
+    <string name="event_workspace_created">Workspace added</string>
+    <string name="event_workspace_updated">Workspace updated</string>
+    <string name="event_document_created">Document added</string>
+    <string name="event_document_updated">Document updated</string>
+    <string name="event_blob_stored">File downloaded</string>
+
+    <!-- The identity mismatch: the seeds this phone holds no longer produce
+         the keys its stored identity names. The content is fine and saying so
+         is the point — this state was once mistaken for data loss.
+
+         The explainer is **not** iOS's sentence and must not be made into it.
+         Android's `allowBackup="false"` plus an uninstall taking
+         `noBackupFilesDir` means a reinstall really is a fresh device here, so
+         iOS's "after you reinstall" clause would be a new lie on this
+         platform. ADR-413 says so; translate this English, not that one. -->
+    <string name="identity_mismatch">This phone\'s keys no longer match its device identity</string>
+    <string name="identity_mismatch_explainer">This happens when Koru\'s data is moved or restored onto another phone, or when the identity stored on this one can no longer be verified. Your workspaces are intact, but this phone cannot sync or link until it starts over as a new device.</string>
+    <string name="start_over_as_new_device">Start over as a new device</string>
+    <string name="start_over_confirm">Start over</string>
+    <string name="start_over_explainer">Your workspaces stay. The old identity is set aside, and this phone appears as a new device once you link it again; remove the old entry from your other devices.</string>
+
+    <!-- The relay switch under Devices, and the tray's state word beside it
+         (ADR-273). The host is never translated; only the state is. -->
+    <string name="use_relay">Use relay</string>
+    <string name="use_relay_explainer">Off stops relayed connections for this device only; syncing on the same network or over a direct connection continues.</string>
+    <string name="relay_state_connected">connected</string>
+    <string name="relay_state_connecting">connecting</string>
+    <string name="relay_state_disconnected">disconnected</string>
+    <string name="relay_state_off">Relay off</string>
+
+    <!-- File notes (ADR-277) and the share sheet's remembered destinations. -->
+    <string name="recent_destinations">Recent</string>
+
+    <!-- Koru accounts, the account switcher and Android document editing
+         (ADR-332), from dev at the 2026-09-13 merge. -->
+    <string name="document_edit">Edit document</string>
+    <string name="document_saving">Saving…</string>
+    <string name="document_type_here">Tap to type</string>
+    <string name="document_add_paragraph">Add paragraph</string>
+    <string name="document_edit_conflict">This block changed on another device. Your unsaved text is kept here. Copy it before using the saved version.</string>
+    <string name="document_edit_failed">Could not save this text. Your draft is kept here. Try again before leaving.</string>
+    <string name="document_copy_draft">Copy text</string>
+    <string name="document_use_saved">Use saved text</string>
+    <string name="document_discard_draft">Discard unsaved text and new paragraphs from this block and show its saved version?</string>
+    <string name="account_enrollment_throttled">Koru is temporarily limiting connection requests. We’ll retry automatically.</string>
+    <string name="workspaces_sync_empty">Workspaces from your other devices will appear here as they sync. Keep a device with this Profile online.</string>
+    <string name="account_choose_one">One Profile</string>
+    <string name="account_choose_several">Several Profiles</string>
+    <string name="account_choose_all">All current Profiles</string>
+    <string name="account_all_snapshot">All selects the Profiles listed now. Profiles added later are not included automatically.</string>
+    <string name="account_selection_count">%1$d selected</string>
+    <string name="account_apply_selection">Apply selection</string>
+    <string name="account_repair_identity_mismatch">That sign-in belongs to another account. Select the account you want to reconnect, or use Add Account. Your local content is still available.</string>
+    <string name="account_creation_title">Create a separate Koru account?</string>
+    <string name="account_creation_body">This Google account is not connected to Koru. The new account will be separate from any you already have. To use an existing account, cancel and sign in to it. On desktop, open Manage Profiles, select a Profile, then choose Add Google Account.</string>
+    <string name="account_creation_confirm">Create new Koru account</string>
+    <string name="account_creation_cancel">Cancel and use an existing account</string>
+    <string name="account_creation_expired_title">Sign in again</string>
+    <string name="account_creation_expired_body">This sign-in expired. A Koru account may already have been created. Sign in again to continue; your local content is still available.</string>
+    <string name="account_enrollment_account">Connect your account to continue syncing this Profile.</string>
+    <string name="account_operation">Completing account operation…</string>
+    <string name="account_title">Account</string>
+    <string name="account_intro">Connect an account to sync a Profile from your desktop. Local content and QR links remain available.</string>
+    <string name="account_offline">Continue with local content</string>
+    <string name="account_unavailable">Account sign-in is unavailable in this installation. You can still use local content and QR linking.</string>
+    <string name="account_unnamed">Your account</string>
+    <string name="account_google">Sign in with Google</string>
+    <string name="account_apple">Sign in with Apple</string>
+    <string name="account_email">Sign in with email</string>
+    <string name="account_wait_restore">Restoring your account…</string>
+    <string name="account_wait_provider">Continue in the Google account dialog.</string>
+    <string name="account_wait_provider_apple">Continue in your browser to sign in with Apple.</string>
+    <string name="account_wait_exchange">Finishing sign-in. Keep Koru open while it saves your session.</string>
+    <string name="account_wait_refresh">Refreshing your account…</string>
+    <string name="account_loading_profiles">Loading authorized Profiles…</string>
+    <string name="account_cancel_pending">Finishing cancellation…</string>
+    <string name="account_provider_clear_failed">Google session clearing failed. Sign in again to retry and choose an account.</string>
+    <string name="account_failed">The account operation could not finish. Your local content is still available.</string>
+    <string name="account_retry">Try again</string>
+    <string name="account_retry_scheduled">Another attempt is scheduled.</string>
+    <string name="account_cancel">Cancel sign-in</string>
+    <string name="account_choose">Choose Profiles</string>
+    <string name="account_refresh_profiles">Refresh Profiles</string>
+    <string name="account_empty">No Profiles are authorized for this sign-in. Create a Profile on desktop, then refresh this list.</string>
+    <string name="account_profile_unnamed">Profile</string>
+    <string name="account_local_yes">Stored on this device</string>
+    <string name="account_local_no">Not stored on this device</string>
+    <string name="account_remote_yes">A source device is registered</string>
+    <string name="account_remote_no">No source device is registered</string>
+    <string name="account_connect">Sync selected Profile</string>
+    <string name="account_enrollment_wait">Waiting for a desktop source. Open Koru on a desktop that has this Profile and check its connection.</string>
+    <string name="account_enrollment_work">Establishing access to this Profile…</string>
+    <string name="account_enrollment_complete">Profile access is ready.</string>
+    <string name="account_enrollment_failed">Profile access could not be established.</string>
+    <string name="account_retry_enrollment">Retry Profile connection</string>
+    <string name="account_cancel_enrollment">Cancel Profile connection</string>
+    <string name="account_open_profile">Open local Profile</string>
+    <string name="account_local_pending">Access is ready; waiting for Profile content to arrive.</string>
+    <string name="account_logout_note">Signing out keeps local content and existing QR links on this device.</string>
+    <string name="account_logout">Sign out</string>
+    <string name="run_title">Run</string>
+    <string name="run_pill_fallback">Run</string>
+    <string name="run_tab_overview">Overview</string>
+    <string name="run_tab_activity">Activity</string>
+    <string name="run_earlier">Earlier</string>
+    <string name="run_no_activity">No activity yet</string>
+    <string name="run_needs_newer_koru">This run was written by a newer Koru. Update Koru to see all of it.</string>
+    <string name="run_read_only">This device only shows the run. Act on it from %1$s.</string>
+    <string name="run_status">Status</string>
+    <string name="run_device">Device</string>
+    <string name="run_agent">Agent</string>
+    <string name="run_scope">Working folder</string>
+    <string name="run_scope_project_root">The project folder</string>
+    <string name="run_scope_project_folder">A folder in the project</string>
+    <string name="run_scope_temporary">A folder made for this run</string>
+    <string name="run_scope_none">None</string>
+    <string name="run_context">Context</string>
+    <plurals name="run_context_items">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string name="run_created">Created</string>
+    <string name="run_executing_on">Running on %1$s</string>
+    <string name="run_executing_here">Running on this device</string>
+    <string name="run_this_device">this device</string>
+    <string name="run_another_device">another device</string>
+    <string name="run_results">Results</string>
+    <string name="run_no_results">Nothing registered yet</string>
+    <string name="run_result_on_device">Content is on %1$s</string>
+    <string name="run_result_here">Content is on this device</string>
+    <string name="run_result_registered">%1$s · registered %2$s</string>
+    <string name="run_economics">Cost</string>
+    <string name="run_turns">Turns</string>
+    <string name="run_turns_with_human">%1$d, %2$d by a person</string>
+    <string name="run_tokens_in">Input tokens</string>
+    <string name="run_tokens_out">Output tokens</string>
+    <string name="run_tokens_cached">Cached input tokens</string>
+    <string name="run_tool_calls">Tool calls</string>
+    <string name="run_interventions">Interventions</string>
+    <string name="run_elapsed">Time</string>
+    <string name="run_models">Models</string>
+    <string name="run_unavailable">unavailable</string>
+    <plurals name="run_unreported_turns">
+        <item quantity="one">%1$s (%2$d turn did not report)</item>
+        <item quantity="other">%1$s (%2$d turns did not report)</item>
+    </plurals>
+    <string name="run_rating">Rating</string>
+    <string name="run_rating_good">Good</string>
+    <string name="run_rating_not_good">Not good</string>
+    <string name="run_unrated">Not rated</string>
+    <string name="run_rated_at">Rated %1$s</string>
+    <string name="run_status_created">Created</string>
+    <string name="run_status_starting">Starting</string>
+    <string name="run_status_running">Running</string>
+    <string name="run_status_interrupted">Interrupted</string>
+    <string name="run_status_completed">Completed</string>
+    <string name="run_status_failed">Failed</string>
+    <string name="run_status_cancelled">Cancelled</string>
+    <string name="run_status_awaiting_review">Awaiting review</string>
+    <string name="run_status_waiting_for_participant">Waiting for a participant</string>
+    <string name="run_status_unknown">A status this Koru does not know</string>
+    <string name="run_failed_at">Failed at %1$s</string>
+    <string name="run_prior_attempt_unknown">An earlier attempt may still exist</string>
+    <string name="run_control_human">A person is in control</string>
+    <string name="run_control_handover">Handing control to a person</string>
+    <string name="run_attention_approval_required">Waiting for an approval</string>
+    <string name="run_attention_waiting_for_input">Waiting for input</string>
+    <string name="run_attention_child_session_detected">A child session was detected</string>
+    <string name="run_attention_finished_needing_attention">Finished without a result — needs a look</string>
+    <string name="run_attention_unknown">Needs a look</string>
+    <string name="run_step_run_created">Run created</string>
+    <string name="run_step_started">Agent started</string>
+    <string name="run_step_turn_started">Turn started</string>
+    <string name="run_step_turn_started_human">Turn started by a person</string>
+    <plurals name="run_step_tools_completed">
+        <item quantity="one">%1$d tool call</item>
+        <item quantity="other">%1$d tool calls</item>
+    </plurals>
+    <plurals name="run_step_tools_failed">
+        <item quantity="one">%1$d tool call, %2$d failed</item>
+        <item quantity="other">%1$d tool calls, %2$d failed</item>
+    </plurals>
+    <string name="run_step_approval_required">Approval requested</string>
+    <string name="run_step_approval_approved">Approval granted</string>
+    <string name="run_step_approval_rejected">Approval refused</string>
+    <string name="run_step_approval_expired">Approval expired</string>
+    <string name="run_step_waiting_for_input">Waiting for input</string>
+    <string name="run_step_attachment_accepted">Attachment accepted</string>
+    <string name="run_step_attachment_rejected">Attachment rejected</string>
+    <string name="run_step_child_session_detected">A child session was detected and ended</string>
+    <string name="run_step_turn_completed">Turn completed</string>
+    <plurals name="run_step_turn_completed_results">
+        <item quantity="one">Turn completed, %1$d result registered</item>
+        <item quantity="other">Turn completed, %1$d results registered</item>
+    </plurals>
+    <string name="run_step_turn_cancelled">Turn cancelled</string>
+    <string name="run_step_turn_cancelled_takeover">Turn ended to hand over control</string>
+    <string name="run_step_turn_failed">Turn failed at %1$s</string>
+    <string name="run_step_interrupted">Interrupted by a restart</string>
+    <string name="run_step_resumed_native">Resumed where it left off</string>
+    <string name="run_step_resumed_recorded">Resumed from the recorded context</string>
+    <string name="run_step_control_taken">A person took control</string>
+    <string name="run_step_control_discovered">A person was found in control</string>
+    <string name="run_step_control_returned">Control returned to the agent</string>
+    <string name="run_step_artifact_registered">Result registered</string>
+    <string name="run_step_completed">Completed</string>
+    <string name="run_step_failed">Failed at %1$s</string>
+    <string name="run_step_cancelled">Cancelled</string>
+    <string name="run_step_rated">Rated %1$s</string>
+    <string name="run_step_gap">Some activity was not recorded</string>
+    <plurals name="run_step_gap_count">
+        <item quantity="one">%1$d event was not recorded</item>
+        <item quantity="other">%1$d events were not recorded</item>
+    </plurals>
+    <string name="run_step_unknown">A step this Koru does not understand</string>
+    <string name="run_usage">Usage: %1$s in, %2$s out</string>
+    <string name="run_usage_incomplete">Usage (incomplete): %1$s in, %2$s out</string>
+    <string name="run_stage_scope_admission">the working folder</string>
+    <string name="run_stage_context_capture">capturing context</string>
+    <string name="run_stage_context_materialization">preparing context</string>
+    <string name="run_stage_session_creation">creating the session</string>
+    <string name="run_stage_provider_start">starting the agent</string>
+    <string name="run_stage_authority">authorizing the run</string>
+    <string name="run_stage_turn">a turn</string>
+    <string name="run_stage_unknown">an unknown stage</string>
+    <string name="account_worker">Account worker</string>
+    <string name="account_sign_in_again">Sign in to connect your account. If sign-in was interrupted, start it again.</string>
+    <string name="account_switcher_title">Accounts</string>
+    <string name="account_switcher_label">Account %1$s</string>
+    <string name="account_switcher_active">Active</string>
+    <string name="account_switcher_add">Add account</string>
+    <string name="account_switcher_resume">Return to sign-in</string>
+    <string name="account_switcher_hidden">%1$d Profiles hidden</string>
+    <string name="account_switcher_local_only">Local only</string>
+    <string name="account_switcher_unknown">Account unavailable</string>
+    <string name="account_switcher_repair">Sign-in needs attention</string>
+    <string name="account_switcher_pending">In progress</string>
+    <string name="account_removal_owner_unproven">This pending removal cannot be matched to its original account. Your local content is still available.</string>
+    <!-- Koru Cloud document sync and account-driven relinking: the ids the
+         Cloud milestone added. They carry the same ids in every language
+         beside this file, as everything above them does. -->
+    <string name="relink_devices">Relink devices</string>
+    <string name="relink_devices_action">Relink</string>
+    <string name="relink_devices_explainer">Use this after unlinking a device. Reconnect through another device signed in to the same Koru account; no QR code is needed.</string>
+    <string name="relink_devices_waiting">Waiting for another Koru device. Open Koru on an authorized device; relinking will finish automatically.</string>
+    <string name="relink_devices_waiting_state">Waiting to relink</string>
+    <string name="relink_devices_loading">Loading your account and authorized Profiles…</string>
+    <string name="device_another_installation">%1$s · Another installation</string>
+    <string name="device_via_unlink">via %1$s · unlink from %1$s</string>
+    <string name="document_cloud_sync_active">Cloud sync active</string>
+    <string name="account_cloud_sync">Cloud sync</string>
+    <string name="account_cloud_sync_working">Working…</string>
+    <string name="account_cloud_sync_complete">Syncing via Koru Cloud</string>
+    <string name="account_cloud_sync_partial">Syncing %1$d of %2$d workspaces</string>
+    <string name="account_cloud_sync_unattached">Not available in this build</string>
+    <!-- What one Workspace's file transfers say, per language. The counts are
+         the engine's (`cloud-blob-object-v1` §10) and are generic: a file is
+         counted exactly like a picture, which is the D259 correction. Each
+         hold is its own sentence because a pause and a refusal are different
+         things to be told (plan §13). -->
+    <string name="transfers">Files and pictures</string>
+    <string name="transfers_on_cellular">Transfer on cellular</string>
+    <string name="transfers_on_cellular_explainer">Off, files and pictures wait for an unmetered connection. Documents keep syncing either way, and you can still download a single one from the document itself.</string>
+    <string name="blob_referenced">In this workspace</string>
+    <string name="blob_on_device">On this device</string>
+    <string name="blob_on_cloud">On Koru Cloud</string>
+    <string name="blob_moving">Moving</string>
+    <string name="blob_state_up_to_date">Every file is on Koru Cloud.</string>
+    <string name="blob_state_working">Moving files…</string>
+    <string name="blob_state_idle">Nothing is moving.</string>
+    <string name="blob_state_paused_metered">Waiting for an unmetered connection.</string>
+    <string name="blob_state_paused_low_data">Data saver is on, so files are waiting.</string>
+    <string name="blob_state_paused_offline">Waiting for a connection.</string>
+    <string name="blob_state_paused_person">Paused. Nothing moves until this is resumed.</string>
+    <string name="blob_state_refused">This workspace does not transfer file bytes.</string>
+    <string name="blob_state_failed">A transfer could not finish (%1$s).</string>
+    <string name="blob_state_no_room">This device does not have room for the next file.</string>
+    <string name="blob_state_waiting_holder">Waiting for the device that has these files.</string>
+    <string name="open_file">Open file</string>
+    <string name="share_file">Share file</string>
+    <!-- Type and size, e.g. "video/mp4 - 24 MB". -->
+    <string name="file_details" translatable="false">%1$s - %2$s</string>
+    <string name="file_type_unknown">Unknown type</string>
+    <string name="file_opens_from_cloud">Downloads from Koru Cloud if this device does not have it.</string>
+    <!-- A stable code, shown verbatim: it is what a person reads back to us. -->
+    <string name="file_transfers_held">File transfers are held (%1$s).</string>
+    <string name="file_export_failed">That file could not be opened.</string>
+    <string name="no_app_for_file">No app on this phone can open that kind of file.</string>
+    <string name="blob_waiting_holder_explainer">Nothing is wrong. They arrive when that device is online.</string>
+    <string name="blob_pause_explainer">Documents keep syncing. Open a file to download just that one.</string>
+    <string name="blob_refused_explainer">This is not a pause: it does not clear on its own.</string>
+    <string name="blob_allow_cellular">Allow on cellular</string>
+    <string name="blob_clear_local">Free up space</string>
+    <string name="blob_clear_title">Clear local files?</string>
+    <string name="blob_clear_body">Files that Koru Cloud already holds are removed from this phone. Your documents keep their references, and any file comes back the moment it is opened. Files not yet on Koru Cloud stay here.</string>
+    <string name="blob_clear_confirm">Remove from this phone</string>
+    <string name="blob_clear_cancel">Keep them</string>
+    <string name="blob_cleared">Removed %1$d files from this phone · %2$s freed</string>
+    <string name="blob_cleared_kept">Removed %1$d files · %2$s freed · %3$d kept, not yet on Koru Cloud</string>
+    <string name="blob_clear_failed">Local files could not be cleared. Try again in a moment.</string>
+    <string name="blob_release_dismiss">Dismiss</string>
+    <string name="blob_progress">%1$s of %2$s</string>
+    <string name="blob_state_no_cloud">Not connected to Koru Cloud.</string>
+    <string name="blob_no_cloud_explainer">Files stay on this device and on your linked devices.</string>
+    <string name="blob_count_unknown" translatable="false">—</string>
+    <string name="image_paused_person">Transfers are paused for this workspace.</string>
+    <string name="image_paused_no_cloud">This workspace is not connected to Koru Cloud, so this arrives from a linked device.</string>
+    <!-- Cloud sync progress: the phone's copy of the desktop's Manage Profiles
+         Cloud sync section (CTO, 2026-09-24). The English and every
+         translation are the desktop's own koru-i18n rows — CloudProgress*,
+         CloudTabLoading, CloudTabUnavailable, CloudTabSending/Receiving,
+         CloudTabPath*, CloudTabSyncOn/Off and CloudTabDocWaiting — so the two
+         surfaces never disagree. A hold is said with the blob_state_* words
+         above, the ones this app already uses for the same codes. Counts are
+         %s because they arrive already formatted for the reader's locale. -->
+    <string name="cloud_progress_row">Sync status</string>
+    <string name="cloud_progress_workspaces">%1$s of %2$s workspaces on Koru Cloud</string>
+    <string name="cloud_progress_documents">%1$s of %2$s documents</string>
+    <string name="cloud_progress_files">%1$s of %2$s files</string>
+    <string name="cloud_progress_held">%1$s held</string>
+    <string name="cloud_progress_more">and %1$s more</string>
+    <string name="cloud_progress_waiting_one_file">1 file</string>
+    <string name="cloud_progress_waiting_files">%1$s files</string>
+    <string name="cloud_progress_waiting_for">waiting for %1$s</string>
+    <string name="cloud_progress_waiting_no_holder">no device online has it</string>
+    <string name="cloud_progress_waiting_none">No document is waiting for another device.</string>
+    <string name="cloud_progress_loading">Reading Cloud sync…</string>
+    <string name="cloud_progress_unavailable">The Store is not answering.</string>
+    <string name="cloud_progress_sending">sending</string>
+    <string name="cloud_progress_receiving">receiving</string>
+    <string name="cloud_progress_path_cloud">via Koru Cloud</string>
+    <string name="cloud_progress_path_peer">straight from your other device</string>
+    <string name="cloud_progress_sync_on">On</string>
+    <string name="cloud_progress_sync_off">Off, or not signed in on this device</string>
+    <!-- A stable code, shown verbatim after the word: it is what a person reads back to us. -->
+    <string name="cloud_progress_waiting_code">Waiting: %1$s</string>
+    <!-- Settings -> Open-source licenses: the notices the build packages in assets/licenses/. -->
+    <string name="open_source_licenses">Open-source licenses</string>
+    <string name="open_source_licenses_subtitle">Koru’s license, its source code, and the software it is built with</string>
+    <string name="open_source_licenses_intro">Koru is free software under the Mozilla Public License 2.0. It is built with the work of many other people, and their licenses are reproduced here.</string>
+    <string name="open_source_source_code">Source code of this build</string>
+    <string name="open_source_license_koru">Koru’s license (MPL-2.0)</string>
+    <string name="open_source_license_notice">Koru notice</string>
+    <string name="open_source_license_third_party">Third-party notices</string>
+    <string name="open_source_licenses_missing">This build carries no license files.</string>
+</resources>

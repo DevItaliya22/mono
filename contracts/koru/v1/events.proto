@@ -1,0 +1,49 @@
+// SPDX-License-Identifier: MPL-2.0
+
+syntax = "proto3";
+
+package koru.v1;
+
+import "google/protobuf/any.proto";
+import "koru/v1/errors.proto";
+import "koru/v1/ids.proto";
+
+option java_multiple_files = true;
+option java_package = "app.koru.contract.v1";
+option swift_prefix = "KOR";
+
+message DocumentChanged {
+  uint64 revision = 1;
+  repeated BlockId changed_blocks = 2;
+}
+message DocumentRenamed {
+  string title = 1;
+}
+message DocumentDeleted {}
+message BlobAvailable {
+  BlobId blob_id = 1;
+}
+message BlobUnavailable {
+  BlobId blob_id = 1;
+}
+message PermissionChanged {
+  bool can_edit = 1;
+}
+message SessionError {
+  ServiceError error = 1;
+}
+
+message DocumentEventEnvelope {
+  DocumentId document_id = 1;
+  uint64 sequence = 2;
+  oneof event {
+    DocumentChanged document_changed = 10;
+    DocumentRenamed document_renamed = 11;
+    DocumentDeleted document_deleted = 12;
+    BlobAvailable blob_available = 13;
+    BlobUnavailable blob_unavailable = 14;
+    PermissionChanged permission_changed = 15;
+    SessionError session_error = 16;
+    google.protobuf.Any extension = 17;
+  }
+}

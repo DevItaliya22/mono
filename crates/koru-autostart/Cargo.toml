@@ -1,0 +1,23 @@
+[package]
+rust-version.workspace = true
+name = "koru-autostart"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Whether a program starts when the user signs in. One registry value, shared by both binaries."
+
+# `channel_entry` qualifies a value name with this build's segment, so a nightly
+# installed beside a stable does not overwrite its Run entry. `koru-channel` is
+# the leaf of the graph and links nothing, so this stays a crate a caller can
+# afford: no reqwest, no serde, no runtime.
+[dependencies]
+koru-channel = { path = "../koru-channel" }
+
+# One dependency, on one platform. Everywhere else this crate is a stub that
+# answers `Unsupported`, so nothing that links it acquires anything at all.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_System_Registry",
+] }

@@ -1,0 +1,23 @@
+{"id":1,"result":{"userAgent":"koru_terminal/0.150.1 (<platform>)","codexHome":"<codex-home>","platformFamily":"<platform>","platformOs":"<platform>"}}
+{"id":2,"result":{"data":[{"id":"default-model","model":"default-model","displayName":"Default","description":"fixture","isDefault":true,"hidden":false,"defaultReasoningEffort":"medium","supportedReasoningEfforts":[],"inputModalities":["text","image"]}],"nextCursor":null}}
+{"id":3,"result":{"thread":{"id":"fixture-thread"}}}
+{"id":4,"result":{"turn":{"id":"fixture-turn","status":"inProgress","items":[]}}}
+{"method":"item/agentMessage/delta","params":{"threadId":"fixture-thread","turnId":"fixture-turn","itemId":"message-1","delta":"PRO"}}
+{"method":"item/agentMessage/delta","params":{"threadId":"fixture-thread","turnId":"fixture-turn","itemId":"message-1","delta":"BE_OK"}}
+{"method":"item/started","params":{"threadId":"fixture-thread","turnId":"fixture-turn","item":{"type":"commandExecution","id":"tool-1","command":"<redacted>"}}}
+{"method":"item/completed","params":{"threadId":"fixture-thread","turnId":"fixture-turn","item":{"type":"commandExecution","id":"tool-1","status":"completed","command":"<redacted>"}}}
+{"method":"thread/tokenUsage/updated","params":{"threadId":"fixture-thread","turnId":"fixture-turn","tokenUsage":{"last":{"inputTokens":11,"outputTokens":7,"cachedInputTokens":3,"reasoningOutputTokens":2,"totalTokens":20},"total":{"inputTokens":11,"outputTokens":7,"cachedInputTokens":3,"reasoningOutputTokens":2,"totalTokens":20},"modelContextWindow":1000}}}
+{"method":"item/commandExecution/requestApproval","id":90,"params":{"threadId":"fixture-thread","turnId":"fixture-turn","itemId":"tool-2","command":"<redacted-command>","cwd":"<redacted-cwd>","reason":"<redacted-reason>"}}
+{"method":"item/fileChange/requestApproval","id":91,"params":{"threadId":"fixture-thread","turnId":"fixture-turn","itemId":"tool-3","reason":"<redacted-reason>","grantRoot":"<redacted-root>"}}
+{"method":"item/permissions/requestApproval","id":92,"params":{"threadId":"fixture-thread","turnId":"fixture-turn","itemId":"tool-4","reason":"<redacted-reason>","permissions":{"network":{"enabled":true}}}}
+{"method":"future/request","id":93,"params":{"payload":"PROVIDER_SECRET_SENTINEL_92741"}}
+{"method":"item/commandExecution/requestApproval","id":94,"params":{"threadId":"fixture-thread","turnId":"unknown-turn","itemId":"tool-5","command":"<redacted-command>"}}
+{"method":"future/additive/event","params":{"payload":"PROVIDER_SECRET_SENTINEL_92741"}}
+{"method":"item/commandExecution/requestApproval","id":"provider-request-95","params":{"threadId":"fixture-thread","turnId":"fixture-turn","itemId":"tool-6","command":"<redacted-command>"}}
+{"method":"serverRequest/resolved","params":{"threadId":"fixture-thread","requestId":"provider-request-95"}}
+{"method":"item/fileChange/requestApproval","id":96,"params":{"threadId":"fixture-thread","turnId":"fixture-turn","itemId":"tool-7","reason":"<redacted-reason>"}}
+{"method":"item/completed","params":{"threadId":"fixture-thread","turnId":"fixture-turn","item":{"type":"imageView","id":"image-1","path":"<image-path>"}}}
+{"method":"turn/completed","params":{"threadId":"fixture-thread","turn":{"id":"fixture-turn","items":[],"status":"completed","error":null}}}
+{"id":5,"result":{"turn":{"id":"cancel-turn","status":"inProgress","items":[]}}}
+{"id":6,"result":{}}
+{"method":"turn/completed","params":{"threadId":"fixture-thread","turn":{"id":"cancel-turn","items":[],"status":"interrupted","error":null}}}

@@ -1,0 +1,61 @@
+[package]
+rust-version.workspace = true
+name = "koru-events-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Koru events worker: the journal, the fan-out, and the /v1/events API — embedded in the API gateway today, standalone-deployable later."
+
+# The same worker-beside-the-gateway shape as koru-store-server (and the
+# ai-server): a library the gateway embeds, plus a thin unshipped diagnostic
+# binary. It links no node model and no store — events carry references, and
+# what a reference resolves to is the store's business, reached by the
+# consumer through the ordinary client.
+[dependencies]
+koru-events = { path = "../../crates/koru-events" }
+# The sink *port*, never a vendor. Which sink this worker was configured with
+# is the host's business; what a delivery attempt looks like is shared.
+koru-metrics-sink = { path = "../../crates/koru-metrics-sink" }
+# The one construction site that names the upload destination. The client
+# posts to the hosted metrics service, which is where every vendor credential
+# now lives — this binary holds none (`docs/architecture/eventbus/README.md`).
+koru-telemetry-client = { path = "../../crates/koru-telemetry-client" }
+koru-env = { path = "../../crates/koru-env" }
+# The standalone diagnostic host's only use: without a subscriber every
+# `tracing::` line in this crate went nowhere, so the host that exists to be
+# looked at printed one line -- the port it bound.
+koru-log = { path = "../../crates/koru-log" }
+koru-channel = { path = "../../crates/koru-channel" }
+# The root claim only: one writer per journal, held for as long as it is
+# open. This crate speaks no IPC protocol — the bind *is* the claim.
+koru-ipc = { path = "../../crates/koru-ipc" }
+rusqlite = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+futures-util = { workspace = true }
+tower = { version = "0.5", features = ["util"] }
+
+[features]
+# **Off in the product, on in every dependent's tests.** A suite that opens a
+# real events worker would otherwise construct the configured sink and post its
+# fixtures to the hosted metrics service -- and `cfg(test)` cannot say so,
+# because a dependency is never compiled with it. See `forward::sends_by_default`.
+no-sink = []
+
+[dev-dependencies]
+tempfile = { workspace = true }
+# P1.8's verification drives a delegated run's lifecycle through this
+# journal and the real activity route with the real builders, so the rows a
+# run publishes are the rows the route answers — test fixtures only; the
+# worker itself never links the run vocabulary.
+koru-delegate-core = { path = "../../crates/koru-delegate-core" }
+koru-delegate-events = { path = "../../crates/koru-delegate-events" }
+
+[[bin]]
+name = "koru-events-server"
+path = "src/main.rs"

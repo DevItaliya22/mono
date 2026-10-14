@@ -1,0 +1,31 @@
+[package]
+rust-version.workspace = true
+name = "koru-cloud-blob"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The cloud-blob-object-v1 wire contract: constants, stable codes, range admission and capability bindings, shared by the control API and the object worker."
+
+[features]
+# The checked-in contract vectors, compiled in with `include_str!`.
+#
+# **Off by default, and a deployed binary never carries them.** They are test
+# material, and a service's container build (the hosted one is not in this
+# repository) copies source and not the repository's `contracts/` tree -
+# which means an unconditional `include_str!` of a path under
+# `contracts/vectors/` compiles on a developer machine and fails only in the
+# image. Consumers turn this on in their dev-dependencies.
+vectors = []
+
+[dependencies]
+koru-account-core = { path = "../koru-account-core" }
+koru-account-session = { path = "../koru-account-session" }
+koru-device = { path = "../koru-device" }
+# Read for exactly one constant: BLOB_UPLOAD_BODY_LIMIT. There is one ceiling
+# and it is that one, so raising the local limit raises the Cloud limit in the
+# same commit (D248).
+koru-store-core = { path = "../koru-store-core" }
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true

@@ -1,0 +1,336 @@
+// SPDX-License-Identifier: MPL-2.0
+
+//! The commit feed's exit into the events worker.
+//!
+//! One more [`koru_projection::Consumer`] beside the search feed — told after
+//! a projection is durable, off the store lock, on the projector's thread.
+//! It *forwards* (ids, revisions, trash flags — never content) and the events
+//! worker derives `document.created`/`updated`/`trashed`/… against its own
+//! `doc_state` cursor. A transient journal failure leaves a coalesced note in
+//! this consumer and an idle projector tick retries it. A process crash may
+//! lose that in-memory retry buffer; Piece 4's startup/reconnect reconciliation
+//! repairs it from a current authoritative snapshot.
+//!
+//! Before the consumer is registered, [`prepare`] seeds the worker's baseline
+//! from the projection's own listings — an upgrade on an existing store must
+//! not announce every document as born today. Seeding is idempotent on the
+//! worker's side, so a crash between the seed and the mark re-runs safely.
+
+use std::collections::BTreeMap;
+use std::path::Path;
+
+use koru_events_server::{BaselineEntry, EventsHandle, FeedNote, IdentityWake, ReminderWake};
+use koru_projection::model::apply_inherited_trash;
+use koru_projection::{Consumer, DocumentProjection, Projections};
+use koru_store_core::ids::{DocumentId, WorkspaceId};
+
+/// Seed the baseline and build the consumer. **Not fatal**, like the search
+/// feed's `prepare`: a bus that will not open is a store whose events are
+/// missing, not a store that has lost anything.
+pub fn prepare(root: &Path, handle: EventsHandle) -> Option<Box<dyn Consumer>> {
+    let projections = match Projections::open(root) {
+        Ok(projections) => projections,
+        Err(why) => {
+            tracing::error!("the events feed has no read model to consume: {why}");
+            return None;
+        }
+    };
+    match handle.status() {
+        Ok(status) if !status.disabled && !status.baseline_seeded => {
+            match baseline(&projections) {
+                Ok(entries) => {
+                    if let Err(why) = handle.seed_baseline(&entries) {
+                        tracing::error!("the events baseline did not seed: {why}");
+                        // Feeding an unseeded journal records without
+                        // announcing — safe, just quiet — so the feed still
+                        // registers and a later run's seed completes it.
+                    }
+                }
+                Err(why) => {
+                    tracing::error!("the events baseline could not be read: {why}");
+                }
+            }
+        }
+        Ok(_) => {}
+        Err(why) => {
+            tracing::error!("the events worker did not answer at wiring: {why}");
+            return None;
+        }
+    }
+    Some(Box::new(EventsFeed {
+        sink: Box::new(handle),
+        projections,
+        pending: BTreeMap::new(),
+    }))
+}
+
+/// What already exists, from the projection's listings and revisions —
+/// recorded in the worker without emitting.
+fn baseline(projections: &Projections) -> Result<Vec<BaselineEntry>, String> {
+    let revisions = projections.revisions().map_err(|error| error.to_string())?;
+    let mut entries = Vec::new();
+    for (workspace, _digest) in projections.listings().map_err(|error| error.to_string())? {
+        let Some(listing) = projections
+            .listing(workspace)
+            .map_err(|error| error.to_string())?
+        else {
+            continue;
+        };
+        let mut documents = listing.documents;
+        apply_inherited_trash(&mut documents);
+        for document in documents {
+            entries.push(BaselineEntry {
+                workspace: workspace.to_string(),
+                document: document.document.to_string(),
+                revision: revisions
+                    .get(&document.document)
+                    .cloned()
+                    .unwrap_or_default(),
+                trashed: document.trashed_at.is_some(),
+            });
+        }
+    }
+    Ok(entries)
+}
+
+/// The other half of this seam: **the Store's own committed catalog facts**.
+///
+/// The feed above *derives* document events from the projection, one layer
+/// removed and after a sweep. A catalog mutation has no projection to be
+/// derived from — a workspace created and never written to produces no commit
+/// note at all — so `koru-store-api` publishes its own fact through this port,
+/// in the handler, after the store call that persisted it returned and released
+/// the lock. Same journal, same worker, opposite direction.
+///
+/// The actor is the worker's own `Actor::system("store")`, because the Store is
+/// what committed the change; which client asked is not a fact about the
+/// catalog.
+///
+/// **A failed record is a delay, never a failed request.** The store must not
+/// refuse to rename a workspace because an observation could not be written
+/// down — the ADR-101 rule the feed obeys, held on this side too.
+pub struct CatalogEvents {
+    handle: EventsHandle,
+}
+
+impl CatalogEvents {
+    pub fn new(handle: EventsHandle) -> Self {
+        Self { handle }
+    }
+}
+
+impl koru_store_api::CatalogEventSink for CatalogEvents {
+    fn publish(&self, event: koru_events::Draft) {
+        let envelope = event.into_envelope(&self.handle.state.ctx);
+        if let Err(why) = self.handle.state.append(std::slice::from_ref(&envelope)) {
+            tracing::warn!(
+                name = %envelope.name,
+                "a committed catalog fact was not recorded: {why}"
+            );
+        }
+    }
+}
+
+struct EventsFeed {
+    sink: Box<dyn FeedSink>,
+    projections: Projections,
+    /// Latest undelivered fact per content-free identity. Repeated writes to
+    /// one document/reminder collapse while the journal is unavailable.
+    pending: BTreeMap<String, FeedNote>,
+}
+
+trait FeedSink: Send {
+    fn feed(&self, notes: &[FeedNote]) -> Result<u32, String>;
+}
+
+impl FeedSink for EventsHandle {
+    fn feed(&self, notes: &[FeedNote]) -> Result<u32, String> {
+        EventsHandle::feed(self, notes).map_err(|error| error.to_string())
+    }
+}
+
+impl EventsFeed {
+    fn deliver(&mut self, notes: Vec<FeedNote>) {
+        for note in notes {
+            self.pending.insert(note_key(&note), note);
+        }
+        self.flush();
+    }
+
+    fn flush(&mut self) {
+        if self.pending.is_empty() {
+            return;
+        }
+        let notes: Vec<_> = self.pending.values().cloned().collect();
+        if let Err(why) = self.sink.feed(&notes) {
+            tracing::warn!("the events worker missed a feed note: {why}");
+            return;
+        }
+        self.pending.clear();
+    }
+}
+
+fn note_key(note: &FeedNote) -> String {
+    match note {
+        FeedNote::Projected {
+            workspace,
+            document,
+            ..
+        }
+        | FeedNote::Removed {
+            workspace,
+            document,
+        } => format!("document:{workspace}:{document}"),
+        FeedNote::Listing { workspace, .. } => format!("listing:{workspace}"),
+        FeedNote::ReminderChanged { profile, change } => {
+            format!("reminder:{profile}:{change:?}")
+        }
+        FeedNote::DictionaryChanged { profile } => format!("dictionary:{profile}"),
+        FeedNote::ProfileIdentityChanged { profile, change } => {
+            format!("identity:{profile}:{change:?}")
+        }
+        FeedNote::DueChanged {
+            workspace,
+            document,
+            entity,
+        } => format!("due:{workspace}:{document}:{entity}"),
+        FeedNote::EntityRemoved {
+            workspace,
+            document,
+            entity,
+        } => format!("entity:{workspace}:{document}:{entity}"),
+    }
+}
+
+impl Consumer for EventsFeed {
+    fn name(&self) -> &str {
+        "events"
+    }
+
+    fn flush_pending(&mut self) {
+        self.flush();
+    }
+
+    fn projected(&mut self, projection: &DocumentProjection) {
+        self.deliver(vec![FeedNote::Projected {
+            workspace: projection.workspace.to_string(),
+            document: projection.document.to_string(),
+            revision: projection.source_revision.clone(),
+        }]);
+    }
+
+    fn removed(&mut self, workspace: WorkspaceId, document: DocumentId) {
+        self.deliver(vec![FeedNote::Removed {
+            workspace: workspace.to_string(),
+            document: document.to_string(),
+        }]);
+    }
+
+    fn listing_changed(&mut self, workspace: WorkspaceId) {
+        let listing = match self.projections.listing(workspace) {
+            Ok(Some(listing)) => listing,
+            Ok(None) => return,
+            Err(why) => {
+                tracing::warn!("the events feed could not read a listing: {why}");
+                return;
+            }
+        };
+        let mut documents = listing.documents;
+        apply_inherited_trash(&mut documents);
+        self.deliver(vec![FeedNote::Listing {
+            workspace: workspace.to_string(),
+            documents: documents
+                .into_iter()
+                .map(|document| (document.document.to_string(), document.trashed_at.is_some()))
+                .collect(),
+        }]);
+    }
+
+    fn attribute_events(&mut self, events: &[koru_projection::AttributeEvent]) {
+        self.deliver(due_notes(events));
+    }
+
+    fn reminder_changes(&mut self, events: &[koru_store_core::ReminderCommitted]) {
+        self.deliver(reminder_notes(events));
+    }
+
+    fn dictionary_changes(&mut self, events: &[koru_store_core::DictionaryCommitted]) {
+        self.deliver(
+            events
+                .iter()
+                .map(|event| FeedNote::DictionaryChanged {
+                    profile: event.profile.to_storage(),
+                })
+                .collect(),
+        );
+    }
+
+    fn identity_changes(&mut self, events: &[koru_store_core::IdentityCommitted]) {
+        self.deliver(
+            events
+                .iter()
+                .map(|event| FeedNote::ProfileIdentityChanged {
+                    profile: event.profile.to_storage(),
+                    change: match event.change {
+                        koru_store_core::IdentityChange::Name => IdentityWake::Name,
+                        koru_store_core::IdentityChange::Appearance => IdentityWake::Appearance,
+                    },
+                })
+                .collect(),
+        );
+    }
+
+    fn entities_removed(&mut self, workspace: WorkspaceId, document: DocumentId, nodes: &[String]) {
+        self.deliver(entity_removed_notes(workspace, document, nodes));
+    }
+}
+
+fn due_notes(events: &[koru_projection::AttributeEvent]) -> Vec<FeedNote> {
+    events
+        .iter()
+        .filter(|event| {
+            matches!(
+                event.kind,
+                koru_projection::AttributeEventKind::DueChanged { .. }
+            )
+        })
+        .map(|event| FeedNote::DueChanged {
+            workspace: event.workspace.to_storage(),
+            document: event.document.to_storage(),
+            entity: event.node.clone(),
+        })
+        .collect()
+}
+
+fn reminder_notes(events: &[koru_store_core::ReminderCommitted]) -> Vec<FeedNote> {
+    events
+        .iter()
+        .map(|event| FeedNote::ReminderChanged {
+            profile: event.profile.to_storage(),
+            change: match event.change {
+                koru_store_core::reminders::ReminderChange::Rule => ReminderWake::Rule,
+                koru_store_core::reminders::ReminderChange::Action => ReminderWake::Action,
+                koru_store_core::reminders::ReminderChange::History => ReminderWake::History,
+                koru_store_core::reminders::ReminderChange::Settings => ReminderWake::Settings,
+            },
+        })
+        .collect()
+}
+
+fn entity_removed_notes(
+    workspace: WorkspaceId,
+    document: DocumentId,
+    nodes: &[String],
+) -> Vec<FeedNote> {
+    nodes
+        .iter()
+        .map(|entity| FeedNote::EntityRemoved {
+            workspace: workspace.to_storage(),
+            document: document.to_storage(),
+            entity: entity.clone(),
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod tests;

@@ -1,0 +1,10 @@
+# Blank issues stay possible, but the two templates come first, and security
+# reports are sent away from the public tracker.
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/koruworks/mono/blob/main/SECURITY.md
+    about: Please do not open a public issue. Email security@koru.do, as SECURITY.md describes.
+  - name: Code of conduct
+    url: https://github.com/koruworks/mono/blob/main/CODE_OF_CONDUCT.md
+    about: How we work together, and how to report a problem with someone's behavior.

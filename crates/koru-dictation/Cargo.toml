@@ -1,0 +1,46 @@
+# **Holds the provisional text and emits what the focused surface should do
+# about it. Names no widget and opens no microphone.**
+#
+# The charter excludes two things on purpose. It names no widget, so nothing
+# here knows what a `TextField` or a document row is — it answers in
+# `DictationAction` values a host routes. And it opens no microphone: the
+# device belongs to `koru-voice-worker.exe`, and this crate reaches it only through
+# `koru-voice-client`, which dials.
+[package]
+rust-version.workspace = true
+name = "koru-dictation"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The dictation session controller: one live session, one generation, and the four actions a focused text surface is asked to perform."
+
+[features]
+# **No test starts a worker.** A dependency is never compiled with
+# `cfg(test)`, so a guard inside this crate covers its own suite and nobody
+# else's. `koru-search-ui`'s `no-reader` is the precedent and this is the same
+# shape: with it on, the controller never dials, never asks an agent to ensure
+# a worker, and mints its own session ids and generations so the whole state
+# machine is still drivable from a test.
+#
+# Turned on in the `[dev-dependencies]` of every crate above this one whose
+# suite constructs a `Dictation`.
+no-engine = []
+
+[dependencies]
+# The transport and the worker's lifecycle. Its vocabulary is re-exported from
+# `lib.rs`, so a host that routes actions never has to name two crates.
+koru-voice-client = { path = "../koru-voice-client" }
+# **The microphone half of the consent gate.** The controller is the only
+# thing in a Koru window that opens a session, so it is where "no path reaches
+# a microphone without consent" is enforced; the download half is
+# `ModelStore::install`'s signature. It is a two-dependency leaf that reads one
+# file and resolves no path, so it costs this crate's charter nothing: it still
+# names no widget and opens no microphone.
+koru-voice-consent = { path = "../koru-voice-consent" }
+# **The typed section `Preferences` is taken from.** It replaces the file
+# parser this crate used to hold — the third of `preferences.conf`'s three
+# (ADR-266) — so it *narrows* the charter rather than widening it: this crate
+# no longer opens a file at all, and resolves no path.
+koru-settings = { path = "../koru-settings" }
+tracing = { workspace = true }

@@ -1,0 +1,19 @@
+{
+  "cases": [
+    {
+      "name": "accented prose is valid",
+      "text": "As crianças estão brincando no jardim.",
+      "expected": []
+    },
+    {
+      "name": "morphology: verb forms are valid",
+      "text": "Eles compraram pães e queijos ontem.",
+      "expected": []
+    },
+    {
+      "name": "a scrambled word is flagged",
+      "text": "Ele quebrou o brinqedo novo.",
+      "expected": [{ "word": "brinqedo" }]
+    }
+  ]
+}

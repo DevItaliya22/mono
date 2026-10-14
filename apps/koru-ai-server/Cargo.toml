@@ -1,0 +1,43 @@
+[package]
+rust-version.workspace = true
+name = "koru-ai-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Hostable Koru AI domain server and local worker."
+
+[[bin]]
+name = "koru-ai-server"
+path = "src/main.rs"
+
+[dependencies]
+blake3.workspace = true
+koru-ai-api = { path = "../../crates/koru-ai-api" }
+koru-ai-client = { path = "../../crates/koru-ai-client" }
+koru-ai-core = { path = "../../crates/koru-ai-core" }
+koru-ai-provider = { path = "../../crates/koru-ai-provider" }
+koru-ai-provider-agent = { path = "../../crates/koru-ai-provider-agent" }
+koru-ai-sqlite = { path = "../../crates/koru-ai-sqlite" }
+koru-ai-wire = { path = "../../crates/koru-ai-wire" }
+koru-export = { path = "../../crates/koru-export" }
+koru-export-markdown = { path = "../../crates/koru-export-markdown" }
+koru-link = { path = "../../crates/koru-link" }
+koru-mcp-server = { path = "../../crates/koru-mcp-server" }
+koru-env = { path = "../../crates/koru-env" }
+koru-ipc = { path = "../../crates/koru-ipc" }
+koru-session-protocol = { path = "../../crates/koru-session-protocol" }
+koru-import-markdown = { path = "../../crates/koru-import-markdown" }
+koru-store-core = { path = "../../crates/koru-store-core" }
+koru-store-server = { path = "../koru-store-server" }
+koru-store-wire = { path = "../../crates/koru-store-wire" }
+tracing.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+koru-core = { path = "../../crates/koru-core" }
+url.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+koru-log = { path = "../../crates/koru-log" }
+tempfile.workspace = true

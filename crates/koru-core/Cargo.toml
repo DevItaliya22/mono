@@ -1,0 +1,39 @@
+[package]
+rust-version.workspace = true
+name = "koru-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Domain model, ids, operations and queries. No UI, no rendering."
+
+[features]
+# **The golden cases, for another crate's tests** (`tasks::golden`, F-3). Off
+# in every product build, and on in the `[dev-dependencies]` of the crates that
+# replay the table through their own host wrapper — `koru-editor` and
+# `koru-mcp-server`:
+#
+#     koru-core = { path = "../koru-core", features = ["golden"] }
+#
+# A feature rather than `cfg(test)` because a dependency is never compiled with
+# `cfg(test)`, which is exactly the mistake `koru-search-ui`'s `no-reader` and
+# `koru-editor`'s `no-browser` exist to record. The module is
+# `cfg(any(test, feature = "golden"))`, so this crate's own reference run needs
+# no flag.
+golden = []
+
+[dependencies]
+koru-env = { path = "../koru-env" }
+# The tag *name* grammar — fold key, `/` hierarchy, the matcher, the `#` token.
+# A leaf, so a surface with no node model can share these rules; `tags`
+# re-exports all of it.
+koru-tagname = { path = "../koru-tagname" }
+loro.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+# NFC, for the tag fold key (`tags::fold_key`). Text used as a key is
+# NFC-normalised (PRINCIPLES.md, i18n) and a tag name is used as one: two
+# spellings of `Café` have to be one tag. Already the workspace's normalizer —
+# `koru-search` and `koru-store-core` both link it — so this adds nothing new
+# to the tree, and the *casing* half needs no crate at all (see `tags.rs`).
+unicode-normalization.workspace = true

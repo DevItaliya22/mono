@@ -1,0 +1,78 @@
+[package]
+rust-version.workspace = true
+name = "koru-api-gateway-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Public Koru API admission, routing, and bounded desktop service bridges."
+
+[dependencies]
+axum.workspace = true
+base64.workspace = true
+blake3.workspace = true
+bytes.workspace = true
+futures-util.workspace = true
+koru-ai-api = { path = "../koru-ai-api" }
+koru-ai-client = { path = "../koru-ai-client" }
+koru-ai-core = { path = "../koru-ai-core" }
+koru-ai-server = { path = "../../apps/koru-ai-server" }
+koru-ai-wire = { path = "../koru-ai-wire" }
+koru-api-wire = { path = "../koru-api-wire" }
+# The Artifact Store's typed port, model and wire. The store itself
+# (`koru-artifact-sqlite`) is opened by the host and handed down, so this
+# crate links the port and not the database — except under test.
+koru-artifact-api = { path = "../koru-artifact-api" }
+koru-artifact-core = { path = "../koru-artifact-core" }
+koru-artifact-wire = { path = "../koru-artifact-wire" }
+# The /v1/runs port and wire (D12): the routes speak the trait, the host
+# composes the transport.
+koru-delegate-api = { path = "../koru-delegate-api" }
+koru-delegate-core = { path = "../koru-delegate-core" }
+# `KORU_RUN_MCP_DEBUG` — the run endpoint's per-call line.
+koru-env = { path = "../koru-env" }
+koru-events = { path = "../koru-events" }
+koru-events-server = { path = "../../apps/koru-events-server" }
+koru-session-api = { path = "../koru-session-api" }
+koru-session-client = { path = "../koru-session-client" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+koru-session-wire = { path = "../koru-session-wire" }
+# The settings authority. A leaf held behind its own dependency fence — the
+# routes here are its only network surface, and the host hands it its paths.
+koru-settings = { path = "../koru-settings" }
+koru-ipc = { path = "../koru-ipc" }
+koru-store-api = { path = "../koru-store-api" }
+koru-store-core = { path = "../koru-store-core" }
+koru-store-server = { path = "../../apps/koru-store-server" }
+koru-store-wire = { path = "../koru-store-wire" }
+# The official MCP SDK's *model* — JSON-RPC envelopes, `Tool` definitions
+# with schemas, `CallToolResult` — for the run endpoint (`run_mcp`). Its
+# server-side HTTP transport is deliberately not enabled: the endpoint is
+# stateless JSON over one POST, which the SDK's client already speaks, and
+# the transport feature would add `sse-stream` to the tree.
+rmcp = { version = "=3.1.2", default-features = false, features = ["server"] }
+serde.workspace = true
+serde_json.workspace = true
+schemars.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+# The reparse tag behind a run's register path: a junction and a symlink
+# are refused with distinct codes (`run_mcp::staging`).
+windows-sys.workspace = true
+
+[dev-dependencies]
+# The SDK's client, driven against the in-process router through a
+# transport of its own: the protocol test of the run endpoint.
+rmcp = { version = "=3.1.2", default-features = false, features = ["client", "server"] }
+# **`no-sink` under test.** These suites open a real events worker, and without
+# this the worker would construct the configured telemetry sink and post their
+# fixtures into the shared analytics project. `cfg(test)` cannot cover it: a
+# dependency is never compiled with it (the `no-reader` lesson).
+koru-events-server = { path = "../../apps/koru-events-server", features = ["no-sink"] }
+koru-artifact-sqlite = { path = "../koru-artifact-sqlite" }
+koru-channel = { path = "../koru-channel" }
+tempfile.workspace = true
+tower = { version = "0.5", features = ["util"] }

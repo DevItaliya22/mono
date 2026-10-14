@@ -1,0 +1,13 @@
+[package]
+rust-version.workspace = true
+name = "koru-blocks"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+koru-core = { path = "../koru-core" }
+peniko.workspace = true
+syntect.workspace = true
+pulldown-cmark.workspace = true

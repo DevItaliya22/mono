@@ -1,0 +1,15 @@
+[package]
+rust-version.workspace = true
+name = "koru-winres"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Embedding an icon and a version block in a Windows executable, from a build script."
+
+# A build-dependency of build scripts, so it stays nearly dependency-free.
+# Anything added here is compiled before every build of the binaries.
+# koru-channel is the dependency graph's leaf and links nothing; it is here so
+# the per-channel icon choice reuses `segment_of` instead of restating it.
+[dependencies]
+koru-channel = { path = "../koru-channel" }

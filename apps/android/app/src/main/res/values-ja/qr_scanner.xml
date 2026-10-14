@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qr_preparing">QR スキャナーを準備中…</string>
+    <string name="qr_unavailable">QR スキャナーを開けませんでした。接続と Google Play 開発者サービスを確認し、再試行するか、下にリンクコードを貼り付けてください。</string>
+</resources>

@@ -1,0 +1,14 @@
+{
+  "platform": "Windows x64",
+  "scope": "registered AcpFactory version, initialize and session-new only",
+  "promptSubmitted": false,
+  "defaultProbeLimits": true,
+  "childOnlyRuntimePath": true,
+  "outcomes": [
+    {"provider":"gemini","pin":"0.59.0","stage":"Read","diagnostic":"MalformedFrame","elapsedMs":6051},
+    {"provider":"kimi","version":"0.42.0","protocol":"1","http":true,"delegatable":false,"elapsedMs":2884},
+    {"provider":"grok","version":"1.0.25","revision":"f7e67d6988e2","protocol":"1","http":true,"delegatable":true,"elapsedMs":5359},
+    {"provider":"opencode","pin":"1.18.27","outcome":"withheld inherited configuration loader"}
+  ],
+  "qualificationBoundary": "No completed model run, artifact or active cancellation is claimed"
+}

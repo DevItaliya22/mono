@@ -1,0 +1,90 @@
+{
+  "rows": [
+    {
+      "Context": {
+        "depth": 1,
+        "done": null,
+        "heading": null,
+        "kind": "paragraph",
+        "text": "The quick brown fox."
+      }
+    },
+    {
+      "Modified": {
+        "block": {
+          "depth": 1,
+          "done": null,
+          "heading": null,
+          "kind": "paragraph",
+          "text": "Jumps over the lazy cat."
+        },
+        "kind_changed": false,
+        "marks_changed": false,
+        "metadata_changed": false,
+        "spans": [
+          {
+            "tag": "Equal",
+            "text": "Jumps"
+          },
+          {
+            "tag": "Equal",
+            "text": " "
+          },
+          {
+            "tag": "Equal",
+            "text": "over"
+          },
+          {
+            "tag": "Equal",
+            "text": " "
+          },
+          {
+            "tag": "Equal",
+            "text": "the"
+          },
+          {
+            "tag": "Equal",
+            "text": " "
+          },
+          {
+            "tag": "Equal",
+            "text": "lazy"
+          },
+          {
+            "tag": "Equal",
+            "text": " "
+          },
+          {
+            "tag": "Delete",
+            "text": "dog"
+          },
+          {
+            "tag": "Insert",
+            "text": "cat"
+          },
+          {
+            "tag": "Equal",
+            "text": "."
+          }
+        ]
+      }
+    },
+    {
+      "Context": {
+        "depth": 1,
+        "done": null,
+        "heading": null,
+        "kind": "paragraph",
+        "text": "The end."
+      }
+    }
+  ],
+  "stats": {
+    "added": 0,
+    "modified": 1,
+    "moved": 0,
+    "removed": 0,
+    "reordered": 0,
+    "unchanged": 2
+  }
+}

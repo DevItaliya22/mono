@@ -1,0 +1,28 @@
+# **Dials the voice worker, keeps the connection alive, and wakes its host.**
+#
+# It names no widget and no window: waking is a closure the host installs, so
+# `winit` never reaches this far down and a bench or a phone-side harness can
+# drive the same client with a channel send.
+[package]
+rust-version.workspace = true
+name = "koru-voice-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Dials the Koru voice worker over koru-ipc, keeps the connection alive through one send path, and wakes its host when a transcript arrives."
+
+[dependencies]
+# The vocabulary: the handshake, three requests, seven events, two versions and
+# the closed error list. Nothing here restates any of it.
+koru-voice = { path = "../koru-voice" }
+# The endpoint, the framing and the blocking connect. The whole transport.
+koru-ipc = { path = "../koru-ipc" }
+# Which channel this build is, and where its Store root is. `Endpoint::for_service_root`
+# takes both, and a client that guessed either would dial a name no worker binds.
+koru-channel = { path = "../koru-channel" }
+tracing = { workspace = true }
+
+[dev-dependencies]
+uuid = { workspace = true }
+serde = { workspace = true }

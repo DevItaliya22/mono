@@ -1,0 +1,50 @@
+[package]
+rust-version.workspace = true
+name = "koru-delegate-runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Drives a delegated run from request to terminal state through the ports it is given; it knows the order of §7.1, the fences of §7.4 and the meaning of each provider event per §7.5, and nothing about processes, HTTP or windows."
+
+# **Host-agnostic, deliberately.** The delegate worker (`koru-agent.exe
+# --worker delegate`) composes this crate over real ports — `runs.db`, the
+# Store reached through the gateway, the session host over its IPC — and a
+# test composes it over fakes. D12's cloud deployment is a second host over
+# the same ports. So the crate links the run vocabulary, the ledger's types
+# and its pure restart table, the Run document's shape, the scope guard,
+# the preamble resolver and the session protocol's event vocabulary — and
+# nothing that runs a process, opens a socket, serves HTTP or draws.
+# `src/tests/dependency.rs` is the fence.
+
+[dependencies]
+# `RunId`, `RunStatus`, `transition`, `RunHeader`, `TimelineEntry`,
+# `UsageFact` — what the orchestrator moves and records.
+koru-delegate-core = { path = "../koru-delegate-core" }
+# The Run document's write and read API; the `RunDocuments` port hands
+# one back and the orchestrator commits one fact at a time into it.
+koru-delegate-document = { path = "../koru-delegate-document" }
+koru-delegate-schedule = { path = "../koru-delegate-schedule" }
+# `resolve` — the text a run's first submission opens with.
+koru-delegate-preamble = { path = "../koru-delegate-preamble" }
+# Pure schedule deadline planning over the product's one recurrence model.
+koru-recurrence = { path = "../koru-recurrence" }
+# `ScopeClaims::admit` before every start (P1.5), `reconcile` on restart.
+koru-delegate-scope = { path = "../koru-delegate-scope" }
+# The ledger's row and phase types, `LedgerError` as the `RunStore` port's
+# error, and `classify_at_restart` — §7.6's table as a pure function. The
+# database itself is behind the port; `RunsDb` implements it in `ledger.rs`
+# so a host composes without an adapter.
+koru-delegate-sqlite = { path = "../koru-delegate-sqlite" }
+# `AgentEvent`, `SessionEvent`, `CreationLookup`, `DelegationLaunch` — the
+# vocabulary a session speaks, applied here per §7.5.
+koru-session-protocol = { path = "../koru-session-protocol" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+# `ZoneRules` is the injected temporal seam used by the pure planner.
+koru-core = { path = "../koru-core" }
+
+[dev-dependencies]
+koru-time-zone = { path = "../koru-time-zone" }
+uuid = { workspace = true }

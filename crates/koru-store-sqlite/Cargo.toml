@@ -1,0 +1,40 @@
+[package]
+rust-version.workspace = true
+name = "koru-store-sqlite"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[features]
+default = []
+# Explicit isolated persistence lane; never enabled by ordinary workspace tests.
+disk-tests = []
+
+# The persistence half of the store: SQLite adapters for the ports in
+# `koru-store-core`. Still sync, still no tokio — this is what a mobile build
+# embeds alongside core.
+[dependencies]
+koru-store-core = { path = "../koru-store-core" }
+# Opening and versioning the file: the one policy every Koru database shares.
+koru-sqlite = { path = "../koru-sqlite" }
+rusqlite = { workspace = true }
+loro = { workspace = true }
+blake3 = { workspace = true }
+serde_json = { workspace = true }
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = { workspace = true }
+koru-device = { path = "../koru-device" }
+koru-replication = { path = "../koru-replication" }
+# `tests/run_document.rs` drives a delegated Run document through this store
+# — the path the desktop worker and the Android host both open — in the shape
+# `koru-delegate-document` writes, and asserts P1.0's criterion in bytes.
+koru-delegate-document = { path = "../koru-delegate-document" }
+koru-delegate-core = { path = "../koru-delegate-core" }
+koru-delegate-schedule = { path = "../koru-delegate-schedule" }
+koru-recurrence = { path = "../koru-recurrence" }
+# The same suite writes the pill that references a run into a real page, so
+# trashing the page (D31) is trashing what a person would actually trash.
+koru-core = { path = "../koru-core" }

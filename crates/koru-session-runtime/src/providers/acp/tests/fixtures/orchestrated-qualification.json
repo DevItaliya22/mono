@@ -1,0 +1,42 @@
+{
+  "platform": "windows-x64",
+  "date": "2026-09-10",
+  "route": "registered-gateway-orchestrator-host-factory",
+  "authoredFixtureBytes": 26,
+  "providers": [
+    {
+      "kind": "claude",
+      "pin": "0.76.0",
+      "testExit": 0,
+      "elapsedSeconds": 22.15,
+      "successfulToolCalls": 2,
+      "failedToolCalls": 0,
+      "knownOneTimeApprovalReturned": true
+    },
+    {
+      "kind": "grok",
+      "pin": "1.0.25/f7e67d6988e2",
+      "testExit": 0,
+      "elapsedSeconds": 40.48,
+      "successfulToolCalls": 2,
+      "failedToolCalls": 0,
+      "approvalRequested": false
+    }
+  ],
+  "assertions": {
+    "exactArtifactBytes": true,
+    "singleVersion": true,
+    "firstGenerationProvenance": true,
+    "completedLifecycle": true,
+    "deltaMatchedActiveTurnBeforeCancel": true,
+    "cancellationLanded": true,
+    "authorityRevoked": true,
+    "ownedSessionExited": true
+  },
+  "limitations": [
+    "macos-linux-unqualified",
+    "cross-provider-failure-parity-pending",
+    "grok-api-key-only-production-auth-unqualified",
+    "normal-provider-configuration-may-load"
+  ]
+}

@@ -1,0 +1,44 @@
+name: Feature request or proposal
+description: Suggest something new, or propose a change to a contract, a component or how Koru is built.
+labels: ["proposal", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Proposals are discussed here, in public. A maintainer records the decision on this issue, and the reasoning stays here and in the pull requests that carry it out ([how proposals work](https://github.com/koruworks/mono/blob/main/GOVERNANCE.md#proposals-and-decisions)). A small fix needs no proposal: open a pull request.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do, and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+      description: The change, as concretely as you can. Name the contracts, crates or components it touches if you know them.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other ways to solve it, and why this one is better.
+  - type: dropdown
+    id: scope
+    attributes:
+      label: What it touches
+      multiple: true
+      options:
+        - A user-facing feature
+        - A shared contract (wire format, data model, public API)
+        - A KoruX / UI component
+        - Build, CI or release
+        - Not sure
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contributing
+      options:
+        - label: I would like to implement this myself, once it is accepted.

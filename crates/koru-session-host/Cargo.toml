@@ -1,0 +1,50 @@
+[package]
+rust-version.workspace = true
+name = "koru-session-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Supervised owner of Koru terminal sessions."
+
+# **A library, and nothing else.** `koru-session-host.exe` was retired in
+# Plan 7 of the Gateway worker roadmap; `koru-agent.exe --worker sessions` calls
+# `run_supervised` in this crate and is the only host there is. No `[[bin]]`, no
+# `build.rs`, no `koru-winres` — nothing left to stamp a Windows resource onto.
+[lib]
+name = "koru_session_host"
+path = "src/lib.rs"
+
+[features]
+# Tests that compile the host as a dependency must not run installed providers.
+no-provider-probes = []
+
+[dependencies]
+base64.workspace = true
+# The shared self-hosted-worker mechanism: the bounded bootstrap reader and
+# the parent-death watcher that keeps the same pipe open. This host had a
+# private copy of both.
+koru-agent-worker = { path = "../koru-agent-worker" }
+koru-api-client = { path = "../koru-api-client" }
+koru-channel = { path = "../koru-channel" }
+koru-events = { path = "../koru-events" }
+koru-ipc = { path = "../koru-ipc", features = ["tokio"] }
+koru-log = { path = "../koru-log" }
+koru-session-attachments = { path = "../koru-session-attachments" }
+koru-session-client = { path = "../koru-session-client" }
+koru-session-paths = { path = "../koru-session-paths" }
+koru-session-profiles = { path = "../koru-session-profiles" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+koru-session-runtime = { path = "../koru-session-runtime" }
+koru-session-wire = { path = "../koru-session-wire" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+# The `image` decoder went to `apps/koru-agent` with `sessions_ipc.rs`, which is
+# the only thing that ever read a rendered PNG. What is left is what the
+# colocated `projects` and `lib` tests need.
+tempfile = { workspace = true }

@@ -1,0 +1,18 @@
+[package]
+rust-version.workspace = true
+name = "koru-voice-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Reusable presentation-only Koru Voice surface."
+
+[dependencies]
+koru-i18n = { path = "../koru-i18n" }
+koru-draw = { path = "../koru-draw" }
+vello.workspace = true
+parley.workspace = true
+winit.workspace = true
+
+[dev-dependencies]
+koru-settings = { path = "../koru-settings" }

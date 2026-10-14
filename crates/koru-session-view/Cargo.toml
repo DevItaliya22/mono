@@ -1,0 +1,20 @@
+[package]
+rust-version.workspace = true
+name = "koru-session-view"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+koru-session-observability = { path = "../koru-session-observability" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+parley.workspace = true
+peniko.workspace = true
+serde.workspace = true
+koru-draw = { path = "../koru-draw" }
+vello.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+

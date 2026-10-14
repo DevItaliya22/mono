@@ -1,0 +1,16 @@
+[package]
+rust-version.workspace = true
+name = "koru-socials-store"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Shared Store persistence for social posts and channel metadata."
+
+[dependencies]
+koru-api-client = { path = "../koru-api-client" }
+koru-socials = { path = "../koru-socials" }
+koru-store-core = { path = "../koru-store-core" }
+loro.workspace = true
+serde_json.workspace = true
+uuid.workspace = true

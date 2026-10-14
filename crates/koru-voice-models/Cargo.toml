@@ -1,0 +1,76 @@
+[package]
+rust-version.workspace = true
+name = "koru-voice-models"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Which speech models exist, where their verified bytes are on this machine, and how they get there — the catalog, the signed descriptor, the pinned model-signing key, and the install/lease/load interfaces. It knows no engine, no inference runtime, no microphone and no audio: it hands out a directory and a descriptor, and something else loads them."
+
+# **The dependencies are the charter, stated twice.**
+#
+# `koru-voice` supplies the identities this crate must not re-declare —
+# `ModelId`, `EngineId`, `VoiceLanguage`, and the session error vocabulary a
+# model failure has to arrive in. A second `ModelId` here would be a second
+# opinion about which characters may become a directory name.
+#
+# `koru-update` supplies `verify::sha256_file` and (in Plan 1.2) the hardened
+# `archive::extract_zip` with its `ArchiveLimits`. Neither is update-specific,
+# and the roadmap names both as things this feature reuses rather than writes
+# again. It is the one dependency that raises a layering question — see
+# `docs/features/voice/archive/QUESTIONS.md` Q-V13.
+#
+# `minisign-verify` is the trust root's primitive, deliberately the same one
+# the update path already verifies with so there is no second signature format
+# in the tree. `url` is what a mirror is, with `https` checked at parse time.
+#
+# `reqwest` is Plan 1.2's, and it is the *blocking* client on purpose: every
+# method of `ModelStore` blocks, the worker's inference thread is where they are
+# called, and an async runtime acquired to download a file would have to be
+# acquired by a phone too. `fs2` is the cross-process lock — the same primitive
+# `koru_update::lease` already uses, because two builds sharing one
+# channel-independent cache is exactly the situation `InstanceLease` was written
+# for. `koru-env` is where `KORU_VOICE_MODELS` is declared; a name read without
+# a row there is invisible to `koru.bat envs` and to `reference/ENV.md`.
+#
+# **Not here, and not by accident:** no inference runtime, no `cpal`, no
+# `koru-ipc`, no `koru-channel`. The model cache is channel-independent
+# (ADR-250), so a crate that knew which channel it was would be a crate that
+# could get that wrong — which is also why the `<local data>` rule is restated
+# in `paths.rs` rather than borrowed from `koru_channel::channel_root`, whose
+# every answer carries a channel segment. See `docs/features/voice/archive/QUESTIONS.md`
+# Q-V26.
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+url = { workspace = true }
+minisign-verify = { workspace = true }
+reqwest = { workspace = true }
+fs2 = { workspace = true }
+# One line, and it is the loudest one in the crate: an unconditional `warn!`
+# when a model is installed with no signature. `docs/contributing/operations/LOGGING.md`
+# puts that in the always-logged category, so it may not be behind a feature.
+tracing = { workspace = true }
+koru-env = { path = "../koru-env" }
+koru-voice = { path = "../koru-voice" }
+koru-update = { path = "../koru-update" }
+# **The gate, not the record.** `ModelStore::install` asks for a
+# `koru_voice_consent::Granted` by value, so *no path reaches a download
+# without consent* is a signature rather than a rule at every call site. The
+# dependency is one way round on purpose: this crate reads a token that crate
+# mints, and that crate has never heard of a model cache — installed state is
+# derived here, from the disk, and is never copied into a flag beside consent.
+koru-voice-consent = { path = "../koru-voice-consent" }
+
+[dev-dependencies]
+# The signing half. `minisign` generates a keypair and signs bytes so every
+# verification vector — a good signature, a signature over the wrong
+# descriptor, a signature from a key nobody pinned — is built rather than
+# checked in, which is what keeps them true when the canonical form changes.
+minisign = { workspace = true }
+tempfile = { workspace = true }
+# The *writing* half of the archive format `koru_update::extract_zip` reads.
+# A fixture archive is built in the test rather than checked in, for the same
+# reason the signatures are: a checked-in zip goes stale silently and the repair
+# is the step somebody skips by relaxing the assertion.
+zip = { workspace = true }

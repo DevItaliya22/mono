@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+import json
+import sys
+
+trace_path = __import__("os").environ.get("CODEX_FIXTURE_TRACE")
+
+
+def trace(value):
+    if trace_path:
+        with open(trace_path, "a", encoding="utf-8") as output:
+            output.write(value + "\n")
+
+
+trace("args:" + ",".join(sys.argv[1:]))
+trace("pid:" + str(__import__("os").getpid()))
+# The bearer never rides argv (ADR-341): the launch names the variable and
+# sets it on this process. The trace says only whether it arrived.
+trace("bearer_env:" + ("set" if __import__("os").environ.get("KORU_RUN_MCP_TOKEN") else "unset"))
+
+
+def register_result():
+    """What a real delegated agent does: write a file under the run's own
+    .artifacts/<RunId>/ folder, then register it through the run's MCP
+    endpoint with the bearer it was handed. The URL is an override on argv,
+    the run id is inside it, and the folder is under the working directory
+    this process was started in."""
+    import os
+    import re
+    import urllib.error
+    import urllib.request
+
+    override = next(
+        (arg for arg in sys.argv[1:] if arg.startswith("mcp_servers.koru_run.url=")), None
+    )
+    if override is None:
+        trace("register:no_endpoint")
+        return
+    url = override[len("mcp_servers.koru_run.url=") :].strip("'")
+    matched = re.search(r"/v1/runs/([^/]+)/mcp$", url)
+    if matched is None:
+        trace("register:unparsable_endpoint")
+        return
+    token = os.environ.get("KORU_RUN_MCP_TOKEN")
+    if not token:
+        trace("register:no_bearer")
+        return
+    folder = os.path.join(os.getcwd(), ".artifacts", matched.group(1))
+    os.makedirs(folder, exist_ok=True)
+    with open(os.path.join(folder, "result.md"), "w", encoding="utf-8") as handle:
+        handle.write("FIXTURE_RESULT")
+    body = json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "create",
+                "arguments": {
+                    "path": "result.md",
+                    "title": "Fixture result",
+                    "mime": "text/markdown",
+                },
+            },
+        }
+    ).encode("utf-8")
+    request = urllib.request.Request(
+        url,
+        data=body,
+        headers={"content-type": "application/json", "authorization": "Bearer " + token},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as answer:
+            payload = json.loads(answer.read().decode("utf-8"))
+        if payload.get("result", {}).get("isError"):
+            trace("register:refused:" + str(payload["result"].get("structuredContent", {}).get("code")))
+        else:
+            trace("register:ok")
+    except (urllib.error.URLError, OSError, ValueError) as error:
+        trace("register:failed:" + type(error).__name__)
+
+if sys.argv[1:] == ["--version"]:
+    print("codex-cli 0.150.1", flush=True)
+    raise SystemExit(0)
+if not sys.argv[1:] or sys.argv[1] != "app-server":
+    raise SystemExit(2)
+
+
+def send(value):
+    print(json.dumps(value, separators=(",", ":")), flush=True)
+
+
+for line in sys.stdin:
+    message = json.loads(line)
+    method = message.get("method")
+    trace("method:" + str(method))
+    if method == "initialize":
+        send({"id": message["id"], "result": {"userAgent": "koru_terminal/0.150.1 (fixture)", "codexHome": "fixture", "platformFamily": "unix", "platformOs": "unix"}})
+    elif method == "model/list":
+        send({"id": message["id"], "result": {"data": [{"id": "fixture-model", "model": "fixture-model", "displayName": "Fixture", "description": "fixture", "isDefault": True, "hidden": False, "defaultReasoningEffort": "medium", "supportedReasoningEfforts": [], "inputModalities": ["text", "image"]}], "nextCursor": None}})
+    elif method == "thread/start":
+        send({"id": message["id"], "result": {"thread": {"id": "fixture-thread"}}})
+    elif method == "turn/start":
+        image = next((part for part in message["params"]["input"] if part.get("type") == "localImage"), None)
+        send({"id": message["id"], "result": {"turn": {"id": "fixture-turn", "status": "inProgress", "items": []}}})
+        send({"method": "item/agentMessage/delta", "params": {"threadId": "fixture-thread", "turnId": "fixture-turn", "itemId": "message-1", "delta": "FIXTURE_TEXT"}})
+        if image is not None:
+            send({"method": "item/completed", "params": {"threadId": "fixture-thread", "turnId": "fixture-turn", "item": {"type": "imageView", "id": "image-1", "path": image["path"]}}})
+        # CODEX_FIXTURE_TURN=complete: the turn reports its usage and ends
+        # cleanly with no approval (P1.6's process test drives a run to its end).
+        if __import__("os").environ.get("CODEX_FIXTURE_TURN") == "register":
+            register_result()
+        if __import__("os").environ.get("CODEX_FIXTURE_TURN") in ("complete", "register"):
+            usage = {"inputTokens": 120, "outputTokens": 40, "cachedInputTokens": 20}
+            send({"method": "thread/tokenUsage/updated", "params": {"threadId": "fixture-thread", "turnId": "fixture-turn", "tokenUsage": {"last": usage, "total": usage, "modelContextWindow": 1000}}})
+            send({"method": "turn/completed", "params": {"threadId": "fixture-thread", "turn": {"id": "fixture-turn", "items": [], "status": "completed", "error": None}}})
+            continue
+        send({"method": "item/commandExecution/requestApproval", "id": "fixture-approval", "params": {"threadId": "fixture-thread", "turnId": "fixture-turn", "itemId": "tool-1", "command": "redacted"}})
+    elif method == "turn/interrupt":
+        send({"id": message["id"], "result": {}})
+        send({"method": "turn/completed", "params": {"threadId": "fixture-thread", "turn": {"id": "fixture-turn", "items": [], "status": "interrupted", "error": None}}})

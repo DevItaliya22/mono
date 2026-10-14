@@ -1,0 +1,460 @@
+// SPDX-License-Identifier: MPL-2.0
+
+//! The questions a Profile's page asks, drawn over the whole tab with the
+//! shared dialogs (`koru_ui::Confirm`, `koru_ui::choice::Choice`).
+//!
+//! Two kinds, in one enum:
+//!
+//! - **The page's own**: *Delete profile…* (which removal), *Sign out…*,
+//!   *Unlink…* of a Google Account that is not the last, and *Linked
+//!   devices*' *Unlink…* of a device. Nothing is sent until one is answered.
+//! - **The controller's questions, shown as dialogs**: removing from this
+//!   device, making a Profile offline-only and connecting a Google Account
+//!   are states of the controller (`confirming_remove`, `confirming_offline`,
+//!   `pending_add_google`) that Manage Profiles drew in its detail pane.
+//!   [`ManageView::settle_dialogs`] keeps a dialog up exactly while the
+//!   controller is asking, so the controller stays the one place that knows
+//!   a question is open, and answering is the same `Intent` it always was.
+//!
+//! The controller's own modal prompts — *Delete from Koru?*, the D258 Cloud
+//! question and the attach question — are drawn by the tab over these and
+//! take input first; [`ManageView::no_question_up`] keeps a page dialog from
+//! opening under one.
+//!
+//! **Enter is Cancel** on every confirmation here, as it was: each is the
+//! shared `Confirm`, whose declared default is the safe answer (ADR-265).
+//! Escape cancels.
+
+use super::*;
+use koru_ui::choice::{Choice, ChoiceOutcome};
+
+#[cfg(test)]
+mod tests;
+
+/// One question over the tab.
+pub(crate) enum Dialog {
+    /// *Delete profile…*: remove from this device, or delete from Koru.
+    Delete {
+        profile: ProfileId,
+        choice: Choice,
+        answers: Vec<DeleteAnswer>,
+    },
+    /// *Sign out…*: this computer leaves the account.
+    SignOut(Confirm),
+    /// *Unlink…* on a Google Account that is not the Profile's last.
+    Unlink {
+        profile: ProfileId,
+        index: usize,
+        confirm: Confirm,
+    },
+    /// *Linked devices*' *Unlink…* on a directly linked device.
+    UnlinkDevice { device_id: String, confirm: Confirm },
+    /// The controller's remove-from-this-device question.
+    Remove(Confirm),
+    /// The controller's offline-only question.
+    Offline(Confirm),
+    /// The controller's *Connect this Google Account?*.
+    AddGoogle(Confirm),
+}
+
+/// The *Delete profile…* dialog's answers, in the order they are drawn.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum DeleteAnswer {
+    Remove,
+    DeleteFromKoru,
+    Cancel,
+}
+
+/// What a key or a press said to a dialog.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Answer {
+    Choice(ChoiceOutcome),
+    Confirm(ConfirmOutcome),
+}
+
+/// Which controller question a dialog mirrors.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Mirror {
+    Remove,
+    Offline,
+    AddGoogle,
+}
+
+impl Dialog {
+    /// What the inspector calls it.
+    pub(crate) fn name(&self) -> &'static str {
+        match self {
+            Self::Delete { .. } => "Manage delete dialog",
+            Self::SignOut(_) => "Manage sign-out dialog",
+            Self::Unlink { .. } => "Manage unlink dialog",
+            Self::UnlinkDevice { .. } => "Manage unlink device dialog",
+            Self::Remove(_) => "Manage remove dialog",
+            Self::Offline(_) => "Manage offline-only dialog",
+            Self::AddGoogle(_) => "Manage add Google dialog",
+        }
+    }
+
+    pub(crate) fn title(&self) -> &str {
+        match self {
+            Self::Delete { choice, .. } => choice.title(),
+            Self::SignOut(confirm)
+            | Self::Unlink { confirm, .. }
+            | Self::UnlinkDevice { confirm, .. }
+            | Self::Remove(confirm)
+            | Self::Offline(confirm)
+            | Self::AddGoogle(confirm) => confirm.title(),
+        }
+    }
+
+    fn mirror(&self) -> Option<Mirror> {
+        match self {
+            Self::Remove(_) => Some(Mirror::Remove),
+            Self::Offline(_) => Some(Mirror::Offline),
+            Self::AddGoogle(_) => Some(Mirror::AddGoogle),
+            _ => None,
+        }
+    }
+}
+
+const ADD_GOOGLE_BODY: &str = "This Google Account will be able to help connect new devices to this Profile. Your Profile content stays on your devices.";
+const REMOVE_CASCADE_BODY: &str = "Koru will close this Profile's open Workspace sessions, move every Workspace to Trash, and remove the Profile from this device. Workspace content remains recoverable from Store data. The hosted Profile listing stays in your Koru account so another trusted device can offer recovery.";
+const REMOVE_EMPTY_BODY: &str = "This removes the empty Profile and its settings from this device. The hosted Profile listing stays in your Koru account, so it can appear again after sign-in and another trusted device can offer recovery.";
+const OFFLINE_BODY: &str = "This removes the last sign-in method. Local content and established trusted-device sync remain. Connect a Google Account again before adding a new device.";
+const SIGN_OUT_TITLE: &str = "Sign out of Koru on this computer?";
+const SIGN_OUT_BODY: &str = "Every signed-in profile on this computer stops syncing until you sign in again. Your profiles and their workspaces stay on this computer.";
+const UNLINK_DEVICE_BODY: &str =
+    "It will stop receiving updates immediately. Link it again later to restore access.";
+
+impl ManageView {
+    /// Whether nothing is being asked: no page dialog and no controller
+    /// prompt. A second question never opens under the first.
+    pub(super) fn no_question_up(&self) -> bool {
+        self.dialog.is_none() && self.c.prompts().next().is_none() && !self.w.is_confirming()
+    }
+
+    fn profile_name(&self, profile: ProfileId) -> String {
+        self.c
+            .profiles()
+            .iter()
+            .find(|row| row.id == profile)
+            .map_or_else(|| "this Profile".to_owned(), |row| row.name.clone())
+    }
+
+    /// *Delete profile…*: which of the two removals. *Delete from Koru* is
+    /// offered only where the controller allows it (`removal::can_delete`).
+    pub(super) fn ask_how_to_delete(&mut self, profile: ProfileId) {
+        if !self.no_question_up() || self.c.selected() != Some(profile) {
+            return;
+        }
+        let name = self.profile_name(profile);
+        // *Delete from Koru* is an account operation; a build that hides
+        // Koru Cloud offers only *Remove from this device* (koru-features).
+        let everywhere =
+            koru_features::cloud_sync() && self.c.selected_profile_can_delete_from_koru();
+        let body = if everywhere {
+            "Remove it from this device only, or delete it from your Koru account and every device it syncs to."
+        } else {
+            "Remove it from this device. The next step says what happens to its workspaces."
+        };
+        let mut answers = vec![DeleteAnswer::Remove];
+        let mut choice = Choice::new(format!("Delete \u{201c}{name}\u{201d}?"), body)
+            .answer("Remove from this device…");
+        if everywhere {
+            choice = choice.answer("Delete from Koru…");
+            answers.push(DeleteAnswer::DeleteFromKoru);
+        }
+        choice = choice.answer("Cancel");
+        answers.push(DeleteAnswer::Cancel);
+        self.dialog = Some(Dialog::Delete {
+            profile,
+            choice,
+            answers,
+        });
+    }
+
+    /// *Sign out…* (maintainers' decision 1): the session is the device's, so the
+    /// question says what that means for every Profile here.
+    pub(super) fn ask_to_sign_out(&mut self) {
+        if self.no_question_up() {
+            self.dialog = Some(Dialog::SignOut(Confirm::new(
+                SIGN_OUT_TITLE,
+                SIGN_OUT_BODY,
+                "Sign out",
+            )));
+        }
+    }
+
+    /// *Unlink…* on one Google Account. The last one is the controller's
+    /// offline-only question, which it raises itself; any other is asked
+    /// here first.
+    pub(super) fn ask_to_unlink(&mut self, profile: ProfileId, index: usize) {
+        if !self.no_question_up() {
+            return;
+        }
+        let identities = self.c.identities_of(profile);
+        let Some(identity) = identities.get(index) else {
+            return;
+        };
+        if identities.len() == 1 {
+            self.perform(Intent::Unlink(profile, index));
+            return;
+        }
+        let email = identity
+            .verified_email
+            .clone()
+            .unwrap_or_else(|| "this Google Account".into());
+        let name = self.profile_name(profile);
+        let confirm = Confirm::new(
+            format!("Unlink {email}?"),
+            format!(
+                "It will no longer sign in to \u{201c}{name}\u{201d}. The profile keeps its other Google Accounts."
+            ),
+            "Unlink",
+        );
+        self.dialog = Some(Dialog::Unlink {
+            profile,
+            index,
+            confirm,
+        });
+    }
+
+    /// *Unlink…* on a linked device: the question the Link dialog asked, in
+    /// the shared confirmation. A device that arrived through another has no
+    /// *Unlink…* to press, and this computer is never in the list.
+    pub(super) fn ask_to_unlink_device(&mut self, index: usize) {
+        if !self.no_question_up() {
+            return;
+        }
+        let Some(device) = self
+            .devices
+            .devices()
+            .get(index)
+            .filter(|device| device.introduced_by.is_none())
+        else {
+            return;
+        };
+        self.dialog = Some(Dialog::UnlinkDevice {
+            device_id: device.device_id.clone(),
+            confirm: Confirm::new(
+                format!("Unlink {}?", device.display_name),
+                UNLINK_DEVICE_BODY,
+                "Unlink device",
+            ),
+        });
+    }
+
+    /// Keep a dialog up exactly while the controller is asking its question,
+    /// and take it down when it stops. A page dialog already up stays; the
+    /// controller's question follows it.
+    pub(super) fn settle_dialogs(&mut self) {
+        let wanted = if self.c.confirming_remove().is_some() {
+            Some(Mirror::Remove)
+        } else if self.c.confirming_offline() {
+            Some(Mirror::Offline)
+        } else if self
+            .c
+            .pending_add_google()
+            .is_some_and(|flow| !flow.finishing)
+        {
+            Some(Mirror::AddGoogle)
+        } else {
+            None
+        };
+        let showing = self.dialog.as_ref().map(Dialog::mirror);
+        match (showing, wanted) {
+            (Some(Some(up)), Some(wanted)) if up == wanted => {}
+            (Some(Some(_)), None) => self.dialog = None,
+            (Some(None), _) | (None, None) => {}
+            (Some(Some(_)) | None, Some(wanted)) => self.dialog = Some(self.mirrored(wanted)),
+        }
+    }
+
+    fn mirrored(&self, mirror: Mirror) -> Dialog {
+        let name = self
+            .c
+            .selected_profile()
+            .map_or_else(|| "this Profile".to_owned(), |row| row.name.clone());
+        match mirror {
+            Mirror::Remove => {
+                let cascade = self.c.confirming_remove() == Some(true);
+                let (title, body, label) = if cascade {
+                    (
+                        format!("Remove {name} and all its Workspaces?"),
+                        REMOVE_CASCADE_BODY,
+                        "Remove Profile and Workspaces",
+                    )
+                } else {
+                    (
+                        format!("Remove {name} from this device?"),
+                        REMOVE_EMPTY_BODY,
+                        "Remove Profile",
+                    )
+                };
+                Dialog::Remove(Confirm::new(title, body, label))
+            }
+            Mirror::Offline => {
+                let name = self.c.pending_unlink_name().map_or(name, str::to_owned);
+                Dialog::Offline(Confirm::new(
+                    format!("Make {name} offline-only?"),
+                    OFFLINE_BODY,
+                    "Make offline-only",
+                ))
+            }
+            Mirror::AddGoogle => {
+                let title = self
+                    .c
+                    .pending_add_google()
+                    .map_or_else(String::new, |flow| {
+                        format!("Connect {} to {}?", flow.verified_email, flow.profile_name)
+                    });
+                Dialog::AddGoogle(Confirm::asking(
+                    title,
+                    ADD_GOOGLE_BODY,
+                    "Connect Google Account",
+                    "Cancel",
+                ))
+            }
+        }
+    }
+
+    // ---- input -------------------------------------------------------------
+
+    /// A key while a dialog is up; every key is the dialog's.
+    pub(super) fn dialog_key(&mut self, key: &Key) -> bool {
+        let Some(mut dialog) = self.dialog.take() else {
+            return false;
+        };
+        let answer = match &mut dialog {
+            Dialog::Delete { choice, .. } => Answer::Choice(choice.key(key)),
+            Dialog::SignOut(confirm)
+            | Dialog::Unlink { confirm, .. }
+            | Dialog::UnlinkDevice { confirm, .. }
+            | Dialog::Remove(confirm)
+            | Dialog::Offline(confirm)
+            | Dialog::AddGoogle(confirm) => Answer::Confirm(confirm.key(key)),
+        };
+        self.answer(dialog, answer);
+        true
+    }
+
+    pub(super) fn dialog_mouse_down(&mut self, x: f32, y: f32) -> bool {
+        let Some(mut dialog) = self.dialog.take() else {
+            return false;
+        };
+        let viewport = self.viewport;
+        let engine = &mut self.engine;
+        let answer = match &mut dialog {
+            Dialog::Delete { choice, .. } => {
+                Answer::Choice(choice.mouse_down(engine, viewport, x, y))
+            }
+            Dialog::SignOut(confirm)
+            | Dialog::Unlink { confirm, .. }
+            | Dialog::UnlinkDevice { confirm, .. }
+            | Dialog::Remove(confirm)
+            | Dialog::Offline(confirm)
+            | Dialog::AddGoogle(confirm) => {
+                Answer::Confirm(confirm.mouse_down(engine, viewport, x, y))
+            }
+        };
+        self.answer(dialog, answer);
+        true
+    }
+
+    pub(super) fn dialog_mouse_move(&mut self, x: f32, y: f32) -> bool {
+        let viewport = self.viewport;
+        match self.dialog.as_mut() {
+            Some(Dialog::Delete { choice, .. }) => {
+                choice.mouse_move(&mut self.engine, viewport, x, y)
+            }
+            Some(
+                Dialog::SignOut(confirm)
+                | Dialog::Unlink { confirm, .. }
+                | Dialog::UnlinkDevice { confirm, .. }
+                | Dialog::Remove(confirm)
+                | Dialog::Offline(confirm)
+                | Dialog::AddGoogle(confirm),
+            ) => confirm.mouse_move(&mut self.engine, viewport, x, y),
+            None => false,
+        }
+    }
+
+    /// Settle a dialog taken out of its slot: put it back while it is still
+    /// open, or perform what its answer means.
+    fn answer(&mut self, dialog: Dialog, answer: Answer) {
+        if matches!(
+            answer,
+            Answer::Choice(ChoiceOutcome::Keep) | Answer::Confirm(ConfirmOutcome::Keep)
+        ) {
+            self.dialog = Some(dialog);
+            return;
+        }
+        let confirmed = answer == Answer::Confirm(ConfirmOutcome::Confirm);
+        // A device's unlink is Agent's, not the Profiles controller's.
+        if let Dialog::UnlinkDevice { device_id, .. } = &dialog {
+            if confirmed {
+                self.requests
+                    .push(Request::Device(DeviceRequest::Unlink(device_id.clone())));
+            }
+            return;
+        }
+        let intent = match dialog {
+            Dialog::Delete {
+                profile, answers, ..
+            } => {
+                let Answer::Choice(ChoiceOutcome::Chosen(index)) = answer else {
+                    return;
+                };
+                match answers.get(index) {
+                    // An unknown count takes the cascade, which is also right
+                    // for an empty Profile (`selected_profile_removal`).
+                    Some(DeleteAnswer::Remove) => Intent::RemoveFromDevice {
+                        cascade: self.c.selected_profile_removal().unwrap_or(true),
+                    },
+                    Some(DeleteAnswer::DeleteFromKoru) => Intent::DeleteFromKoru(profile),
+                    Some(DeleteAnswer::Cancel) | None => return,
+                }
+            }
+            Dialog::SignOut(_) if confirmed => Intent::SignOut,
+            Dialog::Unlink { profile, index, .. } if confirmed => Intent::Unlink(profile, index),
+            Dialog::SignOut(_) | Dialog::Unlink { .. } | Dialog::UnlinkDevice { .. } => return,
+            Dialog::Remove(_) if confirmed => Intent::ConfirmRemove,
+            Dialog::Remove(_) => Intent::CancelRemove,
+            Dialog::Offline(_) if confirmed => Intent::ConfirmOffline,
+            Dialog::Offline(_) => Intent::CancelOffline,
+            Dialog::AddGoogle(_) if confirmed => Intent::ConfirmAddGoogle,
+            Dialog::AddGoogle(_) => Intent::CancelAddGoogle,
+        };
+        self.perform(intent);
+    }
+
+    // ---- paint -------------------------------------------------------------
+
+    pub(super) fn paint_dialog(&mut self, canvas: &mut Scene, root: Affine) {
+        let (w, h) = self.viewport;
+        let Self {
+            dialog,
+            engine,
+            viewport,
+            ..
+        } = self;
+        let Some(dialog) = dialog.as_ref() else {
+            return;
+        };
+        let _dialog = inspect::scope(
+            dialog.name(),
+            "part",
+            root,
+            scene::rect(0.0, 0.0, w, h),
+            |r| r.property("title", dialog.title(), "manage::dialogs"),
+        );
+        match dialog {
+            Dialog::Delete { choice, .. } => choice.draw(canvas, root, engine, *viewport),
+            Dialog::SignOut(confirm)
+            | Dialog::Unlink { confirm, .. }
+            | Dialog::UnlinkDevice { confirm, .. }
+            | Dialog::Remove(confirm)
+            | Dialog::Offline(confirm)
+            | Dialog::AddGoogle(confirm) => confirm.draw(canvas, root, engine, *viewport),
+        }
+    }
+}

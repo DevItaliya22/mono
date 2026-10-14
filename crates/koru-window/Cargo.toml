@@ -1,0 +1,131 @@
+[package]
+rust-version.workspace = true
+name = "koru-window"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The window and its platform traps. Knows no node, no workspace and no document."
+
+[dependencies]
+koru-env = { path = "../koru-env" }
+# The clear colour and the border colour come from the palette; `hairline`
+# draws through `koru_draw::scene`, and the loop hands every app a
+# `TextEngine`. That is the whole of the coupling, and it is the same direction
+# `koru-ui` points.
+koru-draw = { path = "../koru-draw" }
+# One constant: the consent record's file name. This module owns *where* the
+# machine-local files are and each of them owns its own shape, so naming the
+# file here rather than spelling the string twice is what keeps the shell and
+# the agent from creating two files with nearly the same purpose.
+koru-voice-consent = { path = "../koru-voice-consent" }
+# The settings registry's section types. `appearance` projects a Global section
+# onto `koru-draw`'s process globals; nothing here reads a settings file, and
+# a dependency test in `koru-settings` holds that the authority stays free of
+# every window dependency in the other direction.
+koru-settings = { path = "../koru-settings" }
+winit.workspace = true
+# The accessibility schema — roles, actions, a `TreeUpdate`. Pure data with
+# `uuid` as its only dependency, so `accessibility` compiles and is tested on
+# every target even where there is no adapter to install it into. The adapter
+# itself is Windows-only below; see that module's `platform` note and
+# `docs/features/macos/CATCHUP.md`.
+accesskit.workspace = true
+vello.workspace = true
+peniko.workspace = true
+# The event loop's own render path. vello 0.8 has no `render_to_surface`: it
+# draws into a texture, and blitting that onto the screen needs the encoder and
+# the present mode directly. `vello` already pulls `wgpu` in, so this names a
+# version rather than adding a graph.
+wgpu = "28"
+pollster.workspace = true
+# `renderer::build_renderer` says loudly when a shader compile failed and was
+# retried; the line has to reach the rotated log of whichever binary linked us,
+# because a release build has no console to say it in.
+tracing.workspace = true
+# `desktop-v1.json`: where it lives, and what is in it.
+directories = "6"
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Three things winit cannot answer. `GetMonitorInfoW`: the monitor's *work
+# area*, which `MonitorHandle` does not expose and which `hairline` needs to
+# know when a window's edge is against the screen's. The registry, for
+# cold-start light/dark before any window exists. And the user's locale, asked
+# on the same cold-start path and for the same reason.
+[target.'cfg(windows)'.dependencies]
+# The winit adapter, which on Windows subclasses the HWND and answers
+# `WM_GETOBJECT` with a UIA provider. Windows-only on purpose: the maintainers scoped
+# this roadmap to Windows, and turning this into an unconditional dependency
+# would compile `accesskit_macos` into a mac build nobody on this branch can
+# run. `docs/features/macos/CATCHUP.md` names the one-line change that gives macOS the
+# same adapter.
+accesskit_winit.workspace = true
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Globalization",
+    "Win32_System_Registry",
+    "Win32_Graphics_Gdi",
+    # `DWMWA_TRANSITIONS_FORCEDISABLED`: a panel summoned by a keystroke is
+    # shown with no animation at all, the compositor's own included. See
+    # `reveal`.
+    "Win32_Graphics_Dwm",
+    # `ShellExecuteW`: dispatch a URI to the handler registered for its
+    # scheme. Starting explorer.exe is not equivalent on every Windows setup.
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+    # `ShellExecuteW`, the only reliable way to hand a URL to the default
+    # browser. See `open_uri` for what `explorer.exe` did instead.
+    "Win32_UI_Shell",
+    # `CoInitializeEx`: ShellExecuteW is documented as needing an initialized
+    # apartment, and `open_uri` runs on the file-opening worker.
+    "Win32_System_Com",
+] }
+
+# Cold-start light/dark, the macOS way: `AppleInterfaceStyle` out of
+# `NSUserDefaults`, read by `system_theme::macos_probe` before any window
+# exists. The code arrived here from `koru-workspace-host` in the release merge; this
+# section is the manifest line that had to come with it.
+[target.'cfg(target_os = "macos")'.dependencies]
+# `sysctlbyname`, and nothing else: `system_version` reads the product version
+# and the Darwin build as strings. Foundation has no equivalent for the second
+# one, and its `operatingSystemVersionString` is documented as not appropriate
+# for parsing. Already in the graph — winit and objc2 both pull it — so this
+# names a version rather than adding one.
+libc = { workspace = true }
+# The Dock icon's channel tint (ADR-139): `tint::apply` is pure math in the
+# leaf crate, and `image` re-encodes the tinted PNG before AppKit sees it.
+koru-channel = { path = "../koru-channel" }
+image = "0.25"
+# `AnyThread`, for allocating the Dock icon's NSImage.
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSUserDefaults",
+    "NSString",
+    # `NSLocale.preferredLanguages` — what language this Mac is set to, read on
+    # the same cold-start path as the appearance above. A Finder launch has no
+    # `$LANG` to read, so before this the POSIX arm answered `None` on every
+    # Mac. `NSArray` comes with it because the answer is a list (ADR-175).
+    "NSLocale",
+    "NSArray",
+    # The Dock icon: the logo's bytes have to become an `NSData` to become an
+    # `NSImage`. See `dock::set_dock_icon`.
+    "NSData",
+] }
+# `activation::activate_app` — the one AppKit call two binaries need and
+# `focus_window` cannot substitute for. NSResponder because NSApplication
+# inherits from it. NSImage for `dock::set_dock_icon`, which moved here from
+# the shell for the same two-binaries reason.
+objc2-app-kit = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSApplication",
+    "NSResponder",
+    "NSImage",
+    # `NSApplicationActivationPolicy`, for `activation::become_accessory` —
+    # the enum is declared in NSRunningApplication.h and gated with it.
+    "NSRunningApplication",
+] }
+
+[dev-dependencies]
+tempfile.workspace = true

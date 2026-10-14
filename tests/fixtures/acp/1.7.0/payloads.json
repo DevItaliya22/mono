@@ -1,0 +1,97 @@
+{
+  "initialize_request": {
+    "protocolVersion": 1,
+    "clientCapabilities": {}
+  },
+  "initialize_response": {
+    "protocolVersion": 1,
+    "agentCapabilities": {
+      "mcpCapabilities": {
+        "http": true,
+        "sse": false
+      },
+      "promptCapabilities": {
+        "image": true
+      }
+    },
+    "authMethods": []
+  },
+  "new_session_request": {
+    "cwd": "/fixture",
+    "mcpServers": [
+      {
+        "type": "http",
+        "name": "koru_run",
+        "url": "http://127.0.0.1:1/mcp",
+        "headers": [
+          {
+            "name": "Authorization",
+            "value": "<redacted-bearer>"
+          }
+        ]
+      }
+    ]
+  },
+  "new_session_response": {
+    "sessionId": "<session>"
+  },
+  "prompt_request": {
+    "sessionId": "<session>",
+    "prompt": [
+      {
+        "type": "text",
+        "text": "<prompt>"
+      }
+    ]
+  },
+  "prompt_response": {
+    "stopReason": "end_turn"
+  },
+  "cancel_notification": {
+    "sessionId": "<session>"
+  },
+  "session_notification": {
+    "sessionId": "<session>",
+    "update": {
+      "sessionUpdate": "agent_message_chunk",
+      "content": {
+        "type": "text",
+        "text": "<response>"
+      }
+    }
+  },
+  "permission_request": {
+    "sessionId": "<session>",
+    "toolCall": {
+      "toolCallId": "<tool>",
+      "title": "<summary>"
+    },
+    "options": [
+      {
+        "optionId": "<choice-a>",
+        "name": "<label>",
+        "kind": "allow_once"
+      },
+      {
+        "optionId": "<choice-b>",
+        "name": "<label>",
+        "kind": "allow_once"
+      },
+      {
+        "optionId": "<choice-c>",
+        "name": "<label>",
+        "kind": "allow_always"
+      },
+      {
+        "optionId": "<choice-d>",
+        "name": "<label>",
+        "kind": "reject_always"
+      }
+    ]
+  },
+  "permission_response": {
+    "outcome": {
+      "outcome": "cancelled"
+    }
+  }
+}

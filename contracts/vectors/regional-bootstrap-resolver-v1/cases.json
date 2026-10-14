@@ -1,0 +1,4677 @@
+{
+  "version": 1,
+  "authority": "regional-bootstrap.final.md + TECHNICAL.final.md section 3 (D201/D203)",
+  "wire": [
+    {
+      "id": "route_valid",
+      "target": "route",
+      "accept": true,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "route_null_structural",
+      "target": "route",
+      "accept": true,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":null}"
+    },
+    {
+      "id": "relay_missing",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"]}"
+    },
+    {
+      "id": "relay_empty",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"\"}"
+    },
+    {
+      "id": "relay_boolean",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":false}"
+    },
+    {
+      "id": "relay_number",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":1}"
+    },
+    {
+      "id": "relay_object",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":{}}"
+    },
+    {
+      "id": "unknown_route_field",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\",\"extra\":1}"
+    },
+    {
+      "id": "key_short",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "key_long",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26,1],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "key_wrongtype",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":\"abcd\",\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "key_weak",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "key_malformed",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "key_byte_overflow",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[256,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "addresses_empty",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "addresses_nine",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:100\",\"127.0.0.1:101\",\"127.0.0.1:102\",\"127.0.0.1:103\",\"127.0.0.1:104\",\"127.0.0.1:105\",\"127.0.0.1:106\",\"127.0.0.1:107\",\"127.0.0.1:108\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "address_duplicate",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\",\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "address_zero_port",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:0\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "address_hostname",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"worker.test:123\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "address_invalid",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:65536\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "address_long",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "relay_relative",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"/relay\"}"
+    },
+    {
+      "id": "relay_oversized",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://relay.test/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"}"
+    },
+    {
+      "id": "eight_addresses",
+      "target": "route",
+      "accept": true,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:100\",\"127.0.0.1:101\",\"127.0.0.1:102\",\"127.0.0.1:103\",\"127.0.0.1:104\",\"127.0.0.1:105\",\"127.0.0.1:106\",\"127.0.0.1:107\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "duplicate_relay_url_plain",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\",\"relay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "duplicate_relay_url_escaped",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\",\"\\u0072elay_url\":\"https://use1-1.relay.koru.do/\"}"
+    },
+    {
+      "id": "duplicate_endpoint_id_plain",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\",\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26]}"
+    },
+    {
+      "id": "duplicate_endpoint_id_escaped",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\",\"\\u0065ndpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26]}"
+    },
+    {
+      "id": "duplicate_direct_addresses_plain",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\",\"direct_addresses\":[\"127.0.0.1:44001\"]}"
+    },
+    {
+      "id": "duplicate_direct_addresses_escaped",
+      "target": "route",
+      "accept": false,
+      "json": "{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\",\"\\u0064irect_addresses\":[\"127.0.0.1:44001\"]}"
+    },
+    {
+      "id": "bootstrap_available",
+      "target": "bootstrap",
+      "accept": true,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "bootstrap_unavailable",
+      "target": "bootstrap",
+      "accept": true,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"unavailable\",\"retry_after_seconds\":1},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "retry_max",
+      "target": "bootstrap",
+      "accept": true,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"unavailable\",\"retry_after_seconds\":300},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "retry_0",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"unavailable\",\"retry_after_seconds\":0},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "retry_301",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"unavailable\",\"retry_after_seconds\":301},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "retry_-1",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"unavailable\",\"retry_after_seconds\":-1},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "retry_1.5",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"unavailable\",\"retry_after_seconds\":1.5},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "retry_\"1\"",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"unavailable\",\"retry_after_seconds\":\"1\"},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "retry_null",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"unavailable\",\"retry_after_seconds\":null},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "version_future",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":2,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "version_float",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1.1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "version_missing",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "account_invalid",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"bad\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "account_uuid_noncanonical",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000000040008000000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "region_eu",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"EU\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "region_unknown",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"ZZ\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "unknown_outer",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"],\"extra\":1}"
+    },
+    {
+      "id": "sync_unknown",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"},\"extra\":1},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "sync_null",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":null,\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "sync_unknown_state",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"ready\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "sync_missing_seed",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\"},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "sync_wrong_variant",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"},\"retry_after_seconds\":1},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "unavailable_wrong_variant",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"unavailable\",\"retry_after_seconds\":1,\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "relays_nine",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://relay0.test/\",\"https://relay1.test/\",\"https://relay2.test/\",\"https://relay3.test/\",\"https://relay4.test/\",\"https://relay5.test/\",\"https://relay6.test/\",\"https://relay7.test/\",\"https://relay8.test/\"]}"
+    },
+    {
+      "id": "relays_duplicate",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\",\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "relays_canonical_duplicate",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\",\"https://USE1-1.RELAY.KORU.DO:443\"]}"
+    },
+    {
+      "id": "relays_long",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://relay.test/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"]}"
+    },
+    {
+      "id": "api_path",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/path\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "api_query",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/?x=1\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "api_fragment",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/#x\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "api_userinfo",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://user@api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "api_relative",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"/api\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "duplicate_outer",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "escaped_duplicate_outer",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"\\u0076ersion\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "duplicate_sync",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "escaped_duplicate_sync",
+      "target": "bootstrap",
+      "accept": false,
+      "json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"\\u0073tate\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    }
+  ],
+  "resolve": [
+    {
+      "id": "production_available",
+      "mode": "production",
+      "activity": "account",
+      "expected": "available",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "production_unavailable",
+      "mode": "production",
+      "activity": "account",
+      "expected": "unavailable",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"unavailable\",\"retry_after_seconds\":30},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "isolated_complete",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "available",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "isolated_direct_only",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "available",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": null
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": null
+            }
+          }
+        ],
+        "relay_urls": []
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":null}},\"relay_urls\":[]}"
+    },
+    {
+      "id": "isolated_http",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "available",
+      "config": {
+        "region": "US",
+        "api_origin": "http://127.0.0.1:8080",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "http://localhost:3340/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "http://localhost:3340/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "http://localhost:3340/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"http://127.0.0.1:8080\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"http://localhost:3340/\"}},\"relay_urls\":[\"http://localhost:3340/\"]}"
+    },
+    {
+      "id": "canonical_membership",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "available",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://API.KORU.DO:443\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://USE1-1.RELAY.KORU.DO:443\"}},\"relay_urls\":[\"https://USE1-1.RELAY.KORU.DO:443\"]}"
+    },
+    {
+      "id": "second_configured_worker",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "available",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[61,64,23,195,232,67,137,90,146,183,10,167,77,27,126,188,156,152,44,207,46,196,150,140,192,205,85,241,42,244,102,12],\"direct_addresses\":[\"[::1]:44002\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "local_no_configuration",
+      "mode": "isolated",
+      "activity": "local",
+      "expected": "local_only",
+      "config": null,
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "local_invalid_configuration",
+      "mode": "production",
+      "activity": "local",
+      "expected": "local_only",
+      "config": {
+        "region": "EU",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "missing_root_bundle",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": null,
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "partial_root_region",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "partial_root_api_origin",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "partial_root_sync_pool",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "partial_root_relay_urls",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "region_eu",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "EU",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "pool_short",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "pool_long",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "duplicate_workers",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "unsorted_workers",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "duplicate_routes",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "duplicate_endpoint",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "empty_relays_nonnull_route",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": []
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "nonempty_relays_null_route",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": null
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "http_remote_api",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "http://192.168.1.2:8080",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "unsupported_relay_scheme",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "ftp://relay.test/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "ftp://relay.test/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "ftp://relay.test/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "unknown_configuration",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ],
+        "extra": 1
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "unknown_worker",
+      "mode": "isolated",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            },
+            "extra": 1
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "production_null",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": null
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": null
+            }
+          }
+        ],
+        "relay_urls": []
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "production_http_api",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "http://localhost:8080",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "production_api_namespace",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://us.api.koru.do",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "production_other_relay",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://other.test/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://other.test/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://other.test/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "production_http_relay",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_unconfigured",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "http://localhost:3340/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "http://localhost:3340/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "http://localhost:3340/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "hostile_api",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_mismatch",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://evil.test/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "hostile_worker",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_mismatch",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "hostile_address",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_mismatch",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:666\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "hostile_relay",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_mismatch",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://evil.test/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "hostile_relay_list",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_mismatch",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://evil.test/\"]}"
+    },
+    {
+      "id": "hostile_region",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_mismatch",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"EU\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "response_null_production",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_mismatch",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":null}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "response_account_mismatch",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_mismatch",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"20000000-0000-4000-8000-000000000002\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "current_account_switched",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_mismatch",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "20000000-0000-4000-8000-000000000002",
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "stale_generation",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_mismatch",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": "10000000-0000-4000-8000-000000000001",
+      "request_generation": 7,
+      "current_generation": 8,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    },
+    {
+      "id": "signed_out",
+      "mode": "production",
+      "activity": "account",
+      "expected": "regional_bootstrap_mismatch",
+      "config": {
+        "region": "US",
+        "api_origin": "https://api.koru.do/",
+        "sync_pool": [
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000001",
+            "route": {
+              "endpoint_id": [
+                215,
+                90,
+                152,
+                1,
+                130,
+                177,
+                10,
+                183,
+                213,
+                75,
+                254,
+                211,
+                201,
+                100,
+                7,
+                58,
+                14,
+                225,
+                114,
+                243,
+                218,
+                166,
+                35,
+                37,
+                175,
+                2,
+                26,
+                104,
+                247,
+                7,
+                81,
+                26
+              ],
+              "direct_addresses": [
+                "127.0.0.1:44001"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          },
+          {
+            "worker_id": "00000000-0000-4000-8000-000000000002",
+            "route": {
+              "endpoint_id": [
+                61,
+                64,
+                23,
+                195,
+                232,
+                67,
+                137,
+                90,
+                146,
+                183,
+                10,
+                167,
+                77,
+                27,
+                126,
+                188,
+                156,
+                152,
+                44,
+                207,
+                46,
+                196,
+                150,
+                140,
+                192,
+                205,
+                85,
+                241,
+                42,
+                244,
+                102,
+                12
+              ],
+              "direct_addresses": [
+                "[::1]:44002"
+              ],
+              "relay_url": "https://use1-1.relay.koru.do/"
+            }
+          }
+        ],
+        "relay_urls": [
+          "https://use1-1.relay.koru.do/"
+        ]
+      },
+      "request_account": "10000000-0000-4000-8000-000000000001",
+      "current_account": null,
+      "request_generation": 7,
+      "current_generation": 7,
+      "response_json": "{\"version\":1,\"koru_identity_id\":\"10000000-0000-4000-8000-000000000001\",\"home_region\":\"US\",\"api_origin\":\"https://api.koru.do/\",\"sync\":{\"state\":\"available\",\"seed_worker\":{\"endpoint_id\":[215,90,152,1,130,177,10,183,213,75,254,211,201,100,7,58,14,225,114,243,218,166,35,37,175,2,26,104,247,7,81,26],\"direct_addresses\":[\"127.0.0.1:44001\"],\"relay_url\":\"https://use1-1.relay.koru.do/\"}},\"relay_urls\":[\"https://use1-1.relay.koru.do/\"]}"
+    }
+  ]
+}

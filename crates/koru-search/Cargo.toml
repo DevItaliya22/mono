@@ -1,0 +1,30 @@
+[package]
+rust-version.workspace = true
+name = "koru-search"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The search index, as a consumer of the store's read model."
+
+[dependencies]
+# The `#tag` token rule, shared with the search box that completes one.
+koru-tagname = { path = "../koru-tagname" }
+# The read model, and the ids and consumer seam that come with it.
+koru-projection = { path = "../koru-projection" }
+koru-store-core = { path = "../koru-store-core" }
+# The wire vocabulary. A hit is named by the daemon, the HTTP layer and the
+# blocking client; only this crate should link an FTS engine to say it.
+koru-store-wire = { path = "../koru-store-wire" }
+# **No `koru-core`, deliberately.** The projection is strings and primitives
+# precisely so that a consumer does not acquire an opinion about what a
+# `Kind::ListBlock` is. It arrives transitively through `koru-projection`,
+# which is unavoidable in one process and is not the same claim.
+rusqlite.workspace = true
+unicode-normalization.workspace = true
+strsim.workspace = true
+sha2.workspace = true
+tracing = "0.1"
+
+[dev-dependencies]
+tempfile.workspace = true

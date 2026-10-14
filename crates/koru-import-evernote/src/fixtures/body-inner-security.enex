@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<en-export>
+  <note><title>First staged</title><content><![CDATA[<en-note><p>must be dropped</p></en-note>]]></content></note>
+  <note><title>Hostile ENML</title><content><![CDATA[<!DOCTYPE en-note [<!ENTITY xxe "expanded">]><en-note><p>&xxe;</p></en-note>]]></content></note>
+</en-export>

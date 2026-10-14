@@ -1,0 +1,46 @@
+{
+  "rows": [
+    {
+      "index": 1,
+      "cells": [
+        { "column": 0, "text": "p", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 1, "text": "l", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 2, "text": "a", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 3, "text": "i", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 4, "text": "n", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 6, "text": "R", "width": "one", "foreground": "indexed:1", "background": "default_background", "flags": [] },
+        { "column": 8, "text": "X", "width": "one", "foreground": "rgb:1,2,3", "background": "default_background", "flags": [] }
+      ]
+    },
+    {
+      "index": 2,
+      "cells": [
+        { "column": 0, "text": "B", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": ["bold"] },
+        { "column": 2, "text": "I", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": ["italic"] },
+        { "column": 4, "text": "U", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": ["underline"] },
+        { "column": 6, "text": "V", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": ["inverse"] }
+      ]
+    },
+    {
+      "index": 3,
+      "cells": [
+        { "column": 0, "text": "é", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 2, "text": "·", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 4, "text": "中", "width": "two", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 5, "text": "", "width": "zero", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 7, "text": "✈️", "width": "one", "foreground": "default_foreground", "background": "default_background", "flags": [] }
+      ]
+    },
+    {
+      "index": 4,
+      "cells": [
+        { "column": 0, "text": "👩‍", "width": "two", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 1, "text": "", "width": "zero", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 2, "text": "💻", "width": "two", "foreground": "default_foreground", "background": "default_background", "flags": [] },
+        { "column": 3, "text": "", "width": "zero", "foreground": "default_foreground", "background": "default_background", "flags": [] }
+      ]
+    }
+  ],
+  "cursor_row": 5,
+  "cursor_column": 0
+}

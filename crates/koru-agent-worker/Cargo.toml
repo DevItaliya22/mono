@@ -1,0 +1,23 @@
+[package]
+rust-version.workspace = true
+name = "koru-agent-worker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Running a role of our own executable as a supervised child."
+
+[dependencies]
+tracing = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true }
+
+# `kill(-pgid, …)` and `getpgrp`: the process group is the unix stand-in for
+# the Job Object (M24).
+[target.'cfg(unix)'.dependencies]
+libc = { workspace = true }
+
+[[test]]
+name = "worker_process"
+harness = false

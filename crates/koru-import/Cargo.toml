@@ -1,0 +1,11 @@
+[package]
+rust-version.workspace = true
+name = "koru-import"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Source-independent import lifecycle and preview contract for Koru."
+
+[dependencies]
+koru-store-core = { path = "../koru-store-core" }

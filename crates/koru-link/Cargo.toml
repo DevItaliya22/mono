@@ -1,0 +1,22 @@
+[package]
+rust-version.workspace = true
+name = "koru-link"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The koru:// URL: one parser, one writer, and nothing else."
+
+# **One dependency, and that is the point.**
+#
+# Four very different things need to agree about what a Koru link says: the
+# Markdown exporter writes one, the Markdown importer reads one, the agent
+# follows one that arrived from a browser, and a future "copy link" command
+# writes one again. A second parser is how the writer and the reader drift.
+#
+# It deliberately does **not** link `koru-core`. `koru-agent` has no node model
+# and must not acquire one to find out which document a URL names -- the same
+# rule `koru-agent-wire` follows by carrying ids as strings. Callers convert at
+# their own edge with `from_uuid`.
+[dependencies]
+uuid = { workspace = true }

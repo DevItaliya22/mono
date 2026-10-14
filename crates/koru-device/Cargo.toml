@@ -1,0 +1,20 @@
+[package]
+rust-version.workspace = true
+name = "koru-device"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Koru device identity, signed trust records, and authorization policy."
+
+[dependencies]
+ed25519-dalek.workspace = true
+koru-store-core = { path = "../koru-store-core" }
+rand_core.workspace = true
+serde.workspace = true
+# The build record's payload is JSON text signed as-is; see records.rs.
+serde_json.workspace = true
+sha2.workspace = true
+uuid.workspace = true
+zeroize.workspace = true
+

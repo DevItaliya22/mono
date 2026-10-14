@@ -1,0 +1,46 @@
+[package]
+rust-version.workspace = true
+name = "koru-account-runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Account session and Profile-scoped enrollment state machines with injected host ports."
+
+[features]
+test-support = []
+
+[dependencies]
+koru-account-client = { path = "../koru-account-client" }
+koru-account-core = { path = "../koru-account-core" }
+koru-account-wire = { path = "../koru-account-wire" }
+koru-account-session = { path = "../koru-account-session" }
+koru-agent-wire = { path = "../koru-agent-wire" }
+koru-oauth-credentials = { path = "../koru-oauth-credentials" }
+koru-device = { path = "../koru-device" }
+koru-network-iroh = { path = "../koru-network-iroh" }
+koru-pairing = { path = "../koru-pairing" }
+koru-sync-control = { path = "../koru-sync-control" }
+koru-store-core = { path = "../koru-store-core" }
+koru-store-wire = { path = "../koru-store-wire" }
+base64.workspace = true
+ed25519-dalek.workspace = true
+blake3.workspace = true
+rand_core.workspace = true
+rusqlite.workspace = true
+# The one durability policy (`DURABILITY`); this crate keeps its own schema
+# steps for its two files, not its own idea of what a durable commit is.
+koru-sqlite = { path = "../koru-sqlite" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+url.workspace = true
+uuid.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+ed25519-dalek.workspace = true
+koru-oauth-loopback = { path = "../koru-oauth-loopback" }

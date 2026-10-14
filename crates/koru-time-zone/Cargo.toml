@@ -1,0 +1,14 @@
+[package]
+rust-version.workspace = true
+name = "koru-time-zone"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "System and arbitrary-IANA timezone rules for Koru temporal values."
+
+[dependencies]
+chrono.workspace = true
+chrono-tz.workspace = true
+iana-time-zone.workspace = true
+koru-core = { path = "../koru-core" }

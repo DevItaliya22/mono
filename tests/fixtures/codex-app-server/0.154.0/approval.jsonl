@@ -1,0 +1,2 @@
+{"method":"item/commandExecution/requestApproval","id":90,"params":{"threadId":"<thread-id>","turnId":"<turn-id>","itemId":"<item-id>","startedAtMs":0,"command":"<redacted-command>","cwd":"<redacted-cwd>","reason":"<fixture-reason>"}}
+{"id":90,"result":{"decision":"decline"}}

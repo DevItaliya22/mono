@@ -1,0 +1,45 @@
+{
+  "event_id": "00000000-0000-4000-8000-00000000ee1d",
+  "name": "delegate.schedule.paused",
+  "version": 1,
+  "occurred_at_ms": 1756000029000,
+  "actor": {
+    "kind": "system",
+    "token": "delegate-worker"
+  },
+  "origin": {
+    "device_id": "00000000-0000-4000-8000-0000000000a2",
+    "session_id": "00000000-0000-4000-8000-0000000000a1"
+  },
+  "scope": {
+    "profile_id": "00000000-0000-4000-8000-0000000000a3",
+    "workspace_id": "00000000-0000-4000-8000-000000000003"
+  },
+  "subject": {
+    "kind": "document",
+    "id": "00000000-0000-4000-8000-000000000016"
+  },
+  "correlation_id": "00000000-0000-4000-8000-00000000ee1b",
+  "attrs": {
+    "context_item": {
+      "t": "count",
+      "v": 2
+    },
+    "reason": {
+      "t": "token",
+      "v": "context_unavailable"
+    },
+    "revision": {
+      "t": "count",
+      "v": 3
+    },
+    "schedule": {
+      "t": "id",
+      "v": "00000000-0000-4000-8000-00000000000f"
+    },
+    "stage": {
+      "t": "token",
+      "v": "materialize"
+    }
+  }
+}

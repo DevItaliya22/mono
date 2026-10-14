@@ -1,0 +1,17 @@
+[package]
+rust-version.workspace = true
+name = "koru-export-markdown"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Markdown exporter for Koru documents."
+
+[dependencies]
+chrono.workspace = true
+koru-export = { path = "../koru-export" }
+koru-link = { path = "../koru-link" }
+koru-core = { path = "../koru-core" }
+
+[dev-dependencies]
+tempfile.workspace = true

@@ -1,0 +1,46 @@
+[package]
+rust-version.workspace = true
+name = "koru-delegate-document"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Run document — how a delegated run is written into and read from one Loro document; it knows the shape, not the store, and never the window."
+
+# **The shape, not the store.** This crate turns a `RunHeader`, a
+# `TimelineEntry` and a `UsageFact` into the one `LoroDoc` a run lives in
+# (P1.0-STORAGE-PROPOSAL.md §1.3) and back. It never opens a store, never
+# takes a lock and never draws: the orchestrator hands it the empty document
+# the store created and applies the updates it exports; a surface hands it
+# the fork the store served and reads a window. `src/tests/dependency.rs` is the
+# fence — `loro`, the run vocabulary, the store's ids and compatibility gate,
+# and serde.
+#
+# `schema` follows `koru-delegate-core`'s convention: the JSON Schema derives
+# of the types this crate re-exports stay behind the feature the API plan
+# turns on, so a phone that embeds the reader never links them.
+[features]
+default = []
+schema = ["koru-delegate-core/schema", "koru-delegate-schedule/schema"]
+
+[dependencies]
+# `RunHeader`, `TimelineEntry`, `UsageFact`, `replay`, `EconomicsSummary`,
+# `ModelIdentity`, `RunRating` — the vocabulary this document stores.
+koru-delegate-core = { path = "../koru-delegate-core" }
+koru-delegate-schedule = { path = "../koru-delegate-schedule" }
+# `Compatibility`, the refuse-newer gate every versioned Koru document reads
+# with, and `DocumentId` — the manifest id a run is registered under.
+koru-store-core = { path = "../koru-store-core" }
+loro = { workspace = true }
+serde = { workspace = true }
+# The one codec between a typed run and a `LoroValue`: the vocabulary's own
+# serde shape, through `serde_json::Value`, which `loro` already converts
+# both ways. Nothing here is written as JSON text.
+serde_json = { workspace = true }
+
+[dev-dependencies]
+# The P1.8 subject gate: the run's `DocumentId` is what `Subject::document`
+# carries.
+koru-events = { path = "../koru-events" }
+koru-recurrence = { path = "../koru-recurrence" }
+uuid = { workspace = true }

@@ -1,0 +1,254 @@
+# Product feature flags
+
+**What a build shows.** Decided by the maintainers on 2026-10-08: the next release of
+Koru shows documents, files and terminal/shell session tabs — plus Welcome,
+Settings, Manage, Trash, Feedback, Search, Updates, What's New, Linked devices
+and Voice. Seven larger surfaces are built, tested and **hidden** behind flags
+that can be switched on later — the first five from 2026-10-08, canvases and
+Socials from 2026-10-10. Nothing was deleted, and the flags are **UI only**:
+every background worker (reminders, sync, the delegate runner, the session
+host) starts exactly as it does with the flag on. **The one exception is the
+Socials publisher**, which Koru Agent starts only while `ENABLE_SOCIALS` is on
+(maintainers, 2026-10-10): nothing publishes from a build that hides Socials. The
+decision record is ADR-450.
+
+| Flag (Rust) | Env var | Default | Shows |
+| --- | --- | --- | --- |
+| `ENABLE_CLOUD_SYNC` | `KORU_ENABLE_CLOUD_SYNC` | off | Koru Cloud: account sign-in (email, Google, Apple), the Cloud page, every Cloud pointer |
+| `ENABLE_AGENTS` | `KORU_ENABLE_AGENTS` | off | Agent sessions and artifacts. **Shell sessions are always shown** |
+| `ENABLE_TASKS` | `KORU_ENABLE_TASKS` | off | The Tasks view and every way into it. **`/due` stays** and still creates a task |
+| `ENABLE_AI` | `KORU_ENABLE_AI` | off | Koru AI chat **and Delegate** (runs, results, schedules) — grouped by the maintainers |
+| `ENABLE_REMINDERS` | `KORU_ENABLE_REMINDERS` | off | The reminders UI. The reminder worker still runs, so an existing reminder can still notify |
+| `ENABLE_CANVAS` | `KORU_ENABLE_CANVAS` | off | Canvases: the Canvases view, its `+` flyout, canvas tabs, canvas search results and canvases in the Manage tab's document counts. With agents off as well, a shown canvas is cards and images only |
+| `ENABLE_SOCIALS` | `KORU_ENABLE_SOCIALS` | off | Socials: the Socials view, its `+` row, *New social post* and the Socials tab — **and the publisher in Koru Agent**, which starts only with the flag on; off, a scheduled post waits |
+
+## How the answer is reached
+
+All of it is in one leaf crate, [`crates/koru-features`](../../crates/koru-features/src/lib.rs):
+`koru_features::features()` (a `&'static Features` latched in a `OnceLock`) and
+one accessor per flag — `cloud_sync()`, `agents()`, `tasks()`, `ai()`,
+`reminders()`, `canvas()`, `socials()`.
+
+1. **Baked in.** Each `ENABLE_*` constant is `option_env!("KORU_ENABLE_*")`
+   read through koru-env's truthiness rule when `koru-features` is compiled.
+   Unset is **off**, so a release built with nothing set ships the simplified
+   product.
+2. **Overridden at run time.** A `KORU_ENABLE_*` variable that is **set** in the
+   process environment wins in both directions: `KORU_ENABLE_AI=1` shows Koru
+   AI in a build that baked it off; `KORU_ENABLE_AI=0` hides it in one that
+   baked it on. On is anything except `""`, `0`, `false`, `no`, `off`.
+3. **Latched.** The answer is read once per process; a surface never appears or
+   vanishes mid-session. Koru and Koru Agent each read their own environment.
+
+**Every read is in `koru-features`.** `option_env!` is evaluated when the crate
+that spells it is compiled — the trap `koru-release::package::run_cargo`
+documents for `KORU_RELEASE_CHANNEL` — so a second crate reading the same name
+could be compiled under a different environment and disagree.
+
+## Baking a surface into a release
+
+`koru-release` forwards the seven variables to its `cargo build` invocations,
+normalised by koru-env's rule (on becomes `1`, anything else is removed). Set
+them in the packager's environment or in `.env.production`, which the release
+tool loads before building:
+
+```
+KORU_ENABLE_TASKS=1
+KORU_ENABLE_REMINDERS=1
+```
+
+For a dev run, set the variable in the shell — `set KORU_ENABLE_AI=1` before
+`koru.bat run` on Windows, `KORU_ENABLE_AI=1 ./koru.sh run` on a Mac — or put
+the line in `.env.production` / `.env.local`, which both launchers load.
+**It does rebuild:** the flags are read with `option_env!`, so cargo recompiles
+everything that links `koru-features` (most of the UI) when one flips; keep the
+same flags in both env files to avoid paying that on every switch.
+`koru.bat envs` / `./koru.sh envs` list all seven.
+
+An **installed** build reads the run-time override from its own environment,
+and an app started from the Start menu, Finder or a login item has no shell's.
+On a Mac, `launchctl setenv KORU_ENABLE_AI 1` before Koru and the Agent start
+is the way to turn one on without rebuilding.
+
+## What each flag hides
+
+"Hidden" means: absent from menus (not dimmed), its chords do not resolve and
+are not printed in any hint, the accessibility tree does not expose it, the F12
+inspector does not see it (it is not drawn), and session restore drops it.
+
+### `ENABLE_CLOUD_SYNC` off
+
+- **First run** (`koru-workspace-host::onboarding`): no email/password, Google,
+  Apple or *or*. It opens on the local Profile form — where *Use Koru without
+  an account* leads — with no *Back*; every later step is unchanged. The Manage
+  tab's *New profile* page embeds the same form and its lead drops the account
+  half.
+- **Manage** (`apps/koru/src/manage/`): no *Koru Cloud* nav row or chip, no
+  *Other Profiles*, no *{n} Profiles hidden*; a Profile's page has no
+  *Sign-in and sync* section and no *Can't reach Koru — see Koru Cloud*
+  pointer; the account switcher does not open; *Delete profile…* offers only
+  *Remove from this device*. The Cloud page is unreachable: `ManageView::show`
+  turns a request for it into the first Profile's page (or *Linked devices*
+  when there is none) — which is also where *Manage profiles…* lands before the
+  window knows its Profile.
+- **Explore**'s empty state: no *Subscribe to Koru Cloud* button, and its
+  sentence drops the Cloud clause.
+- **Context column**: no *Cloud sync* section; `Ctrl+Alt+K` (*Copy Cloud
+  details*) does not resolve.
+- *Linked devices* (peer-to-peer) is unaffected.
+
+### `ENABLE_AGENTS` off
+
+- **Explore**: no *Agents* or *Artifacts* mode icons. The icons close up; the
+  `Alt+digit` chords **skip rather than renumber** — `Alt+5` and `Alt+6` do
+  nothing, `Alt+1`/`Alt+2` are unchanged — so a digit never means a different
+  view in a different build. A restored or requested hidden mode opens
+  Documents.
+- **`+` menu**: no *Agents ▸*; the *Shell ▸* flyout and shell session tabs are
+  unchanged. `open_session_tab_for_profile` refuses an agent profile from any
+  menu.
+- **Session restore** drops a tab over a built-in **agent** profile (the
+  session itself is untouched); shell and custom-profile tabs come back.
+- **Koru Agent's tray**: no *Agents* submenu.
+- Welcome's *Terminal agent* and *MCP* rows stay as they were — drawn and
+  inert.
+
+### `ENABLE_TASKS` off
+
+- **Explore**: no *Tasks* mode (and so no rail); `Alt+3` does not resolve.
+- **Tabs**: `open_tasks_tab` — the one door — refuses every queue and list;
+  session restore drops `tasks:*` tabs.
+- **`/` menu** (`koru-editor` `command_menu::product_shows`): no `/task`,
+  `/task_list`, `/completed`, `/priority`. **`/due` stays and creates a task.**
+  `/checklist` is a document block and stays.
+- **The due chip**: pressing it opens its date picker (as the other chips do)
+  instead of the Tasks view; `reveal_task_in_tasks_view` is a no-op. Its `×`
+  (*Remove from Tasks*, behind its confirm) stays.
+- **Document right-click menu** (`apps/koru-document` `context_menu`): no
+  *View in Tasks*, *Complete*/*Reopen*, *Priority…*, *Remove from Tasks*; a due
+  chip's menu has no *Go to task*, *Complete* or *Remove from Tasks*. The menu
+  is index-mapped, so rows are filtered by **identity** — `kept` decides from
+  each row's `Choice` which full rows survive, and both the drawn list and
+  `choice_at` go through it.
+- **Explore node menu** *Attributes ▸*: Due stays, Priority goes.
+- **Context column**: no *Tasks* section. **Search**: no `koru.task` or
+  `koru.task_state` filter. **Welcome**: no *Task list* row.
+
+### `ENABLE_AI` off (Koru AI chat and Delegate)
+
+- No AI side pane, no ✦ title-row button, `Ctrl+Shift+J` does not resolve, and
+  a restored session never reopens the pane.
+- No AI chat tab: no *New AI chat* or *Chats ▸* in `+`, no Explore *Chats*
+  mode (`Alt+4`); the pane surface is not booted when `+` opens.
+- Koru Agent: no tray *Koru AI Chat*, the global `Ctrl+Shift+I` is not
+  registered at all, and `--ai-chat` / a chat link opens nothing — from inside a
+document, and from another app (LaunchServices on a Mac, `koru-agent
+koru://chat/…` on Windows), because the Agent itself answers `OpenChatLink`
+and `OpenAiChat` with a silent `Ok` when Koru AI is hidden. The Windows
+  jump list has no *AI Chat* task.
+- Settings › System has no Koru AI providers card; Welcome has no Koru AI row.
+- **Delegate**: no `/delegate`, no `+` *Delegate*, no document-menu *Delegate*,
+  no tasks-view *Delegate…*; `begin_delegation` — the one door into the modal —
+  refuses. No Run tab and no Result tab can open (a Result tab still can with
+  agents on, for the Artifacts column).
+- **Run and schedule pills already inside a document still draw** — they are
+  document content — but pressing or right-clicking one opens nothing.
+
+### `ENABLE_REMINDERS` off
+
+- No `/remind`, no caption bell (the tab strip takes its room back), no
+  *All Reminders* tab, `Ctrl+Shift+R` does not resolve, `F6` has no bell to
+  land on.
+- Settings has no *Reminders* page; the context column has no *Reminders*
+  section; the Tasks rail (with tasks on) has no *Reminders* row; the document
+  menu has no *Add reminder*; Welcome has no *Reminder* row; Koru Agent's tray
+  has no *All Reminders*.
+- Reminder pills are not drawn in documents and nothing about reminders is in
+  the accessibility tree.
+- **The reminder worker keeps running**: a reminder set while the UI was on can
+  still notify.
+
+### `ENABLE_CANVAS` off
+
+- **Explore**: no *Canvases* mode icon; `Alt+7` (`⌃⌘7` on a Mac) does not
+  resolve and is not printed in any hint — it skips, so `Alt+8` is still
+  Socials. A restored `canvases` mode opens Documents.
+- **`+` menu**: no *Canvases ▸* flyout, so no *New canvas* and no recent
+  canvases (`MenuAction::Canvases` / `NewCanvas`); the Documents flyout never
+  listed canvases. `new_canvas` — the `+` row's and the empty section's
+  button's one door — refuses.
+- **Canvas tabs**: no door builds one (`apps/koru/src/mainview/canvas.rs`
+  `canvas_hidden`). A link, a background open or a landing
+  on a canvas opens nothing rather than a page over the canvas's objects. A
+  tab opened before the listing named the kind — a cross-workspace landing —
+  stays the page it was built as and is not converted.
+- **Session restore** drops canvas tabs and pinned canvases
+  (`restored_document_view` answers `None`); the documents are untouched and
+  come back as canvases in a build that shows them.
+- No canvas is drawn, so the accessibility tree and the F12 inspector have
+  none. Welcome, the tray and the jump list never had a canvas entry.
+- **Search and counts** (maintainers, 2026-10-10; QUESTIONS #7): a canvas is not a
+  global search result (`koru-search-ui`'s `drop_hidden_kinds`, on every page
+  as it lands), and the Manage tab's per-workspace document count counts pages
+  only (`koru-workspace-host`'s `document_count`).
+
+### `ENABLE_AGENTS` off with `ENABLE_CANVAS` on
+
+A canvas's start, agent and output nodes are the agents' surface, so with
+agents hidden a canvas is **cards and images**
+(QUESTIONS #2). `CanvasView` turns
+`koru_canvas_ui::CanvasSurface::set_workflows(false)`:
+
+- The canvas menu has no *Add start / agent / output node*.
+- A node has no *Run*, *Stop*, *Respond…* or *Choose agent…* — in its menu, on
+  its face, or in the accessibility tree; an agent node shows its agent's name
+  as a plain label.
+- `canvas_view::perform` refuses those requests again whatever asked, so no
+  chain or agent run starts and no session is handed over.
+- A workflow node already on the canvas still **draws** — it is document
+  content, like a run pill — and can be edited, moved, connected, deleted, and
+  its result placed on the canvas.
+
+### `ENABLE_SOCIALS` off
+
+- **Explore**: no *Socials* (megaphone) mode icon; `Alt+8` (`⌃⌘8`) does not
+  resolve and is not advertised. A restored `socials` mode opens Documents.
+- **`+` menu**: no *Socials* row. **Tab and Explore node menus**: no *New social
+  post* (`MenuAction::Socials` / `NewSocialPost`).
+- **The Socials tab**: `open_socials_tab` — the one door, which the `+` row,
+  the mode, its chord and *New social post* all reach — refuses, and so does
+  `social_post_from_document`. Socials tabs were never part of the session
+  file, so there is nothing to drop on restore.
+- The connect-account (X, LinkedIn, Reddit) and OAuth surfaces live inside the
+  Socials surface and are unreachable with it. There is no Settings, Welcome,
+  tray or jump-list entry.
+- **The publisher does not start** in Koru Agent
+  (`koru_socials_publisher::Worker`, gated by `should_start_socials_publisher`
+  in `apps/koru-agent/src/run.rs` — the one worker a flag gates, ADR-450's
+  2026-10-10 amendment; QUESTIONS #6). Nothing
+  publishes from a build that hides Socials. A post already scheduled on this
+  device waits in the publisher's journal and goes out when a build that shows
+  Socials runs again.
+
+## Not gated, deliberately
+
+- `reference/SHORTCUTS.md` is generated from the whole `koru-keys`
+  registry and still lists every chord: it documents Koru, not one build. The
+  rows stay in the registry; `ShortcutId::shown_in_product` keeps a hidden one
+  out of every hint.
+- Background workers, their IPC and their data (above) — except the Socials
+  publisher, which does not start with Socials hidden.
+- Global search results that are chats or tasks: a hidden chat's result opens
+  nothing.
+
+## Tests
+
+The suites run with **every surface on**: crates that read a flag turn on
+`koru-features/testing` in their `[dev-dependencies]`, under which the default
+is `Features::ALL_ON` and the environment is ignored. A test that means the
+simplified product says so with `koru_features::testing::with(Features::ALL_OFF,
+|| …)`, which overrides the answer on its own thread only.
+`apps/koru/src/mainview/product_flags_tests.rs` runs the container that way
+end to end; each gated surface also has an all-off test beside it — canvases in
+`mainview/canvas/tests.rs`, a canvas without agents in `canvas_view/tests.rs`
+and `koru-canvas-ui`'s own suite.

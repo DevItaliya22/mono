@@ -1,0 +1,36 @@
+[package]
+rust-version.workspace = true
+name = "koru-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+# Deliberately short. A widget that needs a node, a workspace or a document is
+# not a widget — see README.md. If this list ever grows an `koru-core`, that
+# rule has been broken.
+[dependencies]
+koru-env = { path = "../koru-env" }
+koru-draw = { path = "../koru-draw" }
+vello.workspace = true
+winit.workspace = true
+# `text_field` drives a `PlainEditor`, and copies one line of plain text. Both
+# arrived with the field when it moved out of `koru-editor` — see that module
+# for why a prompt box may not link the node model to exist.
+parley.workspace = true
+koru-clipboard = { path = "../koru-clipboard" }
+# The chord vocabulary, so `Cmd` on macOS means what `Ctrl` means everywhere
+# else. It arrived the same way `parley` did — the field moved here and brought
+# what it uses — and it belongs by the rule above rather than despite it: this
+# crate is a leaf over `winit` that knows nothing of nodes, workspaces or
+# documents. Testing `control_key` alone is what typed an `s` into a document's
+# name when somebody pressed Cmd+S.
+koru-keys = { path = "../koru-keys" }
+# The month grid and its phrase box, which came down from `koru-editor` so the
+# search surface can offer the same calendar rather than growing a second
+# (ADR-196). `koru-when` is a leaf over `chrono` that names no model type — it
+# answers `When::{Date, Wall}` and the *host* decides what a day means — so it
+# belongs by the rule above rather than despite it. `chrono` is here for the
+# same reason: a `NaiveDate` is plain data.
+koru-when = { path = "../koru-when" }
+chrono.workspace = true

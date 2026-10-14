@@ -1,0 +1,17 @@
+[package]
+rust-version.workspace = true
+name = "koru-shell-chrome"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The app shell's furniture geometry: the caption and its banner slots, the tab strip, the region solve. Performs nothing; names no profile, workspace, document or session."
+
+[dependencies]
+koru-draw = { path = "../koru-draw" }
+# The four window controls (`caption::Action`) and nothing else. `koru-ui`
+# names no node, no workspace and no document (ADR-73), so taking it keeps
+# this crate as portable as its charter claims.
+koru-ui = { path = "../koru-ui" }
+vello.workspace = true
+peniko.workspace = true

@@ -1,0 +1,52 @@
+{
+  "case": "01-empty-workspace",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "A Cloud-enabled workspace with no documents and no files.",
+  "covers": [
+    "D28",
+    "D66"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "  -> documents_units 0 + files_bytes 0 = 0",
+    "account: documents_units 0 + files_bytes 0 = 0"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 0,
+        "files_bytes": 0,
+        "logical_usage_units": 0,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 0,
+      "files_bytes": 0,
+      "logical_usage_units": 0,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "Unchanged by the 2026-09-05 decisions.",
+    "The workspace manifest is never walked and never charged (contract 3.5); its physical cost is measured under contract 7."
+  ]
+}

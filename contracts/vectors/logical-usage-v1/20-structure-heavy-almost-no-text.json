@@ -1,0 +1,437 @@
+{
+  "case": "20-structure-heavy-almost-no-text",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "A sprint board: 21 nodes, 20 typed attributes, 10 checked boxes, 5 dividers and 5 embeds — and twelve characters of writing.",
+  "covers": [
+    "D65",
+    "CTO 2026-09-05"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n0",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Sprint board",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 12
+                  }
+                ]
+              },
+              {
+                "id": "t0",
+                "parent": "n0",
+                "ordinal": 1,
+                "depth": 1,
+                "kind": "task",
+                "text": "",
+                "done": true,
+                "runs": [],
+                "attrs": [
+                  {
+                    "id": "t0-due",
+                    "role": "due",
+                    "kind": "date",
+                    "value": "2026-09-01"
+                  },
+                  {
+                    "id": "t0-own",
+                    "role": "owner",
+                    "kind": "ref",
+                    "value": "node-0"
+                  }
+                ]
+              },
+              {
+                "id": "t1",
+                "parent": "n0",
+                "ordinal": 2,
+                "depth": 1,
+                "kind": "task",
+                "text": "",
+                "done": true,
+                "runs": [],
+                "attrs": [
+                  {
+                    "id": "t1-due",
+                    "role": "due",
+                    "kind": "date",
+                    "value": "2026-09-02"
+                  },
+                  {
+                    "id": "t1-own",
+                    "role": "owner",
+                    "kind": "ref",
+                    "value": "node-1"
+                  }
+                ]
+              },
+              {
+                "id": "t2",
+                "parent": "n0",
+                "ordinal": 3,
+                "depth": 1,
+                "kind": "task",
+                "text": "",
+                "done": true,
+                "runs": [],
+                "attrs": [
+                  {
+                    "id": "t2-due",
+                    "role": "due",
+                    "kind": "date",
+                    "value": "2026-09-03"
+                  },
+                  {
+                    "id": "t2-own",
+                    "role": "owner",
+                    "kind": "ref",
+                    "value": "node-2"
+                  }
+                ]
+              },
+              {
+                "id": "t3",
+                "parent": "n0",
+                "ordinal": 4,
+                "depth": 1,
+                "kind": "task",
+                "text": "",
+                "done": true,
+                "runs": [],
+                "attrs": [
+                  {
+                    "id": "t3-due",
+                    "role": "due",
+                    "kind": "date",
+                    "value": "2026-09-04"
+                  },
+                  {
+                    "id": "t3-own",
+                    "role": "owner",
+                    "kind": "ref",
+                    "value": "node-3"
+                  }
+                ]
+              },
+              {
+                "id": "t4",
+                "parent": "n0",
+                "ordinal": 5,
+                "depth": 1,
+                "kind": "task",
+                "text": "",
+                "done": true,
+                "runs": [],
+                "attrs": [
+                  {
+                    "id": "t4-due",
+                    "role": "due",
+                    "kind": "date",
+                    "value": "2026-09-05"
+                  },
+                  {
+                    "id": "t4-own",
+                    "role": "owner",
+                    "kind": "ref",
+                    "value": "node-4"
+                  }
+                ]
+              },
+              {
+                "id": "t5",
+                "parent": "n0",
+                "ordinal": 6,
+                "depth": 1,
+                "kind": "task",
+                "text": "",
+                "done": true,
+                "runs": [],
+                "attrs": [
+                  {
+                    "id": "t5-due",
+                    "role": "due",
+                    "kind": "date",
+                    "value": "2026-09-06"
+                  },
+                  {
+                    "id": "t5-own",
+                    "role": "owner",
+                    "kind": "ref",
+                    "value": "node-5"
+                  }
+                ]
+              },
+              {
+                "id": "t6",
+                "parent": "n0",
+                "ordinal": 7,
+                "depth": 1,
+                "kind": "task",
+                "text": "",
+                "done": true,
+                "runs": [],
+                "attrs": [
+                  {
+                    "id": "t6-due",
+                    "role": "due",
+                    "kind": "date",
+                    "value": "2026-09-07"
+                  },
+                  {
+                    "id": "t6-own",
+                    "role": "owner",
+                    "kind": "ref",
+                    "value": "node-6"
+                  }
+                ]
+              },
+              {
+                "id": "t7",
+                "parent": "n0",
+                "ordinal": 8,
+                "depth": 1,
+                "kind": "task",
+                "text": "",
+                "done": true,
+                "runs": [],
+                "attrs": [
+                  {
+                    "id": "t7-due",
+                    "role": "due",
+                    "kind": "date",
+                    "value": "2026-09-08"
+                  },
+                  {
+                    "id": "t7-own",
+                    "role": "owner",
+                    "kind": "ref",
+                    "value": "node-7"
+                  }
+                ]
+              },
+              {
+                "id": "t8",
+                "parent": "n0",
+                "ordinal": 9,
+                "depth": 1,
+                "kind": "task",
+                "text": "",
+                "done": true,
+                "runs": [],
+                "attrs": [
+                  {
+                    "id": "t8-due",
+                    "role": "due",
+                    "kind": "date",
+                    "value": "2026-09-09"
+                  },
+                  {
+                    "id": "t8-own",
+                    "role": "owner",
+                    "kind": "ref",
+                    "value": "node-8"
+                  }
+                ]
+              },
+              {
+                "id": "t9",
+                "parent": "n0",
+                "ordinal": 10,
+                "depth": 1,
+                "kind": "task",
+                "text": "",
+                "done": true,
+                "runs": [],
+                "attrs": [
+                  {
+                    "id": "t9-due",
+                    "role": "due",
+                    "kind": "date",
+                    "value": "2026-09-10"
+                  },
+                  {
+                    "id": "t9-own",
+                    "role": "owner",
+                    "kind": "ref",
+                    "value": "node-9"
+                  }
+                ]
+              },
+              {
+                "id": "d0",
+                "parent": null,
+                "ordinal": 11,
+                "depth": 0,
+                "kind": "divider",
+                "text": "",
+                "runs": []
+              },
+              {
+                "id": "d1",
+                "parent": null,
+                "ordinal": 12,
+                "depth": 0,
+                "kind": "divider",
+                "text": "",
+                "runs": []
+              },
+              {
+                "id": "d2",
+                "parent": null,
+                "ordinal": 13,
+                "depth": 0,
+                "kind": "divider",
+                "text": "",
+                "runs": []
+              },
+              {
+                "id": "d3",
+                "parent": null,
+                "ordinal": 14,
+                "depth": 0,
+                "kind": "divider",
+                "text": "",
+                "runs": []
+              },
+              {
+                "id": "d4",
+                "parent": null,
+                "ordinal": 15,
+                "depth": 0,
+                "kind": "divider",
+                "text": "",
+                "runs": []
+              },
+              {
+                "id": "e0",
+                "parent": null,
+                "ordinal": 16,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "",
+                "embed": "node-embed-0",
+                "runs": []
+              },
+              {
+                "id": "e1",
+                "parent": null,
+                "ordinal": 17,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "",
+                "embed": "node-embed-1",
+                "runs": []
+              },
+              {
+                "id": "e2",
+                "parent": null,
+                "ordinal": 18,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "",
+                "embed": "node-embed-2",
+                "runs": []
+              },
+              {
+                "id": "e3",
+                "parent": null,
+                "ordinal": 19,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "",
+                "embed": "node-embed-3",
+                "runs": []
+              },
+              {
+                "id": "e4",
+                "parent": null,
+                "ordinal": 20,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "",
+                "embed": "node-embed-4",
+                "runs": []
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n0 (paragraph): node.text 12 = 12",
+    "    doc-1/t0 (task): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/t1 (task): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/t2 (task): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/t3 (task): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/t4 (task): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/t5 (task): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/t6 (task): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/t7 (task): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/t8 (task): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/t9 (task): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/d0 (divider): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/d1 (divider): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/d2 (divider): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/d3 (divider): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/d4 (divider): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/e0 (paragraph): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/e1 (paragraph): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/e2 (paragraph): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/e3 (paragraph): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/e4 (paragraph): no authored text; structure, marks, references and non-text values are free = 0",
+    "  document doc-1: 12",
+    "  -> documents_units 12 + files_bytes 0 = 12",
+    "account: documents_units 12 + files_bytes 0 = 12",
+    "non-normative: under the withdrawn constants this document would have cost 2796"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 12,
+        "files_bytes": 0,
+        "logical_usage_units": 12,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 12,
+      "files_bytes": 0,
+      "logical_usage_units": 12,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "The promise this pins: your words and your files, nothing else (CTO, 2026-09-05).",
+    "12 LU — the title, and nothing else. Every task node, every date, every reference, every checkbox and every divider is free.",
+    "NON-NORMATIVE: the superseded revision would have charged 2796 LU for this document, 233x more. That difference is what the CTO withdrew on 2026-09-05.",
+    "This is the case an implementer should reach for when unsure whether a new field belongs in the formula: if adding it would move this number, it is structure pricing."
+  ]
+}

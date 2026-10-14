@@ -1,0 +1,28 @@
+[package]
+rust-version.workspace = true
+name = "koru-socials-x"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Native X account connection and device-scoped refresh credentials for Socials."
+
+[features]
+default = []
+no-network = ["koru-socials-auth/no-network"]
+
+[dependencies]
+koru-socials-auth = { path = "../koru-socials-auth" }
+chrono.workspace = true
+fs2.workspace = true
+koru-api-client = { path = "../koru-api-client" }
+koru-channel = { path = "../koru-channel" }
+koru-device = { path = "../koru-device" }
+koru-oauth-credentials = { path = "../koru-oauth-credentials", features = ["desktop"] }
+koru-oauth-loopback = { path = "../koru-oauth-loopback" }
+oauth2 = { version = "5", default-features = false, features = ["reqwest-blocking"] }
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+url.workspace = true
+zeroize.workspace = true

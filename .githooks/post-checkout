@@ -1,0 +1,19 @@
+#!/bin/sh
+# SPDX-License-Identifier: MPL-2.0
+
+# Install the agent skills in a checkout that has none, and check out the
+# docs/ submodule where this clone already has it. `git worktree add`
+# runs this hook inside the new worktree. Anywhere the skills are already
+# there, it costs one directory listing.
+#
+# Active once core.hooksPath is .githooks, which `koru.bat setup` (or
+# `./koru.sh setup`, or any other launcher verb) sets when nothing else has.
+# git never runs a repository's hooks on `git clone`, so a fresh clone gets
+# its skills from that first verb instead. This hook's exit status would
+# become the checkout's, so it never fails one.
+
+root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+[ -f "$root/scripts/setup/setup-skills.sh" ] || exit 0
+sh "$root/scripts/setup/setup-skills.sh" || true
+[ -f "$root/scripts/setup/setup-docs.sh" ] && sh "$root/scripts/setup/setup-docs.sh" --hook || true
+exit 0

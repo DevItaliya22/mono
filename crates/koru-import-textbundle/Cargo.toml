@@ -1,0 +1,19 @@
+[package]
+rust-version.workspace = true
+name = "koru-import-textbundle"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "TextBundle and TextPack importer for Koru documents."
+
+[dependencies]
+koru-import = { path = "../koru-import" }
+koru-import-markdown = { path = "../koru-import-markdown" }
+serde_json.workspace = true
+tempfile.workspace = true
+zip.workspace = true
+
+[dev-dependencies]
+koru-store-core = { path = "../koru-store-core" }
+koru-core = { path = "../koru-core" }

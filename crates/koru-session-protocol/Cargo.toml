@@ -1,0 +1,19 @@
+[package]
+rust-version.workspace = true
+name = "koru-session-protocol"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Transport-neutral Koru terminal session vocabulary."
+
+# This is a leaf shared by the runtime, private wire, public API adapter, and
+# views. Keep process, transport, rendering, and product dependencies out.
+[dependencies]
+schemars.workspace = true
+serde.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+

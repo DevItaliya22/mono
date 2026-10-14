@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: MPL-2.0
+
+syntax = "proto3";
+
+package koru.v1;
+
+option java_multiple_files = true;
+option java_package = "app.koru.contract.v1";
+option swift_prefix = "KOR";
+
+// UUID-backed identity values are distinct messages so APIs cannot mix them.
+message ProfileId {
+  string value = 1;
+}
+message WorkspaceId {
+  string value = 1;
+}
+message DocumentId {
+  string value = 1;
+}
+message BlockId {
+  string value = 1;
+}
+message UserId {
+  string value = 1;
+}
+message AttributeId {
+  string value = 1;
+}
+message InlineObjectId {
+  string value = 1;
+}
+
+// A blob ID is an opaque, self-describing content hash: algorithm:digest.
+message BlobId {
+  string value = 1;
+}

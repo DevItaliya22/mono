@@ -1,0 +1,47 @@
+[package]
+rust-version.workspace = true
+name = "koru-voice-whisper"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Compact Koru speech engine over whisper.cpp; its runtime feature is enabled unconditionally by the product worker."
+
+# **This crate exists because a gate named Whisper and `koru-voice-sherpa`
+# cannot reach it.** whisper.cpp is a second inference runtime with its own
+# build, its own weights and its own licence; adding a `whisper` arm to the
+# sherpa adapter would have made one crate link two native libraries so that a
+# feature flag could choose between them.
+#
+# Its charter is the gate. It is not a fallback engine until ADR-253 says so,
+# and if it does not, this directory is deleted rather than left compiling.
+#
+# **The runtime is optional and off**, for the same reason it is in
+# `koru-voice-sherpa` — although the reason is *not* the same trap.
+# `whisper-rs-sys` vendors the whisper.cpp sources inside its own `.crate` and
+# builds them with cmake and bindgen, so it reaches no network. What it does
+# need is a C++ toolchain, CMake and libclang on the build machine, and turning
+# that into a requirement for every `cargo test --workspace` in this workspace
+# would be its own kind of broken build. Off by default; the benchmark turns it
+# on. See `docs/features/voice/RUNTIME_ARTIFACTS.md`.
+[features]
+default = []
+# Compile and link whisper.cpp. Needs CMake and a C++ toolchain; builds no
+# network.
+runtime = ["dep:whisper-rs"]
+
+[dependencies]
+koru-voice = { path = "../koru-voice" }
+
+# **Not a workspace dependency**, for the reason `koru-voice-sherpa` gives for
+# `sherpa-onnx`: one consumer, and the shared table is where a name goes when it
+# must not drift between several. Default features only — every GPU feature
+# (`cuda`, `metal`, `vulkan`, `coreml`, `hipblas`, `intel-sycl`) is off, because
+# no candidate in this gate is configured for a GPU and a GPU path would be a
+# different set of artifacts to provision.
+[dependencies.whisper-rs]
+version = "0.16.0"
+optional = true
+
+[dev-dependencies]
+tempfile = { workspace = true }

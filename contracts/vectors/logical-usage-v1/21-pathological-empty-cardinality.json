@@ -1,0 +1,142 @@
+{
+  "case": "21-pathological-empty-cardinality",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "A workspace of one million documents with no text at all, sitting exactly on the document-count resource limit. It costs the customer nothing and costs Koru a great deal. The case exists to prove that billing and resource limits are two mechanisms, not one: zero cost, and a clear refusal.",
+  "covers": [
+    "D65",
+    "D33",
+    "D79",
+    "D80",
+    "CTO 2026-09-05"
+  ],
+  "notes": [
+    "Two assertions about the same workspace at the same moment: logical_usage_units is ZERO, and a new document's first durable receipt is REFUSED with WORKSPACE_DOCUMENT_LIMIT_REACHED. An implementation that cannot produce both simultaneously has merged two mechanisms that must stay apart.",
+    "The input is parametric rather than enumerated: writing 1 000 000 identical documents out would make the file unreadable without making it more precise.",
+    "Billing: 0 LU. Not a rounding, not a floor - zero. Structure is free (D79) and this workspace is nothing but structure.",
+    "The resource limit does not appear anywhere in the arithmetic. The usage number here is identical to what it would be with no limit configured at all; that is what makes it a resource limit rather than a quota rule (contract 7.2).",
+    "The limit shown is the contract-recommended 1 000 000 documents per workspace, with the workspace sitting exactly on it. The 10% and 50% alert thresholds (100 000 and 500 000) fired long ago and refused nothing - they are the warning, not the wall.",
+    "Narrowness matters: local editing is unaffected, the 1 000 000 existing documents keep syncing, their files keep uploading, and only the first durable receipt for a NEW document is refused.",
+    "Recovery is live. Deleting documents brings the workspace back under and Cloud resumes by itself - no reset, no ticket, no clock.",
+    "NON-NORMATIVE: the v1 revision would have charged 64 per node, so this workspace would have read 6 400 000 and quota would have bounded the cardinality by itself. It no longer does, which is exactly why the limit had to be defined."
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents_are_parametric": true,
+        "document_count": 1000000,
+        "each_document": {
+          "listing": {
+            "kind": "page",
+            "trashed_at": null
+          },
+          "durable": true,
+          "nodes": [
+            {
+              "id": "n1",
+              "parent": null,
+              "ordinal": 0,
+              "depth": 0,
+              "kind": "task",
+              "text": "",
+              "done": true,
+              "runs": [],
+              "attrs": []
+            }
+          ]
+        },
+        "blobs": [],
+        "configured_resource_limits": {
+          "workspace_document_limit": 1000000,
+          "note": "a named threshold in configuration (contract 7.3); the CTO confirms the value at approval"
+        }
+      }
+    ],
+    "attempted_operation": {
+      "operation": "first durable Cloud receipt for a document not already in the workspace's durable set",
+      "workspace": "ws-1"
+    }
+  },
+  "derivation": [
+    "billing:",
+    "  each document: 1 node, kind task, text \"\" -> no authored text; structure, marks, references and non-text values are free = 0",
+    "  1000000 documents x 0 = 0",
+    "  -> documents_units 0 + files_bytes 0 = 0",
+    "  account: documents_units 0 + files_bytes 0 = 0",
+    "resource limit (a separate mechanism; contributes nothing to the line above):",
+    "  workspace document count 1000000 >= configured workspace_document_limit 1000000",
+    "  the attempted operation creates a document not already in the durable set -> REFUSED",
+    "  every other operation -> allowed",
+    "operational: document cardinality 1000000 for one workspace; physical-to-logical ratio is unbounded (a non-zero physical footprint over a zero logical one). Both are contract 7.1 quantities and both alert well before the limit."
+  ],
+  "expected": {
+    "billing": {
+      "workspaces": [
+        {
+          "workspace": "ws-1",
+          "workspace_state": "ENABLED",
+          "counted": true,
+          "usage_state": "OK",
+          "documents_units": 0,
+          "files_bytes": 0,
+          "logical_usage_units": 0,
+          "algorithm_version": 1
+        }
+      ],
+      "account": {
+        "usage_state": "OK",
+        "documents_units": 0,
+        "files_bytes": 0,
+        "logical_usage_units": 0,
+        "algorithm_version": 1
+      },
+      "note": "unchanged by the presence of the resource limit; the limit is not a term in the formula"
+    },
+    "resource_limit": {
+      "limit": "workspace_document_limit",
+      "configured_value": 1000000,
+      "observed_value": 1000000,
+      "code": "WORKSPACE_DOCUMENT_LIMIT_REACHED",
+      "refused": "the first durable Cloud receipt for a document not already in the workspace's durable set",
+      "allowed": [
+        "all local editing, always",
+        "durable receipts for the 1 000 000 documents already in the durable set",
+        "blob uploads for documents already in the durable set",
+        "reads, downloads and restore"
+      ],
+      "message_must_name": [
+        "the limit",
+        "the workspace's current document count",
+        "the two ways out: remove documents, or use another workspace"
+      ],
+      "recovery": "live - deleting documents brings the workspace back under and Cloud resumes by itself",
+      "is_not": [
+        "ACCOUNT_OVER_QUOTA - the allowance is untouched",
+        "WORKSPACE_LIMIT_REACHED - that is D34's optional allowance ceiling, a different thing with a similar name"
+      ]
+    },
+    "operational_signals_required": [
+      {
+        "quantity": "document cardinality",
+        "scope": "workspace ws-1",
+        "value": 1000000,
+        "requirement": "measured continuously, alert thresholds at 10% and 50% of the limit, so an account approaching the wall is visible long before it arrives"
+      },
+      {
+        "quantity": "physical-to-logical ratio",
+        "scope": "workspace ws-1 and account acct-1",
+        "value": "unbounded (logical denominator is zero)",
+        "requirement": "measured continuously, named threshold in configuration, alerts when crossed"
+      }
+    ],
+    "must_not": [
+      "let the limit change the usage number by any amount",
+      "refuse without the stable code and a product-visible message - a silent accounting limit is forbidden",
+      "refuse anything local, or anything about documents already in the durable set"
+    ]
+  }
+}

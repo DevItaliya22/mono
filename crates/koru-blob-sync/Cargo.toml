@@ -1,0 +1,69 @@
+[package]
+rust-version.workspace = true
+name = "koru-blob-sync"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The provider-neutral blob transfer engine: the referenced-blob walk, event-driven reconciliation, the upload and download state machines, the byte-URL allowlist and the announcement seam."
+
+[features]
+# The checked-in `logical-usage-v1` corpus, compiled in with `include_str!`.
+#
+# Off by default and for the same reason `koru-cloud-blob`'s is: the vectors
+# live under `contracts/vectors/` and a deployed binary's build context does not
+# carry that tree, so an unconditional `include_str!` compiles on a developer
+# machine and fails only in an image. Consumers turn it on in their
+# dev-dependencies (this crate's own tests, and the hosted service's).
+vectors = []
+# The fake ports of `src/fakes.rs`, so the integration tests beside this crate
+# (and the hosted service's, which is not in this repository) reuse the doubles
+# its unit tests use rather than growing a second half-copy.
+test-support = ["dep:tempfile"]
+
+[dependencies]
+blake3.workspace = true
+# The one free-space question: can this volume hold the rest of a download and
+# the copy publishing it makes. Shared with `koru-updater`, which asks the same
+# question about an install — and on Apple the answer is not `statvfs`'s.
+koru-free-space = { path = "../koru-free-space" }
+futures-util.workspace = true
+koru-account-core = { path = "../koru-account-core" }
+# The wire contract, reused rather than restated: the constants, the stable
+# codes, the range admission and every JSON body on both planes.
+koru-cloud-blob = { path = "../koru-cloud-blob" }
+koru-device = { path = "../koru-device" }
+# `BlobHash`, `WorkspaceId` and the Store's error vocabulary. No Store
+# implementation and no SQLite: this crate reaches storage through ports only.
+koru-store-core = { path = "../koru-store-core" }
+# Coverage compares two document states, and a version vector is the only
+# comparison `PRINCIPLES.md` permits for that question. The decode and the
+# inclusion test live in `coverage`; no document, no container and no CRDT
+# operation is constructed anywhere in this crate.
+loro.workspace = true
+rand_core.workspace = true
+# Only for `test-support`'s temporary roots; absent from an ordinary build.
+tempfile = { workspace = true, optional = true }
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+url.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+# Turning this crate's own `test-support` on for its tests. A dev-dependency
+# on self is the only way a test target can enable a feature of the library it
+# is testing.
+koru-blob-sync = { path = ".", features = ["test-support", "vectors"] }
+koru-account-session = { path = "../koru-account-session" }
+koru-cloud-blob = { path = "../koru-cloud-blob", features = ["vectors"] }
+# The in-process object service of `tests/common/object_service.rs`, which the
+# integration suites drive over a real socket instead of the hosted worker.
+axum.workspace = true
+base64.workspace = true
+ed25519-dalek.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["test-util"] }

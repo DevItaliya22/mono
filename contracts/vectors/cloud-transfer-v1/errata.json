@@ -1,0 +1,7 @@
+{
+  "T50": {
+    "original_expected": "ok",
+    "expected": "sync_transfer_invalid",
+    "reason": "ProfileUnitRef uses the existing type discriminator, not the new CloudTransferUnit kind discriminator. The frozen input is invalid. Production decoding exposed this authoring error; supplement.json bytes are preserved."
+  }
+}

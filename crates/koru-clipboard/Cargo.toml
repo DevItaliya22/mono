@@ -1,0 +1,28 @@
+[package]
+rust-version.workspace = true
+name = "koru-clipboard"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Koru's single injected OS clipboard mechanism."
+
+[dependencies]
+# This is the sole image-enabled arboard owner. Text-only consumers depend on
+# this crate rather than enabling another platform implementation.
+arboard = { workspace = true, features = ["image-data"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+clipboard-win = "5"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-foundation = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSString",
+] }
+objc2-app-kit = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSPasteboard",
+    "NSPasteboardItem",
+] }

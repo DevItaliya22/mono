@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<en-export>
+  <note><title>Deleted with time</title><content>&lt;en-note/&gt;</content><deleted>20240102T030405Z</deleted></note>
+  <note><title>Deleted invalid</title><content>&lt;en-note/&gt;</content><deleted>not-a-time</deleted></note>
+  <note><title>Inactive</title><content>&lt;en-note/&gt;</content><active>false</active></note>
+</en-export>

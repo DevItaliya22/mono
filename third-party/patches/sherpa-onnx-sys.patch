@@ -1,0 +1,75 @@
+diff --git a/build.rs b/build.rs
+index 9b667aa..bb7ca02 100644
+--- a/build.rs
++++ b/build.rs
+@@ -20,13 +20,16 @@ const SHERPA_ONNX_STATIC_LIBS: &[&str] = &[
+     "sherpa-onnx-fst",
+     "kaldi-native-fbank-core",
+     "kissfft-float",
+-    "piper_phonemize",
+-    "espeak-ng",
+-    "ucd",
+     "onnxruntime",
+     "ssentencepiece_core",
+ ];
+ 
++// Koru patch (see third-party/patches/sherpa-onnx.md in Koru): upstream's list
++// also names the text-to-speech libraries piper_phonemize, espeak-ng and ucd.
++// eSpeak NG and ucd are GPL-3.0 and Koru uses no text-to-speech, so they are
++// never linked: every target links upstream's TTS-free ("no-tts") archive
++// (archive_name below), which has none of the three.
++
+ type DynError = Box<dyn Error>;
+ 
+ #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+@@ -228,24 +231,44 @@ fn archive_name(
+     target_arch: &str,
+ ) -> Result<String, DynError> {
+     let version = env!("CARGO_PKG_VERSION");
++    // Koru patch: Koru links sherpa-onnx statically, and only from a TTS-free
++    // archive. The shared archives named below carry text-to-speech, with
++    // eSpeak NG built into their libraries, so none of them is downloaded; a
++    // shared build needs SHERPA_ONNX_LIB_DIR.
++    if link_mode == LinkMode::Shared {
++        return Err(format!(
++            "Koru links sherpa-onnx statically from upstream's TTS-free archive and names no \
++             shared archive (os={target_os}, arch={target_arch}); see \
++             third-party/patches/sherpa-onnx.md in Koru"
++        )
++        .into());
++    }
+     let name = match (link_mode, target_os, target_arch) {
++        // Koru patch: every static archive is upstream's TTS-free ("no-tts")
++        // build, which has no espeak-ng, ucd or piper_phonemize.
+         (LinkMode::Static, "linux", "x86_64") => {
+-            format!("sherpa-onnx-v{version}-linux-x64-static-lib.tar.bz2")
++            format!("sherpa-onnx-v{version}-linux-x64-static-no-tts-lib.tar.bz2")
+         }
+         (LinkMode::Static, "linux", "aarch64") => {
+-            format!("sherpa-onnx-v{version}-linux-aarch64-static-lib.tar.bz2")
++            // Koru patch: upstream publishes no TTS-free static archive for
++            // Linux aarch64, and its TTS one links eSpeak NG (GPL-3.0).
++            return Err(format!(
++                "upstream publishes no TTS-free sherpa-onnx v{version} static archive for \
++                 linux aarch64, and Koru links no other"
++            )
++            .into());
+         }
+         (LinkMode::Static, "macos", "x86_64") => {
+-            format!("sherpa-onnx-v{version}-osx-x64-static-lib.tar.bz2")
++            format!("sherpa-onnx-v{version}-osx-x64-static-no-tts-lib.tar.bz2")
+         }
+         (LinkMode::Static, "macos", "aarch64") => {
+-            format!("sherpa-onnx-v{version}-osx-arm64-static-lib.tar.bz2")
++            format!("sherpa-onnx-v{version}-osx-arm64-static-no-tts-lib.tar.bz2")
+         }
+         (LinkMode::Static, "windows", "x86_64") => {
+-            format!("sherpa-onnx-v{version}-win-x64-static-MT-Release-lib.tar.bz2")
++            format!("sherpa-onnx-v{version}-win-x64-static-MT-Release-no-tts-lib.tar.bz2")
+         }
+         (LinkMode::Static, "windows", "aarch64") => {
+-            format!("sherpa-onnx-v{version}-win-arm64-static-MT-Release-lib.tar.bz2")
++            format!("sherpa-onnx-v{version}-win-arm64-static-MT-Release-no-tts-lib.tar.bz2")
+         }
+         (LinkMode::Shared, "linux", "x86_64") => {
+             format!("sherpa-onnx-v{version}-linux-x64-shared-lib.tar.bz2")

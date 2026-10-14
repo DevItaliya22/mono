@@ -1,0 +1,20 @@
+[package]
+rust-version.workspace = true
+name = "koru-history"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Semantic document snapshots and diffs for Koru history."
+
+[dependencies]
+koru-core = { path = "../koru-core" }
+serde.workspace = true
+similar.workspace = true
+unicode-segmentation.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+# The eight-language fixture strings (PRINCIPLES: every text path is tested
+# over all eight). Dev-only; the build dependency would point the wrong way.
+koru-store-core = { path = "../koru-store-core" }

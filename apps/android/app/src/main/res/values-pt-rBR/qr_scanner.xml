@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qr_preparing">Preparando o leitor de QR…</string>
+    <string name="qr_unavailable">Não foi possível abrir o leitor de QR. Verifique sua conexão e o Google Play Services, tente novamente ou cole o código de vinculação abaixo.</string>
+</resources>

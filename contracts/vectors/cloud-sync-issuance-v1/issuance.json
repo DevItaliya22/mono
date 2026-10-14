@@ -1,0 +1,1312 @@
+{
+  "format": "cloud-sync-issuance-v1-reference",
+  "partial": true,
+  "foundation_sha256": "9be2068eb15ef67ab1a1b861ef33110b5120b750b41c700ff1bf868167a166a2",
+  "baseline": "c28cf31c",
+  "request_cases": [
+    {
+      "id": "I-R01",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\"}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": true
+    },
+    {
+      "id": "I-R02",
+      "body": " { \"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\", \"version\":1 } \n",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": true
+    },
+    {
+      "id": "I-R03",
+      "body": "null",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R04",
+      "body": "[]",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R05",
+      "body": "{}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R06",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"version\":1}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R07",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\"}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R08",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\"}{}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R09",
+      "body": "{\"version\":true,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\"}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R10",
+      "body": "{\"version\":1.0,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\"}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R11",
+      "body": "{\"version\":2,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\"}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R12",
+      "body": "{\"version\":null,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\"}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R13",
+      "body": "{\"version\":1,\"profile_id\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R14",
+      "body": "{\"version\":1,\"profile_id\":\"0D0D0D0D-0D0D-4D0D-8D0D-0D0D0D0D0D0D\"}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R15",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d0d0d4d0d8d0d0d0d0d0d0d0d\"}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R16",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-1d0d-8d0d-0d0d0d0d0d0d\"}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R17",
+      "body": "{\"version\":1,\"profile_id\":\"00000000-0000-0000-0000-000000000000\"}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R18",
+      "body": "{\"version\":1,\"profile_id\":42}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R19",
+      "body": "{\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\"}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R20",
+      "body": "{\"version\":1}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R21",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"account_id\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R22",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"device_id\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R23",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"region\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R24",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"client_endpoint_id\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R25",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"workspace_id\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R26",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"workspace_replica_id\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R27",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"profile_replica_id\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R28",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"membership_epoch\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R29",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"worker_id\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R30",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"lease_id\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R31",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"route\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R32",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\",\"exp\":null}",
+      "workspace_path": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+      "valid": false
+    },
+    {
+      "id": "I-R33",
+      "body": "{\"version\":1,\"profile_id\":\"0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d\"}",
+      "workspace_path": "0A0A0A0A-0A0A-4A0A-8A0A-0A0A0A0A0A0A",
+      "valid": false
+    }
+  ],
+  "ordered_cases": [
+    {
+      "id": "I-O01",
+      "input": {},
+      "expected": {
+        "stage": "signed",
+        "code": null,
+        "rate_calls": 1,
+        "sign_calls": 1,
+        "protected_writes": 0
+      },
+      "rows": [
+        "both routes ready"
+      ]
+    },
+    {
+      "id": "I-O02",
+      "input": {
+        "request_valid": false,
+        "native_code": "unauthenticated",
+        "device_code": "device_revoked",
+        "rate_allowed": false
+      },
+      "expected": {
+        "stage": "shape",
+        "code": "invalid_request",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O03",
+      "input": {
+        "native_code": "unauthenticated",
+        "device_code": "device_revoked",
+        "rate_allowed": false
+      },
+      "expected": {
+        "stage": "native",
+        "code": "unauthenticated",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O04",
+      "input": {
+        "native_code": "wrong_audience"
+      },
+      "expected": {
+        "stage": "native",
+        "code": "wrong_audience",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": [
+        "DS-D02"
+      ]
+    },
+    {
+      "id": "I-O05",
+      "input": {
+        "native_code": "wrong_purpose"
+      },
+      "expected": {
+        "stage": "native",
+        "code": "wrong_purpose",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": [
+        "DS-D02"
+      ]
+    },
+    {
+      "id": "I-O06",
+      "input": {
+        "native_code": "credential_unknown_key"
+      },
+      "expected": {
+        "stage": "native",
+        "code": "credential_unknown_key",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": [
+        "DS-D02"
+      ]
+    },
+    {
+      "id": "I-O07",
+      "input": {
+        "device_code": "device_revoked",
+        "rate_allowed": false,
+        "workspace_known": false
+      },
+      "expected": {
+        "stage": "device",
+        "code": "device_revoked",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": [
+        "DS-D06"
+      ]
+    },
+    {
+      "id": "I-O08",
+      "input": {
+        "device_code": "endpoint_mismatch"
+      },
+      "expected": {
+        "stage": "device",
+        "code": "endpoint_mismatch",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O09",
+      "input": {
+        "rate_allowed": false,
+        "workspace_known": false
+      },
+      "expected": {
+        "stage": "rate",
+        "code": "rate_limited",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O10",
+      "input": {
+        "rate_allowed": false,
+        "lifecycle": "deleting"
+      },
+      "expected": {
+        "stage": "rate",
+        "code": "rate_limited",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O11",
+      "input": {
+        "workspace_known": false
+      },
+      "expected": {
+        "stage": "workspace",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O12",
+      "input": {
+        "workspace_visible": false
+      },
+      "expected": {
+        "stage": "workspace",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O13",
+      "input": {
+        "profile_binding": "missing"
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O14",
+      "input": {
+        "profile_binding": "pending_provisioning"
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O15",
+      "input": {
+        "profile_binding": "revoked"
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O16",
+      "input": {
+        "profile_binding": "authorized"
+      },
+      "expected": {
+        "stage": "signed",
+        "code": null,
+        "rate_calls": 1,
+        "sign_calls": 1,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O17",
+      "input": {
+        "profile_binding": "provisioned",
+        "profile_has_bytes": false
+      },
+      "expected": {
+        "stage": "signed",
+        "code": null,
+        "rate_calls": 1,
+        "sign_calls": 1,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O18",
+      "input": {
+        "profile_edge": false,
+        "another_profile_edge": true
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O19",
+      "input": {
+        "profile_active": false
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O20",
+      "input": {
+        "exact_membership": false,
+        "another_profile_membership": true
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O21",
+      "input": {
+        "exact_sync_scope": false,
+        "another_profile_sync_scope": true
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O22",
+      "input": {
+        "exact_membership": false,
+        "lifecycle": "deleting"
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O23",
+      "input": {
+        "lifecycle": "disabled"
+      },
+      "expected": {
+        "stage": "lifecycle",
+        "code": "cloud_disabled",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O24",
+      "input": {
+        "lifecycle": "deleting"
+      },
+      "expected": {
+        "stage": "lifecycle",
+        "code": "cloud_deleting",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O25",
+      "input": {
+        "epochs_current": false
+      },
+      "expected": {
+        "stage": "lifecycle",
+        "code": "authorization_stale",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O26",
+      "input": {
+        "assignment_code": "wrong_region"
+      },
+      "expected": {
+        "stage": "assignment",
+        "code": "wrong_region",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O27",
+      "input": {
+        "assignment_code": "replica_mismatch"
+      },
+      "expected": {
+        "stage": "assignment",
+        "code": "replica_mismatch",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O28",
+      "input": {
+        "assignment_code": "cloud_incarnation_stale"
+      },
+      "expected": {
+        "stage": "assignment",
+        "code": "cloud_incarnation_stale",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O29",
+      "input": {
+        "workspace_route": false
+      },
+      "expected": {
+        "stage": "signed",
+        "code": null,
+        "rate_calls": 1,
+        "sign_calls": 1,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O30",
+      "input": {
+        "profile_route": false
+      },
+      "expected": {
+        "stage": "signed",
+        "code": null,
+        "rate_calls": 1,
+        "sign_calls": 1,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O31",
+      "input": {
+        "workspace_route": false,
+        "profile_route": false
+      },
+      "expected": {
+        "stage": "routes",
+        "code": "sync_unavailable",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O32",
+      "input": {
+        "workspace_route": false,
+        "profile_route": false,
+        "unassigned_worker_ready": true
+      },
+      "expected": {
+        "stage": "routes",
+        "code": "sync_unavailable",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O33",
+      "input": {
+        "assignment_code": "sync_unavailable",
+        "unassigned_worker_ready": true
+      },
+      "expected": {
+        "stage": "assignment",
+        "code": "sync_unavailable",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O34",
+      "input": {
+        "device_code": "device_revoked",
+        "previous_token_exists": true
+      },
+      "expected": {
+        "stage": "device",
+        "code": "device_revoked",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": [
+        "DS-D06"
+      ]
+    },
+    {
+      "id": "I-O35",
+      "input": {
+        "native_code": "unauthenticated",
+        "old_snapshot_valid": true
+      },
+      "expected": {
+        "stage": "native",
+        "code": "unauthenticated",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    }
+  ],
+  "native_authority_cases": [
+    {
+      "id": "I-O36",
+      "input": {
+        "native_kind": "web",
+        "old_snapshot_valid": true
+      },
+      "expected": {
+        "stage": "native",
+        "code": "permission_denied",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O37",
+      "input": {
+        "session_current": false,
+        "old_snapshot_valid": true
+      },
+      "expected": {
+        "stage": "native",
+        "code": "unauthenticated",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O38",
+      "input": {
+        "account_active": false
+      },
+      "expected": {
+        "stage": "native",
+        "code": "unauthenticated",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O39",
+      "input": {
+        "session_device_matches": false
+      },
+      "expected": {
+        "stage": "native",
+        "code": "unauthenticated",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    },
+    {
+      "id": "I-O40",
+      "input": {
+        "profile_binding": "revoked",
+        "another_profile_edge": true,
+        "another_profile_membership": true
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      },
+      "rows": []
+    }
+  ],
+  "expiry_cases": [
+    {
+      "id": "I-T01",
+      "iat": 1800000000,
+      "shorter_seconds": null,
+      "entitlement_cutoff": null,
+      "exp": 1800000600
+    },
+    {
+      "id": "I-T02",
+      "iat": 1800000000,
+      "shorter_seconds": null,
+      "entitlement_cutoff": 1800000300,
+      "exp": 1800000300
+    },
+    {
+      "id": "I-T03",
+      "iat": 1800000000,
+      "shorter_seconds": null,
+      "entitlement_cutoff": 1800000600,
+      "exp": 1800000600
+    },
+    {
+      "id": "I-T04",
+      "iat": 1800000000,
+      "shorter_seconds": null,
+      "entitlement_cutoff": 1800000900,
+      "exp": 1800000600
+    },
+    {
+      "id": "I-T05",
+      "iat": 1800000000,
+      "shorter_seconds": null,
+      "entitlement_cutoff": 1800000001,
+      "exp": 1800000001
+    },
+    {
+      "id": "I-T06",
+      "iat": 1800000000,
+      "shorter_seconds": null,
+      "entitlement_cutoff": 1800000000,
+      "exp": null
+    },
+    {
+      "id": "I-T07",
+      "iat": 1800000000,
+      "shorter_seconds": null,
+      "entitlement_cutoff": 1799999999,
+      "exp": null
+    },
+    {
+      "id": "I-T08",
+      "iat": 1800000000,
+      "shorter_seconds": 120,
+      "entitlement_cutoff": null,
+      "exp": 1800000120
+    },
+    {
+      "id": "I-T09",
+      "iat": 1800000000,
+      "shorter_seconds": 120,
+      "entitlement_cutoff": 1800000060,
+      "exp": 1800000060
+    },
+    {
+      "id": "I-T10",
+      "iat": 1800000000,
+      "shorter_seconds": 0,
+      "entitlement_cutoff": null,
+      "exp": null
+    },
+    {
+      "id": "I-T11",
+      "iat": 1800000000,
+      "shorter_seconds": 601,
+      "entitlement_cutoff": null,
+      "exp": null
+    },
+    {
+      "id": "I-T12",
+      "iat": 1800000000,
+      "shorter_seconds": 900,
+      "entitlement_cutoff": null,
+      "exp": null
+    },
+    {
+      "id": "I-T13",
+      "iat": 1800000000,
+      "shorter_seconds": 901,
+      "entitlement_cutoff": null,
+      "exp": null
+    },
+    {
+      "id": "I-T14",
+      "iat": "9223372036854775207",
+      "shorter_seconds": null,
+      "entitlement_cutoff": null,
+      "exp": "9223372036854775807"
+    },
+    {
+      "id": "I-T15",
+      "iat": "9223372036854775208",
+      "shorter_seconds": null,
+      "entitlement_cutoff": null,
+      "exp": null
+    },
+    {
+      "id": "I-T16",
+      "iat": 1800000000,
+      "shorter_seconds": 1,
+      "entitlement_cutoff": null,
+      "exp": 1800000001
+    }
+  ],
+  "response_cases": [
+    {
+      "id": "I-S01",
+      "recipe": {},
+      "valid": true
+    },
+    {
+      "id": "I-S02",
+      "recipe": {
+        "workspace_available": false
+      },
+      "valid": true
+    },
+    {
+      "id": "I-S03",
+      "recipe": {
+        "profile_available": false
+      },
+      "valid": true
+    },
+    {
+      "id": "I-S04",
+      "recipe": {
+        "workspace_available": false,
+        "profile_available": false
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S05",
+      "recipe": {
+        "set": [
+          "expires_at_seconds",
+          1800000601
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S06",
+      "recipe": {
+        "set": [
+          "version",
+          true
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S07",
+      "recipe": {
+        "set": [
+          "extra",
+          1
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S08",
+      "recipe": {
+        "set": [
+          "workspace.dataset.kind",
+          "profile"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S09",
+      "recipe": {
+        "set": [
+          "profile.dataset.profile_id",
+          "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S10",
+      "recipe": {
+        "set": [
+          "workspace.dataset.logical_replica_id",
+          "0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S11",
+      "recipe": {
+        "set": [
+          "workspace.dataset.incarnation_id",
+          "0d0d0d0d-0d0d-4d0d-8d0d-0d0d0d0d0d0d"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S12",
+      "recipe": {
+        "set": [
+          "profile.dataset.lineage_id",
+          "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S13",
+      "recipe": {
+        "set": [
+          "profile.dataset.extra",
+          null
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S14",
+      "recipe": {
+        "set": [
+          "workspace.route.endpoint_id",
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S15",
+      "recipe": {
+        "set": [
+          "workspace.route.direct_addresses",
+          []
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S16",
+      "recipe": {
+        "set": [
+          "workspace.route.direct_addresses",
+          [
+            "127.0.0.1:0"
+          ]
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S17",
+      "recipe": {
+        "set": [
+          "workspace.route.direct_addresses",
+          [
+            "relay.example.invalid:7777"
+          ]
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S18",
+      "recipe": {
+        "set": [
+          "workspace.route.relay_url",
+          null
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S19",
+      "recipe": {
+        "isolated": true,
+        "set": [
+          "workspace.route.relay_url",
+          null
+        ]
+      },
+      "valid": true
+    },
+    {
+      "id": "I-S20",
+      "recipe": {
+        "set": [
+          "workspace.route.relay_url",
+          "https://foreign.example.invalid"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S21",
+      "recipe": {
+        "workspace_available": false,
+        "set": [
+          "workspace.retry_after_seconds",
+          0
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S22",
+      "recipe": {
+        "workspace_available": false,
+        "set": [
+          "workspace.retry_after_seconds",
+          301
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S23",
+      "recipe": {
+        "workspace_available": false,
+        "set": [
+          "workspace.retry_after_seconds",
+          300
+        ]
+      },
+      "valid": true
+    },
+    {
+      "id": "I-S24",
+      "recipe": {
+        "workspace_available": false,
+        "set": [
+          "workspace.code",
+          "replica_fenced"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S25",
+      "recipe": {
+        "workspace_available": false,
+        "set": [
+          "workspace.route",
+          {}
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S26",
+      "recipe": {
+        "set": [
+          "profile",
+          null
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S27",
+      "recipe": {
+        "drop": "workspace.route.relay_url"
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S28",
+      "recipe": {
+        "duplicate": "version"
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S29",
+      "recipe": {
+        "duplicate": "workspace.dataset.logical_replica_id"
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S30",
+      "recipe": {
+        "set": [
+          "credential",
+          null
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "I-S31",
+      "recipe": {
+        "set": [
+          "workspace.route.extra",
+          1
+        ]
+      },
+      "valid": false
+    }
+  ],
+  "credential_lifetime_cases": [
+    {
+      "id": "I-V01",
+      "seconds": 600,
+      "accepted": true
+    },
+    {
+      "id": "I-V02",
+      "seconds": 900,
+      "accepted": true
+    },
+    {
+      "id": "I-V03",
+      "seconds": 901,
+      "accepted": false
+    },
+    {
+      "id": "I-V04",
+      "seconds": 0,
+      "accepted": false
+    }
+  ],
+  "rate": {
+    "key_hex": "3333333333333333333333333333333333333333333333333333333333333333",
+    "identity": "10101010-1010-4010-9010-101010101010",
+    "device": "11111111-1111-4111-9111-111111111111",
+    "workspace": "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a0a",
+    "purpose": "rate-cloud-sync-token",
+    "scope": "DeviceOperation",
+    "limit": 30,
+    "window_millis": 60000,
+    "subject_encoding": "u64-be length then canonical UUID ASCII, identity/device/workspace in order",
+    "golden_hmac_hex": "8ffa350b0937df51f1069ce3f6e904f534a35d5d98e81d364215efd259b62063"
+  },
+  "denial_obligations": [
+    {
+      "id": "DS-D01",
+      "evidence": "existing verifier foundation; actual Cloud producer integration pending",
+      "closed": false
+    },
+    {
+      "id": "DS-D02",
+      "evidence": "injected native verifier outcomes only; actual API audience-isolation and real foreign-key/type tests pending",
+      "closed": false
+    },
+    {
+      "id": "DS-D03",
+      "evidence": "existing verifier foundation; issued-token US/EU mismatch test pending",
+      "closed": false
+    },
+    {
+      "id": "DS-D04",
+      "evidence": "issuance existence analogue only; token-at-other-workspace producer pending",
+      "closed": false
+    },
+    {
+      "id": "DS-D05",
+      "evidence": "expiry arithmetic and hard ceiling only; actual verifier time/active-session close pending",
+      "closed": false
+    },
+    {
+      "id": "DS-D06",
+      "evidence": "reference issuance revocation/reissue order only; actual locked registration and concurrent writer proof pending",
+      "closed": false
+    },
+    {
+      "id": "DS-D07",
+      "evidence": "real current-authority reconciliation/session test pending",
+      "closed": false
+    },
+    {
+      "id": "DS-D08",
+      "evidence": "existing endpoint-bound claims; actual transport adapter pending",
+      "closed": false
+    },
+    {
+      "id": "DS-D13",
+      "evidence": "actual issued-token membership-epoch use-boundary test pending",
+      "closed": false
+    },
+    {
+      "id": "DS-D14",
+      "evidence": "actual issued-token access-epoch use-boundary test pending",
+      "closed": false
+    },
+    {
+      "id": "DS-D19",
+      "evidence": "actual delete/re-enable lineage producer and SQL receipt test pending",
+      "closed": false
+    }
+  ]
+}

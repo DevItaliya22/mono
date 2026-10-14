@@ -1,0 +1,343 @@
+[workspace]
+resolver = "3"
+members = ["apps/*", "crates/*"]
+# The phone apps are built by Gradle and Xcode, not cargo, so they sit
+# outside the workspace rather than being members of it. `apps/macos` is
+# there for the same reason: it is the Swift source of the share extension,
+# compiled by `koru-release` with `swiftc` at package time (ADR-416).
+exclude = [
+    "apps/android",
+    "apps/ios",
+    "apps/macos",
+    # Patched third-party crates, fetched by scripts/setup/fetch-third-party.*
+    # (third-party/README.md). Path dependencies, never members.
+    "third-party/crates",
+]
+default-members = ["apps/koru"]
+
+# Shared across every crate, so versions can never drift between them.
+[workspace.package]
+# **The one version every build of Koru carries.** Dev desktop builds report
+# it as-is; a published desktop build gets `<this>-<channel>.<n>` from the
+# release tool; iOS reads it into MARKETING_VERSION (apps/ios/koru.sh)
+# and Android into versionName (app/build.gradle.kts). Linked devices compare
+# MAJOR.MINOR.PATCH, so a phone a minor apart from a desktop is drawn in amber
+# — which is what three independent numbers produced. Bump it here, only here;
+# `every_platform_carries_the_workspace_version` in koru-release fails otherwise.
+version = "0.0.3"
+edition = "2024"
+rust-version = "1.92"
+# Koru is MPL-2.0 (LICENSE). Every package inherits this with
+# `license.workspace = true`. The hosted Koru Cloud services are proprietary
+# and are not in this repository (licensing/README.md).
+license = "MPL-2.0"
+
+[workspace.dependencies]
+# Terminal parsing and grid state. Kept behind `koru-terminal-emulator`; the
+# exact version and Unicode-width contract are frozen by ADR-178.
+alacritty_terminal = { version = "=0.26.0", default-features = false }
+# PTY interface on Unix. Koru's Windows adapter supplies the suspended
+# Job-object spawn that 0.9.0 does not expose; see ADR-179.
+portable-pty = "=0.9.0"
+# **`complex-scripts` is not optional for us.** Without it parley builds its
+# line breaker with `LineSegmenter::new_for_non_complex_scripts`, which has no
+# dictionary for the languages that need one — so Japanese and Chinese break
+# lines by a fallback rule, and ICU prints `No segmentation model for language:
+# ja` to stderr on **every wrapped layout**. Two of the eight languages Koru
+# ships are exactly the ones this covers.
+#
+# **`accesskit` is not decoration either.** parley 0.11 ships its own AccessKit
+# projection of a `Layout` — `LayoutAccessibility::build_nodes` and
+# `Cursor::{to,from}_access_position` — which is the only first-party answer to
+# "which AccessKit character is this byte offset", and it depends on
+# `accesskit 0.24`, the version already pinned below, so no second accesskit
+# arrives. Writing that mapping again in `koru-editor` would be a second place
+# to get the bytes/clusters/characters correspondence wrong, in exactly the
+# scripts nobody checks by hand. See `crates/koru-editor/src/accessibility/`.
+parley = { version = "0.11.0", features = ["complex-scripts", "accesskit"] }
+vello = "0.8.0"
+winit = "0.30.13"
+peniko = "0.6.1"
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }
+# Cron expression parsing and candidate exploration. Contained in
+# `koru-recurrence`: the stored language and public types remain Koru-owned,
+# and timezone/DST meaning remains `koru-time-zone`'s.
+cron = "0.17.0"
+# The machine's own IANA timezone *name*, which `chrono::Local` does not
+# expose -- it has the offset rules and not the name. Needed because a shared
+# deadline stores the zone it was meant in (ADR-206), and an offset is not a
+# zone. Already in the tree as chrono's own dependency, so this costs nothing
+# new; it is a single focused call, `get_timezone()`.
+iana-time-zone = "0.1"
+# Compiled IANA timezone rules. Owned only by `koru-time-zone`; `koru-core`
+# keeps names/instants and the `ZoneRules` seam without acquiring a database.
+chrono-tz = { version = "=0.10.4", default-features = false, features = ["std"] }
+pollster = "0.4"
+# **The native accessibility bridge** (ADR-336). `accesskit` is the schema —
+# roles, actions, a `TreeUpdate` — and is pure data with `uuid` as its only
+# dependency, so it builds on every target and the Koru-side projection can be
+# written and tested off Windows. `accesskit_winit` is the *adapter*, and its
+# version tracks winit's: 0.32 declares `winit = "0.30.5"`, which our
+# `winit = "0.30.13"` satisfies with no second winit in the tree.
+#
+# `default-features = false` on purpose. The defaults are the Linux stack
+# (`accesskit_unix`, `async-io`) plus `winit/x11` and `winit/wayland` — feature
+# unification would hand those winit features to every crate in this workspace
+# to gain nothing on the two platforms we ship. `rwh_06` is the
+# `raw-window-handle` major winit 0.30 already speaks, and one of `rwh_05` /
+# `rwh_06` must be on or the crate refuses to compile. With the defaults off the
+# crate would still pick `accesskit_windows` on Windows and `accesskit_macos` on
+# macOS — but `koru-window` names it under `cfg(windows)` only, so today it is
+# Windows or nothing. That is the maintainers' Windows-only scope carried as a seam
+# rather than a port; `docs/features/macos/CATCHUP.md` holds what Apple is owed.
+accesskit = "0.24"
+accesskit_winit = { version = "0.32", default-features = false, features = ["rwh_06"] }
+# Pinned exactly: a lockfile regeneration floated 1.13.9 in on 2026-08-30 and
+# silently changed CRDT undo semantics (ADR-1's amendment). A bump is a commit.
+loro = "=1.13.9"
+uuid = { version = "1", features = ["v4", "serde"] }
+# Base pin only. `koru-clipboard` is the sole owner that enables `image-data`;
+# every text/image/file-list caller goes through that crate.
+arboard = { version = "3", default-features = false }
+# Pure-Rust syntax highlighting (`default-fancy` → fancy-regex, no C dependency)
+# for code blocks. Contained in `koru-blocks`; nothing else links it.
+syntect = { version = "5", default-features = false, features = ["default-fancy"] }
+emojis = "0.9.0"
+nucleo = "0.5.0"
+rusqlite = { version = "0.37", features = ["bundled"] }
+unicode-normalization = "0.1"
+# Word-boundary segmentation (UAX #29), so nothing tokenizes text by bytes or
+# scalars. Five crates share it — `koru-history` (diff tokens), `koru-editor`,
+# `apps/koru-document`, `koru-voice-bench`, `koru-spell` (prose word
+# tokenization) — and one pin keeps them cutting words at the same boundaries.
+unicode-segmentation = "1.12"
+# The spell engine: Hunspell-dictionary checking and suggestions, no_std, one
+# transitive dependency (hashbrown). Pinned exactly — the crate calls itself
+# alpha and allows breaking API changes — and sealed inside `koru-spell`'s
+# provider module: no spellbook type crosses that crate's public API, so the
+# engine can be replaced without touching the editor (spell-check plan, D1).
+spellbook = "=0.4.2"
+# The text diff behind document history's compare. `koru-history` is the sole
+# owner; its `text_diff` wraps the library so nothing above it names a
+# `similar` type (ADR-129: the diff model is Koru's, the library is a detail).
+similar = "2.7"
+strsim = "0.11.1"
+# The mobile contract: protobuf as the schema, generated for Kotlin and
+# Swift. See ADR-83.
+prost = "0.14"
+prost-types = "0.14"
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+postcard = { version = "1.1.3", features = ["alloc"] }
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+rand_core = { version = "0.6", features = ["getrandom"] }
+zeroize = "1"
+base64 = "0.22"
+# Evernote's ENEX/ENML event reader. Kept exact because the importer relies on
+# 0.41's separate DocType and GeneralRef events for its security boundary.
+quick-xml = "=0.41.0"
+# Evernote resource matching uses the source format's MD5 digest. Blob identity
+# remains BLAKE3; this is the `md5` crate already present in Cargo.lock.
+md5 = "=0.7.0"
+qrcode = { version = "0.14", default-features = false }
+# JSON Schema for the API document, derived from the wire types so the document
+# cannot describe a shape the server does not send. It honours serde's own
+# attributes, which is the whole point — one declaration, two outputs. Not an
+# HTTP dependency: `koru-store-core` carries it behind an optional `schema`
+# feature that core's own builds leave off.
+schemars = { version = "1", default-features = false, features = ["derive"] }
+sha2 = "0.10"
+ring = "=0.17.14"
+# **Password hashing, and only in `koru-account-session`.** Argon2id is OWASP's
+# current recommendation and won the competition held to pick one; it is
+# memory-hard, which is the property bcrypt lacks and the one a GPU farm runs
+# into. Pure Rust, no C toolchain. It is deliberately not a dependency of
+# `koru-account-core`: the mobile host, the agent and the account client all
+# link core, and none of them ever checks a password -- one is only ever typed
+# into the hosted page.
+argon2 = "0.5"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "multipart", "rustls-tls", "stream"] }
+bytes = "1"
+url = { version = "2", features = ["serde"] }
+keyring = "=4.1.6"
+minisign = "0.9.1"
+minisign-verify = "0.2.5"
+zip = { version = "2.4", default-features = false, features = ["deflate"] }
+# **The publisher's archive readers, and deliberately nowhere near the product.**
+# Every speech model upstream publishes is a `.tar.bz2`, and Q-V50 settled that
+# we repackage it as a zip rather than teach `koru-voice-models` a second
+# archive format — because `koru_update::extract_zip` is the one hardened
+# extractor and a second one is the copy nobody reviews. So the tar reader and
+# the bzip2 decoder exist exactly once, in `koru-release`, which is a tool run
+# by hand and never shipped. `bzip2` is on its pure-Rust `libbz2-rs-sys` backend
+# so a publisher's machine needs no C toolchain to build the workspace.
+tar = "0.4"
+bzip2 = "0.6"
+# HMAC-SHA256, for AWS SigV4. R2's Cloudflare REST API refuses a body over
+# 300 MB and has no multipart endpoint at all, so an archive of several hundred
+# megabytes can only be published through the S3-compatible API — which is
+# signed. One primitive, over the `sha2` already here; see `cloud::s3`.
+hmac = "0.12"
+csv = "1.3"
+# crates.io's 2.0.0 with Koru's patch: third-party/patches/onenote_parser.md.
+onenote_parser = { path = "third-party/crates/onenote_parser", features = ["onepkg"] }
+typed-path = "0.12"
+directories = "6"
+fs2 = "0.4"
+semver = "1"
+# **The microphone, and only in `apps/koru-voice`.** Default features only: ASIO
+# needs a vendor SDK on the build machine, JACK and PipeWire need a daemon that
+# may not be running, and each would turn a missing system package into a build
+# failure for everybody. The voice worker is the one process that opens a
+# capture device (ADR-249) — audio never crosses the socket — so nothing else in
+# this workspace may name this dependency.
+cpal = "0.18"
+toml = "0.8"
+pulldown-cmark = "0.13"
+tempfile = "3"
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_Storage_FileSystem",
+    "Win32_Security_Cryptography",
+    "Win32_System_Memory",
+    "Win32_System_SystemInformation",
+    "Win32_System_Threading",
+    "Win32_System_Console",
+    "Win32_System_JobObjects",
+    "Win32_System_Pipes",
+    # Finding this installation's koru-mcp.exe bridges so the install handoff
+    # can kill them (koru-agent/update.rs, ADR-164).
+    "Win32_System_Diagnostics_ToolHelp",
+    # RtlGetVersion, for the OS a device advertises (koru-agent/build_stamp.rs).
+    "Wdk_System_SystemServices",
+    # The updater's progress window (koru-updater/progress.rs).
+    "Win32_System_LibraryLoader",
+    "Win32_UI_Controls",
+    "Win32_UI_WindowsAndMessaging",
+] }
+# Unix process checks in the updater. These adapters keep native calls out of
+# domain code.
+libc = "0.2"
+
+# ------------------------------------------------------------- Koru Store
+#
+# `tokio` and `axum` stay out of Store core and the blocking Store client, which
+# lets mobile embed the same core and keeps an async runtime out of the winit
+# loop. `koru-api-client` has one narrow exception: each active schedule SSE
+# subscription owns a current-thread runtime on its private reader thread so a
+# synchronous stop can cancel the HTTP body without polling. No subscription
+# means no such runtime or timer (ADR-401).
+tokio = { version = "1", features = [
+    "rt-multi-thread",
+    "macros",
+    "net",
+    "sync",
+    "time",
+    "signal",
+    "fs",
+] }
+axum = { version = "0.8", features = ["ws"] }
+# Process logs. Confined to executable leaves through `koru-log`; Store core
+# stays free of them for the mobile embedder.
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "registry", "env-filter"] }
+tracing-appender = "0.2"
+# The rendezvous: Windows named pipes and Unix domain sockets behind one type.
+# Tokio support remains opt-in through `koru-ipc`.
+#
+# **No `tokio` feature here.** Runtime hosts turn on
+# `interprocess/tokio`, and naming it in this table instead would hand it to
+# every client — which is the whole of what the `server` feature exists to
+# prevent, quietly undone one line away from where it is declared.
+interprocess = { version = "2.4" }
+# Declared to match the resolved pair in Cargo.lock (iroh 1.1.0 +
+# iroh-relay 1.1.0). Caret requirements: the checked-in lockfile is the
+# reproducibility boundary, and no cross-version incompatibility was found
+# that would justify `=` pins (guide/contributing/deps/IROH_RELAY.md).
+iroh = "1.1"
+# The relay *server* library, for `apps/koru-relay` and the in-memory test
+# relay in `koru-relay-test-support`. Consumers turn on its `server` feature
+# themselves; nothing else in the workspace links it.
+iroh-relay = "1.1"
+# Only for `apps/koru-relay`: iroh-relay's `CertConfig::LetsEncrypt` takes a
+# rustls `ConfigBuilder` from the caller, so the one binary that configures
+# ACME has to name rustls to build it. The `ring` provider is the one
+# iroh-relay's `server` feature already compiles in (`tls-ring`); no second
+# crypto stack is introduced here.
+rustls = { version = "0.23", default-features = false, features = ["ring"] }
+# Splitting a WebSocket into a reader and one writer.
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+# Framing only: the official Loro wire codec. No transport, no CRDT, and it does
+# not depend on `loro` itself. `loro-websocket-server` is a 0.1.0 skeleton and is
+# deliberately not used — the WebSocket handler is ours, the codec is theirs.
+loro-protocol = "0.3"
+# Content addressing for blobs. `BlobHash` is already `<alg>:<digest>`, so
+# `b3:<64 hex>` is additive beside the legacy bare-digest fnv1a.
+blake3 = "1"
+# Synchronous WebSocket, for `koru-store-client` only. See the note above tokio.
+tungstenite = "0.30"
+# **No `utoipa`.** The OpenAPI document is generated from one route table in
+# `koru-store-api::catalogue` instead. The derive needs `ToSchema` on every type
+# it describes, and those live in `koru-store-core` — the crate that must stay
+# free of HTTP so a mobile build can embed it. Pulling an OpenAPI dependency
+# into core to document an HTTP API would invert the boundary the store is
+# built on.
+
+# **A debug build has to be fast enough to judge the app by**, because that is
+# what everyone runs all day and what every measurement in `docs/contributing/operations/RUNBOOK.md` was
+# taken in. `opt-level = 1` on our own crates keeps a stack trace readable while
+# removing the worst of the unoptimised cost; `3` on dependencies is where the
+# frame time actually goes — vello, parley and loro are all doing per-frame work
+# that is unusable at `0`.
+#
+# **The cost is paid once per dependency and shared**, which is what makes it
+# affordable: `.cargo/config.toml` puts every rustc invocation through sccache,
+# so an `opt-level = 3` build of vello is compiled in whichever worktree gets
+# there first and hit from cache in all the others.
+[profile.dev]
+opt-level = 1
+# **Line tables, not full debug info.** A panic still names the file and line —
+# which is what a 3,200-test suite needs — but the several gigabytes of type and
+# variable information behind a stepping debugger are not produced. That is a
+# large share of what `target/` weighs and of what every relink copies, and this
+# tree carries one `target/` per worktree.
+#
+# Turn this back to `true` in a local, uncommitted override if you need to step
+# through a workspace crate; do not commit it.
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+opt-level = 3
+# Dependencies get none at all. Stepping into vello or parley is not something
+# this project does, and their debug info is by far the bulk of it. Applies to
+# dependencies only — workspace members keep the line tables set above.
+debug = false
+
+# **There is deliberately no `[profile.dev.build-override]`, and it was measured
+# rather than assumed.** Setting `opt-level = 3` there compiles build scripts and
+# proc macros optimised so they *run* faster — the obvious next lever, since
+# `package."*"` does not reach them and this workspace derives serde on almost
+# everything.
+#
+# It made no difference. Three edit-and-rebuild samples of `apps/koru` with it:
+# 6.6s, 7.1s, 9.2s. Three without: 9.2s, 7.5s, 7.2s. The reason is the shape of
+# the loop rather than the idea being wrong — an edit here recompiles *one*
+# crate, and macro expansion is a small share of one crate's compile. The lever
+# would need a cold build of hundreds of crates to pay, and sccache is what
+# already covers that case.
+#
+# Left out because config that cannot be justified by a measurement is config
+# nobody dares remove later. If you want it for cold builds, measure a clean
+# build both ways first.
+
+# **sherpa-onnx without text-to-speech.** Upstream's ordinary static build links
+# eSpeak NG and ucd (GPL-3.0) for TTS, which Koru does not use; shipping them made
+# three of our binaries GPL works. These are sherpa-onnx 1.13.6 with the TTS
+# module and the TTS link libraries removed, linked against upstream's TTS-free
+# ("no-tts") archives, which scripts/setup/fetch-voice-runtime.* places. What
+# changed and why:
+# third-party/patches/sherpa-onnx.md. Fetched and patched, not committed:
+# third-party/README.md.
+[patch.crates-io]
+sherpa-onnx = { path = "third-party/crates/sherpa-onnx" }
+sherpa-onnx-sys = { path = "third-party/crates/sherpa-onnx-sys" }

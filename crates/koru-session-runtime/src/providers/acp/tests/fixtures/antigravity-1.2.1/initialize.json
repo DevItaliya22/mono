@@ -1,0 +1,53 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": 1,
+    "agentCapabilities": {
+      "loadSession": true,
+      "promptCapabilities": {
+        "image": true,
+        "audio": true,
+        "embeddedContext": true
+      },
+      "mcpCapabilities": {
+        "http": true,
+        "sse": true
+      },
+      "sessionCapabilities": {
+        "list": {},
+        "resume": {}
+      },
+      "auth": {
+        "logout": {}
+      }
+    },
+    "authMethods": [
+      {
+        "id": "<login-method-1>",
+        "name": "<login>",
+        "description": "<login-description>"
+      },
+      {
+        "id": "<login-method-2>",
+        "name": "<login>",
+        "description": "<login-description>"
+      },
+      {
+        "id": "<login-method-3>",
+        "name": "<login>",
+        "description": "<login-description>"
+      },
+      {
+        "id": "<login-method-4>",
+        "name": "<login>",
+        "description": "<login-description>"
+      }
+    ],
+    "agentInfo": {
+      "name": "antigravity-acp",
+      "title": "<title>",
+      "version": "1.2.1"
+    }
+  }
+}

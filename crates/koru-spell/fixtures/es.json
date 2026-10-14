@@ -1,0 +1,24 @@
+{
+  "cases": [
+    {
+      "name": "accented prose is valid",
+      "text": "El niño come manzanas rojas en el jardín.",
+      "expected": []
+    },
+    {
+      "name": "conjugations are valid",
+      "text": "Los niños corrieron rápidamente hacia la escuela.",
+      "expected": []
+    },
+    {
+      "name": "a missing accent is flagged",
+      "text": "Esto quedó escrito asi por error.",
+      "expected": [{ "word": "asi" }]
+    },
+    {
+      "name": "a scrambled word is flagged",
+      "text": "Una palabra equibocada aquí.",
+      "expected": [{ "word": "equibocada" }]
+    }
+  ]
+}

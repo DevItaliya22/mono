@@ -1,0 +1,20 @@
+These eight WAV files are PLACEHOLDERS. They are synthetic tone bursts, not
+speech, and nobody said the sentences in transcripts.tsv.
+
+They exist so the harness can be run end to end today: eight languages, a file
+per language, a reference per file, a silence-trimmable energy contour and a
+pause between two bursts where the product vocabulary belongs. Every code path
+from `--corpus` through normalisation to the printed tables is exercised by
+them.
+
+What they are not is evidence. `docs/features/voice/plans/ENGINE_BENCHMARK.md` already
+says the smoke fixture proves the harness runs and that no number derived from
+it appears in a decision table; with placeholder audio that is doubly true, and
+the harness prints `smoke fixture: PLACEHOLDER` in its run header for as long as
+this file is here.
+
+Replacing them is `docs/features/voice/archive/QUESTIONS.md` Q-V2: eight recordings, by
+native or fluent speakers, of the sentence in transcripts.tsv followed by a
+pause and then the seven product names. 16 kHz, mono, 16-bit PCM WAV, 3-5
+seconds. Delete this file in the same change - the header line is what tells a
+reader whether the fixture they are looking at is real.

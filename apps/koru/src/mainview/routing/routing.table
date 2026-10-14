@@ -1,0 +1,150 @@
+plain-document                 char-x      handled=Y open=- doc=Notes/x/row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+plain-document                 escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+plain-document                 arrow-down  handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+plain-document                 enter       handled=Y open=- doc=Notes///row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+plain-document                 ctrl-t      handled=Y open=- doc= tabs=3/2:leaf explore=popover:n,focus:n,sel:- ai=n
+plain-document                 f13         handled=n open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+welcome-tab                    char-x      handled=n open=- doc=· tabs=2/0:welcome explore=popover:n,focus:n,sel:- ai=n
+welcome-tab                    escape      handled=n open=- doc=· tabs=2/0:welcome explore=popover:n,focus:n,sel:- ai=n
+welcome-tab                    arrow-down  handled=n open=- doc=· tabs=2/0:welcome explore=popover:n,focus:n,sel:- ai=n
+welcome-tab                    enter       handled=n open=- doc=· tabs=2/0:welcome explore=popover:n,focus:n,sel:- ai=n
+welcome-tab                    ctrl-t      handled=Y open=- doc= tabs=3/2:leaf explore=popover:n,focus:n,sel:- ai=n
+welcome-tab                    f13         handled=n open=- doc=· tabs=2/0:welcome explore=popover:n,focus:n,sel:- ai=n
+manage-tab                     char-x      handled=n open=- doc=· tabs=3/2:manage explore=popover:n,focus:n,sel:- ai=n
+manage-tab                     escape      handled=n open=- doc=· tabs=3/2:manage explore=popover:n,focus:n,sel:- ai=n
+manage-tab                     arrow-down  handled=Y open=- doc=· tabs=3/2:manage explore=popover:n,focus:n,sel:- ai=n
+manage-tab                     enter       handled=Y open=- doc=· tabs=3/2:manage explore=popover:n,focus:n,sel:- ai=n
+manage-tab                     ctrl-t      handled=Y open=- doc= tabs=4/3:leaf explore=popover:n,focus:n,sel:- ai=n
+manage-tab                     f13         handled=n open=- doc=· tabs=3/2:manage explore=popover:n,focus:n,sel:- ai=n
+trash-tab                      char-x      handled=n open=- doc=· tabs=3/2:trash explore=popover:n,focus:n,sel:- ai=n
+trash-tab                      escape      handled=n open=- doc=· tabs=3/2:trash explore=popover:n,focus:n,sel:- ai=n
+trash-tab                      arrow-down  handled=Y open=- doc=· tabs=3/2:trash explore=popover:n,focus:n,sel:- ai=n
+trash-tab                      enter       handled=n open=- doc=· tabs=3/2:trash explore=popover:n,focus:n,sel:- ai=n
+trash-tab                      ctrl-t      handled=Y open=- doc= tabs=4/3:leaf explore=popover:n,focus:n,sel:- ai=n
+trash-tab                      f13         handled=n open=- doc=· tabs=3/2:trash explore=popover:n,focus:n,sel:- ai=n
+error-dialog                   char-x      handled=Y open=error doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+error-dialog                   escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+error-dialog                   arrow-down  handled=Y open=error doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+error-dialog                   enter       handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+error-dialog                   ctrl-t      handled=Y open=error doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+error-dialog                   f13         handled=Y open=error doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+import-dialog                  char-x      handled=Y open=import doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+import-dialog                  escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+import-dialog                  arrow-down  handled=Y open=import doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+import-dialog                  enter       handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+import-dialog                  ctrl-t      handled=Y open=import doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+import-dialog                  f13         handled=Y open=import doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+updates-modal                  char-x      handled=Y open=updates doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+updates-modal                  escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+updates-modal                  arrow-down  handled=Y open=updates doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+updates-modal                  enter       handled=Y open=updates doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+updates-modal                  ctrl-t      handled=Y open=updates doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+updates-modal                  f13         handled=Y open=updates doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+update-newer-modal             char-x      handled=Y open=newer doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+update-newer-modal             escape      handled=Y open=newer doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+update-newer-modal             arrow-down  handled=Y open=newer doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+update-newer-modal             enter       handled=Y open=newer doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+update-newer-modal             ctrl-t      handled=Y open=newer doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+update-newer-modal             f13         handled=Y open=newer doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+confirm                        char-x      handled=Y open=confirm doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+confirm                        escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+confirm                        arrow-down  handled=Y open=confirm doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+confirm                        enter       handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+confirm                        ctrl-t      handled=Y open=confirm doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+confirm                        f13         handled=Y open=confirm doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+new-document-prompt            char-x      handled=Y open=new-document doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+new-document-prompt            escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+new-document-prompt            arrow-down  handled=Y open=new-document doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+new-document-prompt            enter       handled=Y open=new-document doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+new-document-prompt            ctrl-t      handled=Y open=new-document doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+new-document-prompt            f13         handled=Y open=new-document doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+link-device                    char-x      handled=Y open=link-device doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+link-device                    escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+link-device                    arrow-down  handled=Y open=link-device doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+link-device                    enter       handled=Y open=link-device doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+link-device                    ctrl-t      handled=Y open=link-device doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+link-device                    f13         handled=Y open=link-device doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-icon                 char-x      handled=Y open=workspace-icon doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-icon                 escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-icon                 arrow-down  handled=Y open=workspace-icon doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-icon                 enter       handled=Y open=workspace-icon doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-icon                 ctrl-t      handled=Y open=workspace-icon doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-icon                 f13         handled=Y open=workspace-icon doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-rename               char-x      handled=Y open=workspace-rename doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-rename               escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-rename               arrow-down  handled=Y open=workspace-rename doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-rename               enter       handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-rename               ctrl-t      handled=Y open=workspace-rename doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+workspace-rename               f13         handled=Y open=workspace-rename doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+context-menu                   char-x      handled=Y open=menu doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+context-menu                   escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+context-menu                   arrow-down  handled=Y open=menu doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+context-menu                   enter       handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+context-menu                   ctrl-t      handled=Y open=menu doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+context-menu                   f13         handled=Y open=menu doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+recording-modal                char-x      handled=Y open=recording doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+recording-modal                escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+recording-modal                arrow-down  handled=Y open=recording doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+recording-modal                enter       handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+recording-modal                ctrl-t      handled=Y open=recording doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+recording-modal                f13         handled=Y open=recording doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+all-reminders-overlay          char-x      handled=Y open=all-reminders doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+all-reminders-overlay          escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+all-reminders-overlay          arrow-down  handled=Y open=all-reminders doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+all-reminders-overlay          enter       handled=Y open=all-reminders doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+all-reminders-overlay          ctrl-t      handled=Y open=all-reminders doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+all-reminders-overlay          f13         handled=Y open=all-reminders doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-creation              char-x      handled=Y open=reminder-creation doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-creation              escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-creation              arrow-down  handled=Y open=reminder-creation doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-creation              enter       handled=Y open=reminder-creation doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-creation              ctrl-t      handled=Y open=reminder-creation doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-creation              f13         handled=Y open=reminder-creation doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-management            char-x      handled=Y open=reminder-management doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-management            escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-management            arrow-down  handled=Y open=reminder-management doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-management            enter       handled=Y open=reminder-management doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-management            ctrl-t      handled=Y open=reminder-management doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+reminder-management            f13         handled=Y open=reminder-management doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+popover-open                   char-x      handled=Y open=- doc=Notes/x/row 0/row 1 tabs=2/1:leaf explore=popover:Y,focus:n,sel:- ai=n
+popover-open                   escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+popover-open                   arrow-down  handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:Y,focus:n,sel:- ai=n
+popover-open                   enter       handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+popover-open                   ctrl-t      handled=Y open=- doc= tabs=3/2:leaf explore=popover:Y,focus:n,sel:- ai=n
+popover-open                   f13         handled=n open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:Y,focus:n,sel:- ai=n
+sidebar-focused                char-x      handled=Y open=- doc=Notes/x/row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:Y,sel:some ai=n
+sidebar-focused                escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:some ai=n
+sidebar-focused                arrow-down  handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:Y,sel:some ai=n
+sidebar-focused                enter       handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:some ai=n
+sidebar-focused                ctrl-t      handled=Y open=- doc= tabs=3/2:leaf explore=popover:n,focus:Y,sel:some ai=n
+sidebar-focused                f13         handled=n open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:Y,sel:some ai=n
+sidebar-focused-over-a-prompt  char-x      handled=Y open=tab-prompt doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:Y,sel:some ai=n
+sidebar-focused-over-a-prompt  escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:Y,sel:some ai=n
+sidebar-focused-over-a-prompt  arrow-down  handled=Y open=tab-prompt doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:Y,sel:some ai=n
+sidebar-focused-over-a-prompt  enter       handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:Y,sel:some ai=n
+sidebar-focused-over-a-prompt  ctrl-t      handled=Y open=- doc= tabs=3/2:leaf explore=popover:n,focus:Y,sel:some ai=n
+sidebar-focused-over-a-prompt  f13         handled=Y open=tab-prompt doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:Y,sel:some ai=n
+document-rename-prompt         char-x      handled=Y open=tab-prompt doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+document-rename-prompt         escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+document-rename-prompt         arrow-down  handled=Y open=tab-prompt doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+document-rename-prompt         enter       handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+document-rename-prompt         ctrl-t      handled=Y open=- doc= tabs=3/2:leaf explore=popover:n,focus:n,sel:- ai=n
+document-rename-prompt         f13         handled=Y open=tab-prompt doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+ai-focused                     char-x      handled=n open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=Y
+ai-focused                     escape      handled=n open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=Y
+ai-focused                     arrow-down  handled=n open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=Y
+ai-focused                     enter       handled=n open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=Y
+ai-focused                     ctrl-t      handled=Y open=- doc= tabs=3/2:leaf explore=popover:n,focus:n,sel:- ai=Y
+ai-focused                     f13         handled=n open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=Y
+move-to                        char-x      handled=Y open=move-to doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+move-to                        escape      handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+move-to                        arrow-down  handled=Y open=move-to doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+move-to                        enter       handled=Y open=- doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+move-to                        ctrl-t      handled=Y open=move-to doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+move-to                        f13         handled=Y open=move-to doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+search-overlay                 char-x      handled=Y open=search doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+search-overlay                 escape      handled=Y open=search doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+search-overlay                 arrow-down  handled=n open=search doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+search-overlay                 enter       handled=Y open=search doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+search-overlay                 ctrl-t      handled=Y open=search doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n
+search-overlay                 f13         handled=Y open=search doc=Notes//row 0/row 1 tabs=2/1:leaf explore=popover:n,focus:n,sel:- ai=n

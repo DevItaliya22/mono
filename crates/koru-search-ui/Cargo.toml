@@ -1,0 +1,67 @@
+[package]
+rust-version.workspace = true
+name = "koru-search-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The search surface: one window's worth of search, hostable by anything that can open a window."
+
+# **The dependency list is the point.** No `koru-core`, no `koru-workspace`,
+# no `koru-workspace-host`, no `koru-editor` — so this surface can be hosted by
+# `koru-agent`, which has none of them, as well as by `apps/koru`, which has
+# all four. If any of those four ever appears here, that has been broken;
+# `cargo tree -p koru-search-ui` is the check.
+[features]
+default = []
+# **Never dial a store.** For a host's *tests*: `cfg(test)` covers this crate's
+# own and cannot cover anybody else's, because a dependency is never compiled
+# with it. Turned on as a dev-dependency, which resolver 2+ keeps out of the
+# normal build. See `SearchSurface::start_reader`.
+no-reader = []
+
+[dependencies]
+koru-features = { path = "../koru-features" }
+koru-env = { path = "../koru-env" }
+# Which build this is, so the surface dials the store its own cargo
+# invocation built. A leaf that links nothing.
+koru-channel = { path = "../koru-channel" }
+# What crosses the wire from the store, and the vocabulary of a query.
+koru-api-client = { path = "../koru-api-client" }
+koru-ai-core = { path = "../koru-ai-core" }
+koru-store-core = { path = "../koru-store-core" }
+koru-store-wire = { path = "../koru-store-wire" }
+# Drawing: the palette, the text engine, the scene helpers, the icons.
+koru-draw = { path = "../koru-draw" }
+# The widgets: the text box, the list, the popover, the tooltip — and `keys`,
+# which is the one normalisation of what a Ctrl chord is on.
+koru-ui = { path = "../koru-ui" }
+# The tag *name* grammar: the `#` token rule the store's query parser also uses,
+# and the matcher the editor's chooser narrows with. Shared so a completion this
+# box offers is one the parser will read as a filter, and so `fun/h` means the
+# same thing in both lists.
+koru-tagname = { path = "../koru-tagname" }
+# To *print* a chord, through the one seam every hint in the app goes through —
+# which is how this surface's tooltips can be turned quiet with everything
+# else's. It still resolves its own keys by hand; see `docs/contributing/techdebt/README.md`.
+koru-keys = { path = "../koru-keys" }
+# For `WindowRequest` alone: this surface can be a window of its own, and a
+# window of its own has to be able to close itself.
+koru-window = { path = "../koru-window" }
+# The date grammar behind the calendar's phrase box — `2w`, `+3d`, `sept 10`.
+# The widget itself resolves a phrase; this surface parses one only where the
+# widget hands a *clock* back, which it cannot show in a month cell.
+koru-when = { path = "../koru-when" }
+# Calendar arithmetic, and the one conversion this surface is obliged to make:
+# a chosen day into the epoch bound the `datetime_zoned` half of a due window
+# compares against. The zone is the caller's question, and this is the caller
+# (ADR-197).
+chrono.workspace = true
+vello.workspace = true
+winit.workspace = true
+
+[dev-dependencies]
+# Every surface on by default in tests; `koru_features::testing::with` opts
+# one test into the simplified product.
+koru-features = { path = "../koru-features", features = ["testing"] }
+tempfile.workspace = true

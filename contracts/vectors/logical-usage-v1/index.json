@@ -1,0 +1,231 @@
+{
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "document": "../../logical-usage-v1.md",
+  "status": "v4, revised 2026-09-05 against the CTO's three sign-off clarifications; the approval row in ../../APPROVALS.md names this revision's commit id (D44)",
+  "promise": "your words and your files, nothing else (CTO, 2026-09-05)",
+  "unit": {
+    "name": "logical usage unit",
+    "abbreviation": "LU",
+    "not_a_byte": "A Unicode scalar is not a byte. The two contributors are measured in different quantities - characters and bytes - and convert into the allowance at the same 1:1 rate, so the shared unit is named for what it is rather than for either half. Earlier revisions called it a 'logical byte'; the rename changed no number.",
+    "account_allowance_units": 100000000000,
+    "printed_as": "100 GB",
+    "printed_sentence": "For your storage allowance, each character of writing counts as one byte, and files count by their original file size.",
+    "generosity_note": "Deliberately generous for non-Latin scripts: a Japanese character occupies three bytes of our storage and counts as one, so those customers fit more real content into 100 GB, not less. This is intended, not a rounding to be reconciled later.",
+    "decimal": "100 GB = 100,000,000,000 decimal (D78) - the unit Backblaze bills in. Internal binary bounds are written GiB and never GB.",
+    "printed_sentence_note": "Replaced verbatim at v4. The earlier wording explained the text half and left the files half to inference."
+  },
+  "constants": {
+    "TEXT_CHARACTER_UNIT": 1,
+    "FILE_BYTE_UNIT": 1
+  },
+  "constants_note": "Two constants, both 1, one per contributor, so the conversion into the allowance is visible. NODE_UNIT, ATTRIBUTE_UNIT, MARK_RUN_UNIT, REFERENCE_UNIT, SCALAR_VALUE_UNIT and PROPERTY_UNIT were withdrawn by the CTO on 2026-09-05 (D79): structure is free.",
+  "charged_fields": [
+    "ProjectedNode.text",
+    "ProjectedNode.name",
+    "ProjectedNode.level_name",
+    "ProjectedAttr.label",
+    "ProjectedAttr.value where kind is text or url"
+  ],
+  "free_fields": [
+    "every other field of ProjectedNode and ProjectedAttr — identity, tree position, kind, block properties, marks, references, and values that are not words, including ProjectedAttr.role"
+  ],
+  "text_unit": "Unicode scalar values (characters), never UTF-8 bytes and never grapheme clusters — see logical-usage-v1.md section 2.2",
+  "files_unit": "verified plaintext bytes, once per workspace per distinct dedup identity — see section 4",
+  "reading_the_inputs": [
+    "A node object mirrors koru_projection::model::ProjectedNode. Any field not written takes its default: null for an option, false for done, an empty list for runs and attrs.",
+    "Nodes, runs, attributes and references appear in the inputs even though they are free, because a vector must show what was present and cost nothing — that is what makes a later re-pricing visible.",
+    "listing.trashed_at is the ADR-95 stamp on the manifest entry; durable=false means the document is no longer in the Cloud replica's durable document set.",
+    "Blob dedup identities are within-workspace identities derived from the workspace's WorkspaceBlobIdentityKey, never a plaintext BlobHash.",
+    "verified_plaintext_length_bytes is derived from the authenticated ciphertext envelope framing minus fixed versioned overhead (D40). Blob.size never appears in these vectors because it is never an input.",
+    "Case 21's input is parametric (document_count plus each_document) rather than enumerated, and carries configured_resource_limits plus an attempted_operation; its expected block has separate billing and resource_limit sections because they are separate mechanisms."
+  ],
+  "cases": [
+    {
+      "case": "01-empty-workspace",
+      "file": "01-empty-workspace.json",
+      "description": "A Cloud-enabled workspace with no documents and no files.",
+      "expected_account_logical_usage_units": 0,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "02-single-plain-text-document",
+      "file": "02-single-plain-text-document.json",
+      "description": "One document, two unformatted paragraphs, English (ASCII).",
+      "expected_account_logical_usage_units": 58,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "03-non-latin-script-document",
+      "file": "03-non-latin-script-document.json",
+      "description": "The same two-node shape as 02, written in Japanese. This is where the character-vs-byte decision becomes money.",
+      "expected_account_logical_usage_units": 41,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "04-bidi-mixed-direction-document",
+      "file": "04-bidi-mixed-direction-document.json",
+      "description": "Arabic, including the mixed-direction fixture line with its explicit bidi control characters.",
+      "expected_account_logical_usage_units": 121,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "05-typed-attributes-and-marks",
+      "file": "05-typed-attributes-and-marks.json",
+      "description": "A task with a bold phrase, a checked box, a date attribute and a text attribute. After the 2026-09-05 decisions this case is mostly a list of things that are free.",
+      "expected_account_logical_usage_units": 36,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "06-document-in-trash",
+      "file": "06-document-in-trash.json",
+      "description": "Document 02, flagged trashed_at in the workspace listing (ADR-95: a stamp on the manifest entry, content intact).",
+      "expected_account_logical_usage_units": 58,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "07-nodes-in-the-document-trash",
+      "file": "07-nodes-in-the-document-trash.json",
+      "description": "The same content as 02, but the second paragraph has been moved into the document's own trash subtree.",
+      "expected_account_logical_usage_units": 58,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "08-permanently-deleted-document",
+      "file": "08-permanently-deleted-document.json",
+      "description": "Two documents: one live, one permanently removed. Loro still holds the removed document's history.",
+      "expected_account_logical_usage_units": 58,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "09-blob-referenced-once",
+      "file": "09-blob-referenced-once.json",
+      "description": "A page with one image node referencing one durable file.",
+      "expected_account_logical_usage_units": 1048597,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "10-blob-referenced-twice-in-one-workspace",
+      "file": "10-blob-referenced-twice-in-one-workspace.json",
+      "description": "Two documents in one workspace referencing the same file.",
+      "expected_account_logical_usage_units": 1048609,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "11-same-blob-in-two-workspaces",
+      "file": "11-same-blob-in-two-workspaces.json",
+      "description": "The same file uploaded into two workspaces of one account.",
+      "expected_account_logical_usage_units": 2097194,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "12-blob-referenced-only-from-trash",
+      "file": "12-blob-referenced-only-from-trash.json",
+      "description": "The only document referencing a file is in the Trash.",
+      "expected_account_logical_usage_units": 1048597,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "13-image-inside-a-page-not-a-file-entry",
+      "file": "13-image-inside-a-page-not-a-file-entry.json",
+      "description": "An image pasted into an ordinary page, whose listing kind is 'page' rather than 'file'.",
+      "expected_account_logical_usage_units": 1048597,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "14-unreadable-node",
+      "file": "14-unreadable-node.json",
+      "description": "One node of one document will not read. The tolerant projection walk would log it and skip it.",
+      "expected_account_logical_usage_units": null,
+      "expected_account_usage_state": "USAGE_UNKNOWN"
+    },
+    {
+      "case": "15-too-new-schema",
+      "file": "15-too-new-schema.json",
+      "description": "A document whose schema version is newer than the server understands.",
+      "expected_account_logical_usage_units": null,
+      "expected_account_usage_state": "CLOUD_SCHEMA_UPDATE_REQUIRED"
+    },
+    {
+      "case": "16-composed-vs-decomposed",
+      "file": "16-composed-vs-decomposed.json",
+      "description": "The same visible text in two Unicode spellings, one document each.",
+      "expected_account_logical_usage_units": 45,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "17-mixed-algorithm-version-account",
+      "file": "17-mixed-algorithm-version-account.json",
+      "description": "An account part-way through a migration to a hypothetical LogicalUsageV2. Two workspaces, one already shadow-recomputed. The case fixes what may be read and what may never be summed.",
+      "expected_account_logical_usage_units": 162,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "18-retained-workspaces-keep-counting",
+      "file": "18-retained-workspaces-keep-counting.json",
+      "description": "One account: an active workspace, a turned-off one, a deletion-pending one, and a purged one.",
+      "expected_account_logical_usage_units": 113,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "19-blob-not-yet-durable",
+      "file": "19-blob-not-yet-durable.json",
+      "description": "A document references a file whose upload never finalized, so Cloud holds no bytes for it.",
+      "expected_account_logical_usage_units": 21,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "20-structure-heavy-almost-no-text",
+      "file": "20-structure-heavy-almost-no-text.json",
+      "description": "A sprint board: 21 nodes, 20 typed attributes, 10 checked boxes, 5 dividers and 5 embeds — and twelve characters of writing.",
+      "expected_account_logical_usage_units": 12,
+      "expected_account_usage_state": "OK"
+    },
+    {
+      "case": "21-pathological-empty-cardinality",
+      "file": "21-pathological-empty-cardinality.json",
+      "description": "A workspace of one million documents with no text at all, sitting exactly on the document-count resource limit. It costs the customer nothing and costs Koru a great deal. The case exists to prove that billing and resource limits are two mechanisms, not one: zero cost, and a clear refusal.",
+      "expected_account_logical_usage_units": 0,
+      "expected_account_usage_state": "OK",
+      "also_expects_resource_limit_code": "WORKSPACE_DOCUMENT_LIMIT_REACHED"
+    },
+    {
+      "case": "22-grandfathered-threshold-after-migration",
+      "file": "22-grandfathered-threshold-after-migration.json",
+      "description": "An account whose usage a version migration raises from 92 GB to 104 GB. The case fixes the number a durable receipt is refused against, and how that number comes back down.",
+      "expected_account_logical_usage_units": null,
+      "expected_account_usage_state": "GRANDFATHERED",
+      "expected_grandfathered_threshold_units": 104000000000
+    }
+  ],
+  "field_names": {
+    "documents_units": "LU, counted from characters - must not say bytes",
+    "files_bytes": "bytes - a file genuinely is a byte count, and each byte contributes one LU",
+    "logical_usage_units": "LU - the sum, in units, because one of its halves is not bytes",
+    "note": "The asymmetry is deliberate (contract 2.1), not an inconsistency to tidy."
+  },
+  "resource_limits": {
+    "note": "Not billing rules. They never change a usage number and never enter the arithmetic. See contract 7.2.",
+    "first_limit": {
+      "name": "workspace_document_limit",
+      "recommended_value": 1000000,
+      "code": "WORKSPACE_DOCUMENT_LIMIT_REACHED",
+      "pinned_by": "21-pathological-empty-cardinality.json"
+    }
+  },
+  "v3_rename": "The v3 unit rename changed no total. Every expected value below is the value v2 committed.",
+  "grandfathered_threshold": {
+    "field": "account.grandfathered_threshold_units",
+    "note": "The number a durable receipt is refused against. Equal to the pool for every account never raised by a migration, so there is one rule and no special case. See contract 10.4.",
+    "written_at_migration": "max(pool, post_migration_usage), inside the switch transaction",
+    "ratchet": "max(pool, min(threshold, current_usage)) on every recomputation - non-increasing between migrations, floored at the pool",
+    "flagged": "The ratchet is the one rule this contract supplies rather than records; contract 12.2 item L flags it for correction at sign-off.",
+    "pinned_by": "22-grandfathered-threshold-after-migration.json"
+  },
+  "v4_changes": [
+    "the printed customer sentence, replaced verbatim",
+    "account.grandfathered_threshold_units and its ratchet (contract 10.4), with vector 22",
+    "contract 12.1 item C reworded verbatim",
+    "No existing total changed. Vector 22 is the only new one."
+  ]
+}

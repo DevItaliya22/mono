@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<en-export>
+  <note>
+    <title>Unknown content</title>
+    <content><![CDATA[<en-note><mystery-wrapper><p>wrapper text</p></mystery-wrapper><mystery-leaf>leaf text</mystery-leaf><p><a href="javascript:alert(1)">safe caption</a></p><en-media type="image/png" hash="00"/><table><tr><td>later table</td></tr></table><en-crypt>later cipher</en-crypt></en-note>]]></content>
+  </note>
+</en-export>

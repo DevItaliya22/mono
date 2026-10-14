@@ -1,0 +1,17 @@
+version: v2
+clean: true
+plugins:
+  - remote: buf.build/apple/swift:v1.38.0
+    out: contracts/gen/swift
+    opt:
+      - Visibility=Public
+  - remote: buf.build/protocolbuffers/java:v35.1
+    out: contracts/gen/kotlin
+    opt:
+      - lite
+  - remote: buf.build/protocolbuffers/kotlin:v35.1
+    out: contracts/gen/kotlin
+    opt:
+      - lite
+  - remote: buf.build/community/neoeinstein-prost:v0.4.0
+    out: contracts/gen/rust

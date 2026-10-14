@@ -1,0 +1,166 @@
+{
+  "pins": {
+    "codex": "0.153.4",
+    "claude": "0.76.0",
+    "grok": "1.0.25/f7e67d6988e2"
+  },
+  "offline": {
+    "independentProcessFixtureTestsPassed": 19,
+    "formattingPassed": true,
+    "realProviderStarted": false
+  },
+  "liveCases": [
+    {
+      "case": "codex-success-active-cancel",
+      "executed": true,
+      "status": "passed",
+      "nativeExit": 0,
+      "seconds": 20.72,
+      "artifactBytes": 26,
+      "successfulTools": 1,
+      "failedTools": 0,
+      "firstGenerationProvenance": true,
+      "completedLifecycle": true,
+      "activeCancellationLanded": true,
+      "authorityRevoked": true,
+      "ownedSessionExited": true
+    },
+    {
+      "case": "codex-missing-file",
+      "executed": true,
+      "status": "passed",
+      "nativeExit": 0,
+      "seconds": 16.59,
+      "stateBeforeCleanup": "running",
+      "attentionBeforeCleanup": "finished_needing_attention",
+      "originalTurns": 1,
+      "turnIdentityBound": true,
+      "totalTools": 1,
+      "failedTools": 1,
+      "artifactCount": 0,
+      "versionCount": 0,
+      "endpointFileNotFoundCount": 1,
+      "missingFileStillAbsent": true,
+      "knownOneTimeApprovalReturned": false,
+      "explicitCleanupState": "cancelled",
+      "authorityRevoked": true,
+      "ownedSessionExited": true
+    },
+    {
+      "case": "claude-missing-file",
+      "executed": true,
+      "status": "passed",
+      "nativeExit": 0,
+      "seconds": 12.96,
+      "stateBeforeCleanup": "running",
+      "attentionBeforeCleanup": "finished_needing_attention",
+      "originalTurns": 1,
+      "turnIdentityBound": true,
+      "totalTools": 2,
+      "failedTools": 1,
+      "artifactCount": 0,
+      "versionCount": 0,
+      "endpointFileNotFoundCount": 1,
+      "missingFileStillAbsent": true,
+      "knownOneTimeApprovalReturned": true,
+      "explicitCleanupState": "cancelled",
+      "authorityRevoked": true,
+      "ownedSessionExited": true
+    },
+    {
+      "case": "grok-missing-file",
+      "executed": true,
+      "status": "passed",
+      "nativeExit": 0,
+      "seconds": 25.38,
+      "stateBeforeCleanup": "running",
+      "attentionBeforeCleanup": "finished_needing_attention",
+      "originalTurns": 1,
+      "turnIdentityBound": true,
+      "totalTools": 2,
+      "failedTools": 1,
+      "artifactCount": 0,
+      "versionCount": 0,
+      "endpointFileNotFoundCount": 1,
+      "missingFileStillAbsent": true,
+      "knownOneTimeApprovalReturned": false,
+      "explicitCleanupState": "cancelled",
+      "authorityRevoked": true,
+      "ownedSessionExited": true
+    }
+  ],
+  "reusedG9": {
+    "claude": {
+      "seconds": 22.15,
+      "artifactBytes": 26,
+      "successfulTools": 2,
+      "activeCancel": true
+    },
+    "grok": {
+      "seconds": 40.48,
+      "artifactBytes": 26,
+      "successfulTools": 2,
+      "activeCancel": true
+    }
+  },
+  "failureContract": [
+    "one-original-turn-identity",
+    "ordered-lifecycle",
+    "one-create-file-not-found-endpoint-refusal",
+    "one-typed-failed-tool",
+    "only-measured-discovery",
+    "no-artifact-or-version",
+    "file-remains-absent",
+    "finished-needing-attention-before-explicit-cleanup",
+    "revoked-authority-and-exited-session"
+  ],
+  "codexRouting": {
+    "pin": "0.153.4",
+    "promptSent": false,
+    "threadCreated": false,
+    "explicitEndpointOverridePresent": false,
+    "inheritedCodexHomePresent": true,
+    "providerKind": "openai",
+    "providerBaseHost": "unset",
+    "chatgptBaseHost": "chatgpt.com",
+    "providerWireApi": "unset_or_unknown",
+    "accountKind": "chatgpt",
+    "customProviderPresent": false,
+    "configuredInstructionPresent": false,
+    "configRead": true,
+    "ownedRootExited": true
+  },
+  "grokRouting": {
+    "promptSent": false,
+    "settingsChanged": false,
+    "sourceCommit": "37949780c144e37df692e3d669051a21fec24f20",
+    "actualSocketHostObserved": false,
+    "contributingConfigFilesRead": 1,
+    "endpointEnvironmentOverridePresent": false,
+    "modelRoutingOverridePresent": false,
+    "configuredEndpointOverridePresent": false,
+    "cachedTokenHostClass": "default_grok_host",
+    "cachedTokenHost": "cli-chat-proxy.grok.com",
+    "routingResolvedFromReviewedKeys": true,
+    "ownedRootExited": true
+  },
+  "privacy": "Only closed counts, statuses and public endpoint classifications retained; normal provider configuration and ancestor instructions may load.",
+  "windowsParity": "passed",
+  "authorization": {
+    "status": "explicit_user_approved",
+    "normalAccountsAndCliInstructions": true,
+    "newModelTurns": 5,
+    "providerRoutingChanged": false
+  },
+  "executionIsolation": {
+    "separateBuildDirectory": true,
+    "userApplicationStopped": false
+  },
+  "limits": [
+    "windows-visual-localized-acceptance",
+    "macos-linux-unqualified",
+    "grok-api-key-only-auth-unqualified",
+    "gemini-opencode-kimi-child-control-unqualified",
+    "no-new-image-qualification"
+  ]
+}

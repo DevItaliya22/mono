@@ -1,0 +1,131 @@
+# **A few workers, not every core.**
+#
+# `cargo test --workspace` over more than a hundred crates spawns one rustc per
+# unit and, by default, one per logical CPU. On a development machine that is the difference
+# between a build you can work through and one that takes the desktop with it —
+# and the person running it is usually waiting on something else in the same
+# window. So the count is chosen rather than inherited; see the `[build]` note
+# below for where it stands and why.
+#
+# This caps the *build* half. The test harness has its own pool and does not
+# read this key; it is capped separately, in the `[env]` block below. The two
+# limit different phases, and lifting one does nothing for the other.
+#
+# **One compiler cache behind every worktree.**
+#
+# Every git worktree of this repository has its own `target/`. That is the
+# point — two worktrees cannot corrupt each other's build — and it means
+# the same four hundred dependencies are compiled once per worktree, at
+# `opt-level = 3` (see the profile note in `Cargo.toml`). sccache makes that a
+# one-time cost: the first worktree to need a crate compiles it, the rest hit a
+# shared cache. Its ceiling is `SCCACHE_CACHE_SIZE` (sccache defaults to 10 GiB,
+# which this workspace outgrows); `koru.bat setup` checks it.
+#
+# **Incremental compilation is deliberately left on.** The usual advice is to
+# turn it off because sccache cannot cache incremental units, and it is aimed at
+# the wrong half of the build: cargo passes `-C incremental` only for *workspace
+# members*, so dependencies are cacheable exactly as they are. Turning it off
+# would slow the edit-rebuild loop to speed up a case that is already fast.
+#
+# **This makes sccache a requirement to build.** There is no optional-wrapper
+# form; without it on `PATH` every cargo command fails, so `koru.bat` checks for
+# it and says what to install. `winget install Mozilla.sccache`, and
+# `sccache --show-stats` is how you tell whether any of this is working.
+#
+# **Eight Cargo build jobs, not every core.**
+#
+# Import and Store builds contain several unusually large Rust units, and this
+# was `1` for a while because letting Cargo compile more than one at a time
+# exhausted the machine while Koru, the Store and development tools were all
+# already running. That is a fact about one desktop rather than about the
+# workspace, so the number is a dial: `8` on a machine with the cores to spare,
+# and the reason to lower it again is a build that takes the desktop with it,
+# not a rule.
+#
+# **Per machine, override rather than edit.** `CARGO_BUILD_JOBS` in the
+# environment wins over this key, so a machine with a different memory budget
+# sets that and leaves the tracked file alone. `koru.bat setup` recommends a
+# number from the machine it runs on - about four GB of RAM per job, capped
+# at the core count - because rustc is memory-bound on this workspace.
+#
+# Every Cargo command launched from this repository or one of its descendants
+# inherits it unless somebody explicitly overrides `--jobs`. It caps the *build*
+# half only — the test harness has its own pool and does not read this key.
+[build]
+rustc-wrapper = "sccache"
+jobs = 8
+
+# **Eight test threads, and the harness is capped here rather than at a call
+# site.**
+#
+# There is no cargo config key for the harness pool, so this is the env var
+# libtest reads. `[env]` reaches every process cargo launches, the test binaries
+# included, which is what makes it a property of the tree instead of a flag two
+# scripts have to remember — `koru.bat test` and `koru.sh test` pass nothing,
+# and a `cargo test` typed by hand is capped the same way. An explicit
+# `-- --test-threads=N` still wins: libtest reads the argument first and falls
+# back to this only when there is none, so `koru.bat test -- --test-threads=1`
+# is still how you serialise a suite you are debugging.
+#
+# It was `2` for a long while, then briefly the harness's own default — which is
+# one thread per logical CPU, and on a 32-core desktop that is thirty-two test
+# binaries' worth of processes against the same disk while Koru, the gateway and
+# an editor are already running. Eight is the same judgement as `jobs` above and
+# for the same reason: a number chosen for a development machine rather than
+# inherited from one. Parallelism inside a binary is safe on its own terms —
+# the process-global state these suites share is behind locks of its own (the
+# clipboard's `CLIP_LOCK`, the theme's `THEME_LOCK`) — so this is about the
+# machine, not about correctness, and a suite that adds new global state adds
+# its own lock rather than lowering this.
+[env]
+RUST_TEST_THREADS = "8"
+
+# whisper-rs-sys builds vendored C and C++ with a Visual Studio multi-config
+# generator. That generator ignores the generic `/MT` flags inferred by the
+# `cmake` crate and restores `/MD` for its Release configuration. This hook is
+# a no-op away from MSVC and rewrites every MSVC configuration at project
+# configuration time. `relative = true` resolves it from the workspace root.
+CMAKE_PROJECT_INCLUDE = { value = ".cargo/msvc-static-runtime.cmake", relative = true, force = true }
+
+# **LLD instead of MSVC's `link.exe`.**
+#
+# The inner loop here is dominated by linking rather than by compiling: touching
+# one line of `apps/koru/src/main.rs` relinks a ~50 MB `koru.exe`, and
+# `cargo test --workspace` links ninety-odd test binaries of similar shape.
+# sccache does nothing for that — a link is not a compilation and is never
+# cached — so it is the other half of the same problem.
+#
+# **`rust-lld` by bare name, not by path.** It ships inside the toolchain at
+# `<sysroot>/lib/rustlib/<triple>/bin/rust-lld.exe`, which is machine-specific
+# and could not be committed; rustc resolves the bare name against its own
+# sysroot, so there is nothing to install and nothing to configure per machine.
+#
+# **Changing this rebuilds everything, once.** `linker` was chosen over
+# `rustflags = ["-Clinker=…"]` on the theory that it would reach only the units
+# that link — dependencies compile to rlibs and never invoke a linker at all.
+# That theory is wrong, and it was measured rather than reasoned: setting this
+# recompiled **455 crates**. Cargo puts the linker in every unit's fingerprint,
+# and sccache keys on the same arguments, so the shared cache misses too.
+#
+# It is a one-time cost per worktree and worth paying — but do not touch this
+# line casually, and do not expect a cheap experiment.
+#
+# `rust-lld` needs no `-Clinker-flavor` here: rustc infers `lld-link` from the
+# MSVC target. That is what makes the `linker` key sufficient, since cargo has
+# no config key for the flavour.
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld"
+
+# **One MSVC runtime for Rust and both speech engines.**
+#
+# The pinned sherpa archive is the upstream `static-MT` build. Rust and
+# whisper.cpp otherwise default to `/MD`; putting both native engines in one
+# worker makes lld refuse whisper's `/MD` object beside sherpa's `/MT` object.
+# `crt-static` changes Rust's runtime and is also exposed to native build
+# helpers as `CARGO_CFG_TARGET_FEATURE`. The CMake project hook above covers
+# Visual Studio's separate per-configuration runtime setting. Keeping the Rust
+# flag target-specific and the hook guarded by `MSVC` leaves other builds alone.
+#
+# This changes every Windows crate's fingerprint, not just the worker's. That
+# one-time rebuild is required for one coherent runtime across the process.
+rustflags = ["-C", "target-feature=+crt-static"]

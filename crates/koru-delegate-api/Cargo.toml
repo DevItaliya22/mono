@@ -1,0 +1,28 @@
+[package]
+rust-version.workspace = true
+name = "koru-delegate-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The typed boundary of delegated runs and schedules: wire bodies, scopes, port, and local IPC transport."
+
+# **The transport seam D12 asks for.** The gateway's run and schedule routes speak
+# `DelegatePort` and nothing else; `LocalDelegate` answers it over
+# `koru-ipc` to `koru-agent.exe --worker delegate`, and a cloud worker
+# answers it over whatever it is reached by. The wire bodies are the run
+# vocabulary's own serde shapes with their JSON Schema on (`schema`), the
+# way `koru-artifact-wire` re-exports `koru-artifact-core`'s. Nothing here
+# opens a database, runs a provider or serves HTTP.
+
+[dependencies]
+koru-delegate-core = { path = "../koru-delegate-core", features = ["schema"] }
+koru-delegate-schedule = { path = "../koru-delegate-schedule", features = ["schema"] }
+# The frames the local transport speaks, one connection per call.
+koru-ipc = { path = "../koru-ipc" }
+schemars = { workspace = true, features = ["uuid1"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]

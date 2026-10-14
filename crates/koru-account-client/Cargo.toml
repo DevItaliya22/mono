@@ -1,0 +1,26 @@
+[package]
+rust-version.workspace = true
+name = "koru-account-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Bounded typed client for the frozen Koru account HTTP contract."
+
+[dependencies]
+base64.workspace = true
+koru-account-core = { path = "../koru-account-core" }
+koru-account-wire = { path = "../koru-account-wire" }
+koru-account-session = { path = "../koru-account-session" }
+ed25519-dalek.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+url.workspace = true
+zeroize.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+koru-account-core = { path = "../koru-account-core" }
+koru-device = { path = "../koru-device" }
+uuid.workspace = true

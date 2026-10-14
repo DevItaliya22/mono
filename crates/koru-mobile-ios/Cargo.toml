@@ -1,0 +1,21 @@
+[package]
+rust-version.workspace = true
+name = "koru-mobile-ios"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "iOS C-ABI shim over koru-mobile-host. Marshalling only; generated Protobuf defines the contract."
+
+[lib]
+name = "koru_mobile_ios"
+crate-type = ["staticlib", "lib"]
+
+[dependencies]
+zeroize.workspace = true
+koru-contract = { path = "../koru-contract" }
+koru-mobile-host = { path = "../koru-mobile-host" }
+prost.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

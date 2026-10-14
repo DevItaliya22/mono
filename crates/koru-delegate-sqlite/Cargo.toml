@@ -1,0 +1,39 @@
+[package]
+rust-version.workspace = true
+name = "koru-delegate-sqlite"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The device-local execution ledger of delegated runs — intents, attempts, durable run and schedule publication queues, cursors and schedule claims — in one SQLite file; it holds no canonical run status and never syncs."
+
+# **The ledger a restart completes a run from.** It links the run vocabulary
+# (`koru-delegate-core`), the one rule for where a channel keeps its data
+# (`koru-channel`, a leaf) and SQLite — and nothing that runs a process,
+# carries a wire, opens the store or draws. The orchestrator worker (P1.6)
+# opens it; diagnostics (P1.17) read it with the worker stopped.
+[features]
+default = []
+# Named points at which a write aborts the way a crash would — before the
+# write, after it but before its commit, and after the commit but before the
+# caller hears of it. Test-only: this crate's own tests reach it through
+# `cfg(test)`, and the orchestrator's process tests (P1.6, P1.9) enable the
+# feature in their dev-dependencies. Nothing shipped turns it on.
+crash-points = []
+
+[dependencies]
+# `delegate_root_beside` — the one rule for where `runs.db` lives.
+koru-channel = { path = "../koru-channel" }
+# `RunId`, `AttemptGeneration`, `ProviderSessionKey`, `HostInstanceId`,
+# `PendingPublication`, `DelegationRequest`, `ScheduleId` — what is persisted.
+koru-delegate-core = { path = "../koru-delegate-core" }
+# Opening and versioning the file: the one policy every Koru database shares.
+koru-sqlite = { path = "../koru-sqlite" }
+rusqlite.workspace = true
+# The intent payload and the publication body are stored as JSON.
+serde_json.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

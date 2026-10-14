@@ -1,0 +1,31 @@
+[package]
+rust-version.workspace = true
+name = "koru-store-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "A blocking client for the Koru Store's localhost API."
+
+# **Blocking, and no tokio.** This is what `koru-workspace-host` will link at cutover,
+# and the winit event loop is synchronous — an async runtime inside it would
+# mean either blocking the loop on a future or running a second reactor beside
+# it. The shape is a background thread and a channel, not a runtime.
+[dependencies]
+koru-env = { path = "../koru-env" }
+koru-store-core = { path = "../koru-store-core" }
+# The wire types, so a body is never re-declared here.
+koru-store-wire = { path = "../koru-store-wire" }
+loro = { workspace = true }
+loro-protocol = { workspace = true }
+reqwest = { workspace = true }
+# So a retried upload re-sends the same buffer rather than copying it: a
+# `send_with_retry` closure is `FnMut`, and reqwest takes a `Bytes` body.
+bytes = { workspace = true }
+tungstenite = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+koru-channel = { path = "../koru-channel" }
+tempfile = { workspace = true }

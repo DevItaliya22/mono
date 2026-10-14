@@ -1,0 +1,23 @@
+[package]
+rust-version.workspace = true
+name = "koru-recurrence"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Clock-free recurrence rules and next-occurrence calculation."
+
+[features]
+default = []
+schema = ["dep:schemars"]
+
+[dependencies]
+chrono.workspace = true
+cron.workspace = true
+koru-time-zone = { path = "../koru-time-zone" }
+serde.workspace = true
+schemars = { workspace = true, optional = true }
+koru-core = { path = "../koru-core" }
+
+[dev-dependencies]
+serde_json.workspace = true

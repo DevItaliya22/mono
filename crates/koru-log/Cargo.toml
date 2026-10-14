@@ -1,0 +1,16 @@
+[package]
+rust-version.workspace = true
+name = "koru-log"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Shared rotating tracing setup for Koru processes."
+
+[dependencies]
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-appender.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

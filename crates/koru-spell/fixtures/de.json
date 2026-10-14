@@ -1,0 +1,24 @@
+{
+  "cases": [
+    {
+      "name": "plain prose is valid",
+      "text": "Die Kinder spielen im Garten.",
+      "expected": []
+    },
+    {
+      "name": "compounds are valid",
+      "text": "Die Krankenversicherung und der Arbeitsplatz sind wichtig.",
+      "expected": []
+    },
+    {
+      "name": "a scrambled word is flagged",
+      "text": "Das ist ein Fehlar im Text.",
+      "expected": [{ "word": "Fehlar" }]
+    },
+    {
+      "name": "umlauts and eszett are valid",
+      "text": "Die Straße ist schön und größer geworden.",
+      "expected": []
+    }
+  ]
+}

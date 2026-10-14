@@ -1,0 +1,12 @@
+[package]
+rust-version.workspace = true
+name = "koru-ai-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Typed internal Koru AI server boundary."
+
+[dependencies]
+koru-ai-core = { path = "../koru-ai-core" }
+koru-ai-wire = { path = "../koru-ai-wire" }

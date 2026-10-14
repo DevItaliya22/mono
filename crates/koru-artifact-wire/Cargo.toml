@@ -1,0 +1,17 @@
+[package]
+rust-version.workspace = true
+name = "koru-artifact-wire"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The request and response bodies of /v1/artifacts, the capability token and the metadata body limit — serde and schema only."
+
+[dependencies]
+koru-artifact-core = { path = "../koru-artifact-core", features = ["schema"] }
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+uuid.workspace = true

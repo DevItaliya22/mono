@@ -1,0 +1,14 @@
+[package]
+rust-version.workspace = true
+name = "koru-session-paths"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Resolved, root-confined filesystem paths for Koru terminal sessions."
+
+[dependencies]
+koru-session-protocol = { path = "../koru-session-protocol" }
+
+[dev-dependencies]
+tempfile = { workspace = true }

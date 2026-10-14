@@ -1,0 +1,44 @@
+{
+  "date": "2026-09-10",
+  "platform": "windows-x86_64",
+  "provider": "codex",
+  "version": "0.154.0",
+  "installation": "normal global npm PATH",
+  "configuration": "normal cached account and CLI-loaded instructions; explicitly authorized synthetic objectives",
+  "native_child_overrides": {
+    "multi_agent": false,
+    "multi_agent_v2": false
+  },
+  "registered_success_active_cancel": {
+    "exit_code": 0,
+    "elapsed_seconds": 21.25,
+    "tool_calls": 1,
+    "successful_tools": 1,
+    "artifact_bytes": 26,
+    "provenance": "first_generation",
+    "lifecycle": "completed",
+    "cancellation": "landed",
+    "authority": "revoked",
+    "owned_session": "exited"
+  },
+  "registered_missing_file": {
+    "exit_code": 0,
+    "elapsed_seconds": 14.66,
+    "turns": 1,
+    "tool_calls": 1,
+    "failed_tools": 1,
+    "endpoint_file_not_found": 1,
+    "artifacts": 0,
+    "artifact_versions": 0,
+    "file_still_absent": true,
+    "state": "running",
+    "attention": "finished_needing_attention",
+    "authority": "revoked",
+    "owned_session": "exited"
+  },
+  "limits": [
+    "Windows only",
+    "visual acceptance pending",
+    "live native image acknowledgement not qualified"
+  ]
+}

@@ -1,0 +1,19 @@
+[package]
+rust-version.workspace = true
+name = "koru-relay-test-support"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Starts and tears down in-memory iroh relay servers for tests, returning the relay URL/handle, and nothing else."
+
+# Charter: this crate exists so a test can say "give me a relay" without
+# knowing how one is configured. It is consumed only as a dev-dependency —
+# by koru-network-iroh and koru-relay — and depends only on iroh/iroh-relay
+# and tokio. Anything beyond starting and tearing down an in-memory relay
+# server does not belong here.
+
+[dependencies]
+iroh = { workspace = true }
+iroh-relay = { workspace = true, features = ["server"] }
+tokio = { workspace = true }

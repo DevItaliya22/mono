@@ -1,0 +1,12 @@
+{
+  "beforeSha256": "0aceb96103445a1c746aa6f1b52c11c37d6677ae9c9ae81feca47210fcf32360",
+  "afterSha256": "0aceb96103445a1c746aa6f1b52c11c37d6677ae9c9ae81feca47210fcf32360",
+  "restored": true,
+  "testExit": 101,
+  "elapsedSeconds": 44.41,
+  "toolCategories": {
+    "known_create": 1,
+    "tool_discovery": 1,
+    "other": 0
+  }
+}

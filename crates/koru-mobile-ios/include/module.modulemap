@@ -1,0 +1,4 @@
+module KoruMobileNative {
+    header "koru_mobile.h"
+    export *
+}

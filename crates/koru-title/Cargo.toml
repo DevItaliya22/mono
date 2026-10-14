@@ -1,0 +1,11 @@
+[package]
+rust-version.workspace = true
+name = "koru-title"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Shared title presentation rules for Koru clients."
+
+[dependencies]
+emojis.workspace = true

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<en-export>
+  <note><title>Must disappear</title><content>&lt;en-note/&gt;</content><guid>rejected-guid</guid><tag>private</tag></note>
+  <!DOCTYPE note [<!ENTITY leak SYSTEM "file:///secret">]>
+</en-export>

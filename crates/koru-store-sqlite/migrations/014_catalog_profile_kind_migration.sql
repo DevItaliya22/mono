@@ -1,0 +1,23 @@
+-- Historical dev catalog schema 8 -> 9: a profile says whether it is a persona.
+--
+-- `workspaces.owner` has been `NOT NULL REFERENCES profiles(id)` since the
+-- catalog was written, so a workspace whose persona is removed still needs an
+-- owner. That owner is a real profile record with an ordinary v4 UUID — never a
+-- null owner, never a magic id, never a name a locale could change — and this
+-- column is the only thing that tells it apart from the personas beside it.
+--
+-- Nullable, with no default and no backfill: absent and 'normal' mean the same
+-- thing to every reader, and rewriting every existing row to say what its
+-- absence already says would be a migration that changes no meaning. A token
+-- this build does not recognise reads as 'normal', for the reason an unparseable
+-- `locale` falls back to `und` — a catalog that refuses to read itself is worse
+-- than one that reads a stranger conservatively, and 'a persona' is the reading
+-- that is safe to show and safe to leave alone.
+--
+-- No index. There is at most one holder in a table that holds a handful of rows,
+-- and the only query over it is the full scan a switcher already performs.
+--
+-- The replicated authority for the same fact is `meta.kind` in the profile CRDT
+-- (profile schema 3); this column is its listing projection, so `profiles()` can
+-- answer "is this a persona" without importing a Loro document per row.
+ALTER TABLE profiles ADD COLUMN kind TEXT;

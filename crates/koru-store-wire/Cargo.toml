@@ -1,0 +1,26 @@
+[package]
+rust-version.workspace = true
+name = "koru-store-wire"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Every request and response body the Koru Store's HTTP API carries, defined once."
+
+# **A leaf, deliberately.** The server, the blocking client and — at the search
+# cutover — the app all name these types, so this crate must be cheap enough for
+# all three to depend on. It links no HTTP, no runtime, no database and no node
+# model; `koru-store-core` is here for the ids and `Timestamp`, which the bodies
+# are made of.
+[dependencies]
+koru-store-core = { path = "../koru-store-core", features = ["schema"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+# The document is generated from these types, so the schema and the bytes come
+# from one declaration and cannot describe different shapes.
+schemars = { workspace = true }
+
+# **Tests only.** What this crate defines is the shape; who turns it into bytes
+# is the caller's business — axum on one side, reqwest on the other. Only the
+# tests that pin the JSON need a serializer of their own.
+[dev-dependencies]

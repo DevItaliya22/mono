@@ -1,0 +1,7 @@
+{
+  "kind": "refused",
+  "session": "77777777-7777-7777-7777-777777777777",
+  "generation": 9,
+  "code": "busy",
+  "message": "a session is already running in state Listening"
+}

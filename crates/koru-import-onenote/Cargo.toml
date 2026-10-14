@@ -1,0 +1,20 @@
+[package]
+rust-version.workspace = true
+name = "koru-import-onenote"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Offline Microsoft OneNote importer for Koru."
+
+[dependencies]
+koru-import = { path = "../koru-import" }
+koru-store-core = { path = "../koru-store-core" }
+koru-core = { path = "../koru-core" }
+onenote_parser.workspace = true
+typed-path.workspace = true
+tempfile.workspace = true
+zip.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

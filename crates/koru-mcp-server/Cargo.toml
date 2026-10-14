@@ -1,0 +1,37 @@
+[package]
+rust-version.workspace = true
+name = "koru-mcp-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Transport-neutral MCP tools for Koru."
+
+[dependencies]
+rmcp = { version = "=3.1.2", features = ["transport-io"] }
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+schemars.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+loro.workspace = true
+koru-channel = { path = "../koru-channel" }
+koru-history = { path = "../koru-history" }
+koru-api-client = { path = "../koru-api-client" }
+koru-ai-core = { path = "../koru-ai-core", features = ["schema"] }
+koru-ai-wire = { path = "../koru-ai-wire" }
+koru-store-core = { path = "../koru-store-core" }
+koru-store-wire = { path = "../koru-store-wire" }
+chrono = { workspace = true }
+koru-core = { path = "../koru-core" }
+koru-workspace = { path = "../koru-workspace" }
+base64 = "0.22"
+
+[dev-dependencies]
+rmcp = { version = "=3.1.2", features = ["client", "transport-io"] }
+# The golden cases, run through this crate's own task wrapper (ADR-249). The
+# feature is off in every product build; a dependency is never compiled with
+# `cfg(test)`, which is why the table is behind a feature rather than a
+# `#[cfg(test)]` module.
+koru-core = { path = "../koru-core", features = ["golden"] }

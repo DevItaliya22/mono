@@ -1,0 +1,39 @@
+[package]
+rust-version.workspace = true
+name = "koru-voice"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "What a speech engine is asked and what it answers, and one session run against whatever answers it — the vocabulary, the state machine, the wire messages and the stable error codes. It links no inference runtime, no microphone and no socket."
+
+# **A leaf, and the deps are the whole argument.** Six components name these
+# declarations — the two engine adapters, the model store, the worker binary,
+# the client and (in M4) the phone — so a renamed field breaks every build
+# rather than arriving as a silent `None`. That is the `koru-store-wire` lesson,
+# one layer out again.
+#
+# `koru-i18n` is here for exactly one thing: `VoiceLanguage` is the eight
+# supported languages, and their BCP 47 tags are already declared in
+# `koru_i18n::Lang::tag`. A second table would be a second opinion about what
+# `pt-BR` is spelled like, and the two would drift the first time one was
+# edited. `uuid` mints a `SessionId`. `serde` is what puts a message on a wire
+# this crate deliberately cannot open.
+#
+# `koru-env` is here for one predicate: `KORU_VOICE_DISABLED` has to mean the
+# same thing to the worker, the client, the shell's key map and the settings
+# section, and this is the only crate all four already link. It is a
+# dependency-free leaf whose whole content is a table of names and one
+# truthiness rule, so it costs the charter nothing — reading the process's own
+# environment is not a runtime, a microphone, a socket or file I/O.
+[dependencies]
+serde = { workspace = true }
+uuid = { workspace = true }
+koru-env = { path = "../koru-env" }
+koru-i18n = { path = "../koru-i18n" }
+
+[dev-dependencies]
+# The tags and field names are asserted as JSON, because that is what crosses
+# the wire. A dev-dependency: nothing shipped here serializes on its own —
+# `koru_ipc::frame` does it — so the leaf stays a leaf.
+serde_json = { workspace = true }

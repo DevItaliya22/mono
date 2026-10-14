@@ -1,0 +1,256 @@
+{
+  "format": "cloud-sync-issuance-v1-lifecycle-boundaries-supplement",
+  "extends_commit": "94a1117d556b23f3197fe98c2c986311ac61a1f2",
+  "partial": true,
+  "ordered_cases": [
+    {
+      "id": "I-L01",
+      "input": {
+        "lifecycle": "absent"
+      },
+      "expected": {
+        "stage": "lifecycle",
+        "code": "cloud_absent",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    },
+    {
+      "id": "I-L02",
+      "input": {
+        "lifecycle": "absent",
+        "epochs_current": false
+      },
+      "expected": {
+        "stage": "lifecycle",
+        "code": "cloud_absent",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    },
+    {
+      "id": "I-L03",
+      "input": {
+        "lifecycle": "absent",
+        "workspace_known": false
+      },
+      "expected": {
+        "stage": "workspace",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    },
+    {
+      "id": "I-L04",
+      "input": {
+        "lifecycle": "absent",
+        "workspace_visible": false
+      },
+      "expected": {
+        "stage": "workspace",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    },
+    {
+      "id": "I-L05",
+      "input": {
+        "lifecycle": "absent",
+        "exact_membership": false
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    },
+    {
+      "id": "I-L06",
+      "input": {
+        "lifecycle": "absent",
+        "profile_binding": "pending_provisioning"
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    },
+    {
+      "id": "I-L07",
+      "input": {
+        "lifecycle": "absent",
+        "profile_binding": "revoked"
+      },
+      "expected": {
+        "stage": "membership",
+        "code": "workspace_not_authorized",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    },
+    {
+      "id": "I-L08",
+      "input": {
+        "lifecycle": "absent",
+        "rate_allowed": false
+      },
+      "expected": {
+        "stage": "rate",
+        "code": "rate_limited",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    },
+    {
+      "id": "I-L09",
+      "input": {
+        "lifecycle": "absent",
+        "device_code": "device_revoked"
+      },
+      "expected": {
+        "stage": "device",
+        "code": "device_revoked",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    },
+    {
+      "id": "I-L10",
+      "input": {
+        "lifecycle": "absent",
+        "native_code": "unauthenticated"
+      },
+      "expected": {
+        "stage": "native",
+        "code": "unauthenticated",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    },
+    {
+      "id": "I-L11",
+      "input": {
+        "lifecycle": "absent",
+        "request_valid": false
+      },
+      "expected": {
+        "stage": "shape",
+        "code": "invalid_request",
+        "rate_calls": 0,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    },
+    {
+      "id": "I-L12",
+      "input": {
+        "lifecycle": "absent",
+        "assignment_code": "cloud_incarnation_stale"
+      },
+      "expected": {
+        "stage": "lifecycle",
+        "code": "cloud_absent",
+        "rate_calls": 1,
+        "sign_calls": 0,
+        "protected_writes": 0
+      }
+    }
+  ],
+  "body_cases": [
+    {
+      "id": "I-H01",
+      "bytes": 1024,
+      "valid": true,
+      "code": null,
+      "rate_calls": 0,
+      "sign_calls": 0
+    },
+    {
+      "id": "I-H02",
+      "bytes": 32769,
+      "valid": true,
+      "code": null,
+      "rate_calls": 0,
+      "sign_calls": 0
+    },
+    {
+      "id": "I-H03",
+      "bytes": 65535,
+      "valid": true,
+      "code": null,
+      "rate_calls": 0,
+      "sign_calls": 0
+    },
+    {
+      "id": "I-H04",
+      "bytes": 65536,
+      "valid": true,
+      "code": null,
+      "rate_calls": 0,
+      "sign_calls": 0
+    },
+    {
+      "id": "I-H05",
+      "bytes": 65537,
+      "valid": false,
+      "code": "invalid_request",
+      "rate_calls": 0,
+      "sign_calls": 0
+    }
+  ],
+  "body_limit_source": {
+    "file": "crates/koru-account-api/src/lib.rs",
+    "constant": "MAX_REQUEST_BODY_BYTES",
+    "bytes": 65536,
+    "scope": "Existing common Body decoder; not new issuer-specific policy"
+  },
+  "entitlement_cases": [
+    {
+      "id": "I-E01",
+      "iat": 1800000000,
+      "cutoff": null,
+      "exp": 1800000600,
+      "production_reachable": true,
+      "public_denial_code": null
+    },
+    {
+      "id": "I-E02",
+      "iat": 1800000000,
+      "cutoff": 1800000060,
+      "exp": 1800000060,
+      "production_reachable": false,
+      "public_denial_code": null
+    },
+    {
+      "id": "I-E03",
+      "iat": 1800000000,
+      "cutoff": 1800000000,
+      "exp": null,
+      "production_reachable": false,
+      "public_denial_code": null
+    },
+    {
+      "id": "I-E04",
+      "iat": 1800000000,
+      "cutoff": 1799999999,
+      "exp": null,
+      "production_reachable": false,
+      "public_denial_code": null
+    }
+  ]
+}

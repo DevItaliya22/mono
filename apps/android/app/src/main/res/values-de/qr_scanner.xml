@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="qr_preparing">QR-Scanner wird vorbereitet…</string>
+    <string name="qr_unavailable">Der QR-Scanner konnte nicht geöffnet werden. Prüfe deine Verbindung und die Google Play-Dienste. Versuche es erneut oder füge unten den Verbindungscode ein.</string>
+</resources>

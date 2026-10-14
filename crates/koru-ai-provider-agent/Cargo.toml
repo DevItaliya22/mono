@@ -1,0 +1,17 @@
+[package]
+rust-version.workspace = true
+name = "koru-ai-provider-agent"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "A local coding agent as a Koru AI chat provider: one managed session per chat, owned by the session host."
+
+[dependencies]
+koru-ai-core = { path = "../koru-ai-core" }
+koru-ipc = { path = "../koru-ipc" }
+koru-session-client = { path = "../koru-session-client" }
+koru-session-profiles = { path = "../koru-session-profiles" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+koru-session-wire = { path = "../koru-session-wire" }
+tracing.workspace = true

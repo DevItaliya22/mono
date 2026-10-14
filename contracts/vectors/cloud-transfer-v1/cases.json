@@ -1,0 +1,201 @@
+[
+  {
+    "id": "T01",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_policy\",\"version\":1,\"policy_generation\":1,\"automatic_limit_bytes\":200000}",
+    "code": "ok"
+  },
+  {
+    "id": "T02",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_policy\",\"version\":1,\"policy_generation\":1,\"automatic_limit_bytes\":0}",
+    "code": "ok"
+  },
+  {
+    "id": "T03",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_policy\",\"version\":1,\"policy_generation\":1,\"automatic_limit_bytes\":16777216}",
+    "code": "ok"
+  },
+  {
+    "id": "T04",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_policy\",\"version\":1,\"policy_generation\":1,\"automatic_limit_bytes\":200001}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T05",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_policy\",\"version\":1,\"version\":1,\"policy_generation\":1,\"automatic_limit_bytes\":200000}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T06",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_policy\",\"version\":2,\"policy_generation\":1,\"automatic_limit_bytes\":200000}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T07",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_policy\",\"version\":null,\"policy_generation\":1,\"automatic_limit_bytes\":200000}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T08",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_policy\",\"version\":1,\"other\":1,\"policy_generation\":1,\"automatic_limit_bytes\":200000}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T09",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_policy\",\"version\":1,\"policy_generation\":1,\"automatic_limit_bytes\":200000}{}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T10",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_policy\",\"version\":1,\"policy_generation\":0,\"automatic_limit_bytes\":200000}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T11",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_policy\",\"version\":1,\"policy_generation\":9223372036854775808,\"automatic_limit_bytes\":200000}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T12",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_start\",\"version\":1,\"policy_generation\":1,\"unit\":{\"kind\":\"document\",\"workspace_id\":\"11111111-1111-4111-8111-111111111111\",\"document_id\":\"22222222-2222-4222-8222-222222222222\"},\"batch_id\":[0,1,2,3,4,5,6,7],\"total_length\":6,\"fragment_count\":1,\"sha256\":\"vvV-x_U6bUC-tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE\"}",
+    "code": "ok"
+  },
+  {
+    "id": "T13",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_start\",\"version\":1,\"policy_generation\":1,\"unit\":{\"kind\":\"document\",\"workspace_id\":\"11111111-1111-4111-8111-111111111111\",\"document_id\":\"22222222-2222-4222-8222-222222222222\"},\"batch_id\":[0,1,2,3,4,5,6,7],\"total_length\":0,\"fragment_count\":1,\"sha256\":\"vvV-x_U6bUC-tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE\"}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T14",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_start\",\"version\":1,\"policy_generation\":1,\"unit\":{\"kind\":\"document\",\"workspace_id\":\"11111111-1111-4111-8111-111111111111\",\"document_id\":\"22222222-2222-4222-8222-222222222222\"},\"batch_id\":[0,1,2,3,4,5,6,7],\"total_length\":16777217,\"fragment_count\":1,\"sha256\":\"vvV-x_U6bUC-tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE\"}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T15",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_start\",\"version\":1,\"policy_generation\":1,\"unit\":{\"kind\":\"document\",\"workspace_id\":\"11111111-1111-4111-8111-111111111111\",\"document_id\":\"22222222-2222-4222-8222-222222222222\"},\"batch_id\":[0,1,2,3,4,5,6,7],\"total_length\":6,\"fragment_count\":7,\"sha256\":\"vvV-x_U6bUC-tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE\"}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T16",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_start\",\"version\":1,\"policy_generation\":1,\"unit\":{\"kind\":\"document\",\"workspace_id\":\"11111111-1111-4111-8111-111111111111\",\"document_id\":\"22222222-2222-4222-8222-222222222222\"},\"batch_id\":[0,1,2,3,4,5,6,7],\"total_length\":6,\"fragment_count\":0,\"sha256\":\"vvV-x_U6bUC-tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE\"}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T17",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_start\",\"version\":1,\"policy_generation\":1,\"unit\":{\"kind\":\"document\",\"workspace_id\":\"11111111-1111-4111-8111-111111111111\",\"document_id\":\"22222222-2222-1222-8222-222222222222\"},\"batch_id\":[0,1,2,3,4,5,6,7],\"total_length\":6,\"fragment_count\":1,\"sha256\":\"vvV-x_U6bUC-tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE\"}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T18",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_start\",\"version\":1,\"policy_generation\":1,\"unit\":{\"unknown\":0,\"kind\":\"document\",\"workspace_id\":\"11111111-1111-4111-8111-111111111111\",\"document_id\":\"22222222-2222-4222-8222-222222222222\"},\"batch_id\":[0,1,2,3,4,5,6,7],\"total_length\":6,\"fragment_count\":1,\"sha256\":\"vvV-x_U6bUC-tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE\"}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T19",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_start\",\"version\":1,\"policy_generation\":1,\"unit\":{\"kind\":\"document\",\"kind\":\"document\",\"workspace_id\":\"11111111-1111-4111-8111-111111111111\",\"document_id\":\"22222222-2222-4222-8222-222222222222\"},\"batch_id\":[0,1,2,3,4,5,6,7],\"total_length\":6,\"fragment_count\":1,\"sha256\":\"vvV-x_U6bUC-tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE\"}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T20",
+    "kind": "control",
+    "json": "{\"kind\":\"transfer_start\",\"version\":1,\"policy_generation\":1,\"unit\":{\"kind\":\"document\",\"workspace_id\":\"11111111-1111-4111-8111-111111111111\",\"document_id\":\"22222222-2222-4222-8222-222222222222\"},\"batch_id\":[0,1,2,3,4,5,6,7],\"total_length\":6,\"fragment_count\":1,\"sha256\":\"vvV-x_U6bUC-tkCngKY5yDvCmsipgW8fxsXG3Nk8RyE=\"}",
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T21",
+    "kind": "header",
+    "length": 0,
+    "tag": 0,
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T22",
+    "kind": "header",
+    "length": 1,
+    "tag": 0,
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T23",
+    "kind": "header",
+    "length": 2,
+    "tag": 2,
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T24",
+    "kind": "header",
+    "length": 16777217,
+    "tag": 0,
+    "code": "ok"
+  },
+  {
+    "id": "T25",
+    "kind": "header",
+    "length": 16777218,
+    "tag": 0,
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T26",
+    "kind": "header",
+    "length": 4097,
+    "tag": 1,
+    "code": "ok"
+  },
+  {
+    "id": "T27",
+    "kind": "header",
+    "length": 4098,
+    "tag": 1,
+    "code": "sync_transfer_invalid"
+  },
+  {
+    "id": "T28",
+    "kind": "budget",
+    "length": 1,
+    "seconds": 31
+  },
+  {
+    "id": "T29",
+    "kind": "budget",
+    "length": 199999,
+    "seconds": 37
+  },
+  {
+    "id": "T30",
+    "kind": "budget",
+    "length": 200000,
+    "seconds": 37
+  },
+  {
+    "id": "T31",
+    "kind": "budget",
+    "length": 200001,
+    "seconds": 37
+  },
+  {
+    "id": "T32",
+    "kind": "budget",
+    "length": 16777216,
+    "seconds": 542
+  }
+]

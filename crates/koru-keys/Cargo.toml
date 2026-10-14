@@ -1,0 +1,21 @@
+[package]
+rust-version.workspace = true
+name = "koru-keys"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Chords, modifiers and shortcut labels — one vocabulary, shared by every layer that resolves a key."
+
+[dependencies]
+koru-features = { path = "../koru-features" }
+# Keys and modifiers are winit's vocabulary, and this crate speaks it directly
+# rather than defining a parallel one. It is deliberately *not* a window and
+# knows nothing about views: `koru-workspace-host` and `koru-editor` both depend on
+# this, and the manifest is what keeps them from depending on each other.
+winit.workspace = true
+
+[dev-dependencies]
+# Every surface on by default in tests; `koru_features::testing::with` opts
+# one test into the simplified product.
+koru-features = { path = "../koru-features", features = ["testing"] }

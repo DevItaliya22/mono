@@ -1,0 +1,38 @@
+[package]
+rust-version.workspace = true
+name = "koru-settings-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Settings surface: section composition, rows, and asynchronous use of the typed settings client."
+
+# **The dependency list is the charter.** This surface draws Settings for three
+# different applications, so it may not know what a document, a workspace or a
+# session is: no `koru-core`, no `koru-workspace`, no `koru-editor`, no
+# `koru-workspace-host`, no store crate. `src/dependency.rs` fails the build if
+# any of them appears, in either direction — the same fence
+# `koru-search-ui`'s manifest comment describes and `koru-settings`' own
+# `dependency.rs` enforces.
+[dependencies]
+# The section shapes, the per-field patches, and the closed registry's
+# vocabulary. This is what a row is *about*.
+koru-settings = { path = "../koru-settings" }
+# The typed settings client, and SP-6b's link loop — discovery, the bounded
+# wait, section invalidation, per-field patches — none of which this crate
+# reimplements. See `links.rs`.
+koru-api-client = { path = "../koru-api-client", default-features = false }
+# Every string a person reads. The rows that existed before this crate carry
+# the English literals they always carried (`voice.rs`'s Q-V75 note); what is
+# new here — the three section headings, the read-only reason, the reconcile
+# notice — is keyed in all eight.
+koru-i18n = { path = "../koru-i18n" }
+# Drawing: the palette, the text engine, the scene helpers, and the process
+# globals a live preference already lives in.
+koru-draw = { path = "../koru-draw" }
+# The one normalisation of a cursor shape.
+koru-ui = { path = "../koru-ui" }
+# To *print* a chord, through the one seam every hint in the app goes through.
+koru-keys = { path = "../koru-keys" }
+vello.workspace = true
+winit.workspace = true

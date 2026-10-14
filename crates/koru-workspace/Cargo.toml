@@ -1,0 +1,32 @@
+[package]
+rust-version.workspace = true
+name = "koru-workspace"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+koru-env = { path = "../koru-env" }
+# The `doc` span around store-link imports: loro-internal's own warnings name
+# no document, and the span's fields are what put one on them.
+tracing = { workspace = true }
+koru-core = { path = "../koru-core" }
+koru-docstore = { path = "../koru-docstore" }
+# The workspace's list of documents is the store's `Manifest`, not a local twin
+# of it. `koru-store-core` is synchronous and links no HTTP by design — a mobile
+# build embeds it — so depending on it here costs loro, uuid and blake3 and
+# nothing else. The payoff is that moving the list onto the store later is a
+# change of *source* with the same type on both sides, and that the manifest's
+# convergence tests are already written.
+koru-store-core = { path = "../koru-store-core" }
+# The transport. Blocking by design, which is what suits a winit loop.
+koru-api-client = { path = "../koru-api-client" }
+koru-channel = { path = "../koru-channel" }
+loro-protocol = { workspace = true }
+loro = { workspace = true }
+
+[dev-dependencies]
+# The outbox writes files, and its tests must not write them where a person's
+# would go. Every path it is given in a test is a temp directory.
+tempfile.workspace = true

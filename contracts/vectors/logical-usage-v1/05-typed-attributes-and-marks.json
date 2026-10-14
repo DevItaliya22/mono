@@ -1,0 +1,120 @@
+{
+  "case": "05-typed-attributes-and-marks",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "A task with a bold phrase, a checked box, a date attribute and a text attribute. After the 2026-09-05 decisions this case is mostly a list of things that are free.",
+  "covers": [
+    "D65",
+    "D29"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "task",
+                "text": "Ship the contract.",
+                "done": true,
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 5
+                  },
+                  {
+                    "start": 5,
+                    "end": 17,
+                    "bold": true
+                  },
+                  {
+                    "start": 17,
+                    "end": 18
+                  }
+                ],
+                "attrs": [
+                  {
+                    "id": "a1",
+                    "role": "due",
+                    "kind": "date",
+                    "value": "2026-09-05"
+                  },
+                  {
+                    "id": "a2",
+                    "role": "owner",
+                    "kind": "text",
+                    "value": "Alex"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 14 = 14",
+    "    doc-1/n2 (task): node.text 18 + attr.value(text) 4 = 22",
+    "  document doc-1: 36",
+    "  -> documents_units 36 + files_bytes 0 = 36",
+    "account: documents_units 36 + files_bytes 0 = 36"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 36,
+        "files_bytes": 0,
+        "logical_usage_units": 36,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 36,
+      "files_bytes": 0,
+      "logical_usage_units": 36,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "The promise this pins: your words and your files, nothing else (CTO, 2026-09-05).",
+    "Free here: both nodes' existence, the bold run, done=true, the date attribute in full (its value is not words, and 'due' is a column name), and 'owner' as a role.",
+    "Charged here: 14 + 18 characters of node text, and the four characters of the text attribute's value 'Alex' — because words typed into an attribute cost the same as the same words typed into a paragraph (contract 3.3).",
+    "Was 276 under the superseded revision."
+  ]
+}

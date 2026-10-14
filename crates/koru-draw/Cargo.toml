@@ -1,0 +1,29 @@
+[package]
+rust-version.workspace = true
+name = "koru-draw"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+parley.workspace = true
+# Glyph ink bounds, for optically centring one glyph in a tile. parley reports
+# *font* metrics (ascent/descent), which for a colour emoji describe a box its
+# ink does not fill - see `scene::centre_in`. The font stack already resolves
+# this crate, so it adds no second copy of it.
+skrifa = "0.43"
+vello.workspace = true
+peniko.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+# The product mark is a 512 px PNG decoded once and downscaled on the CPU:
+# vello has no mipmaps and `ImageQuality` is a single tap, not a mip chain.
+# See `brand.rs`, and ADR-43 for why this is not solved by shipping a PNG per
+# size.
+image = "0.25"
+# Leading emoji in a document title (page icon / suppress kind glyph on pills).
+koru-title = { path = "../koru-title" }
+# The mark wears its channel's color — the tint is applied once to the decoded
+# master in `brand.rs`. A leaf crate, so this costs no transitive weight.
+koru-channel = { path = "../koru-channel" }

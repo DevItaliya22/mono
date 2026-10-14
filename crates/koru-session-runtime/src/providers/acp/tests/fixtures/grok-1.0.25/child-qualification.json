@@ -1,0 +1,21 @@
+{
+  "version": "grok 1.0.25 (f7e67d6988e2) [stable]",
+  "platform": "Windows x64",
+  "model": "loopback synthetic responses only",
+  "environmentDisablesSubagents": true,
+  "conflictingPersistedEnabledSettingTested": true,
+  "nonchildToolCount": 25,
+  "allThreeNativeAliasesCorrelatedAndRefused": true,
+  "allThreeAcpToolUpdatesFailed": true,
+  "allThreeTurnsEnded": true,
+  "allModelInventoriesExcludedNativeChildAliases": true,
+  "ownedTreeTerminated": true,
+  "proxyConnectAttempts": 0,
+  "proxyNonLoopbackRequests": 0,
+  "networkClaim": "Observed requests only; not an OS firewall proof",
+  "realKoruEndpointQualified": false,
+  "portableReproducer": "local-refusal.mjs",
+  "portableDefaultAndConflictingSettingsPassed": true,
+  "everySessionAndRequestInventoryChecked": true,
+  "failedAcpUpdateCorrelatedToExactSyntheticCallId": true
+}

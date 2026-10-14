@@ -1,0 +1,19 @@
+{
+  "cases": [
+    {
+      "name": "plain prose is valid",
+      "text": "هذا كتاب جميل جدا.",
+      "expected": []
+    },
+    {
+      "name": "a scrambled word is flagged",
+      "text": "هذا كتتتاب قديم.",
+      "expected": [{ "word": "كتتتاب" }]
+    },
+    {
+      "name": "mixed direction: the Latin words check as Latin, the Arabic as Arabic",
+      "text": "كلمة test داخل جملة عربية.",
+      "expected": [{ "word": "test" }]
+    }
+  ]
+}

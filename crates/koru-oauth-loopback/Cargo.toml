@@ -1,0 +1,12 @@
+[package]
+rust-version.workspace = true
+name = "koru-oauth-loopback"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "One-shot, loopback-only OAuth callback rendezvous."
+
+[dependencies]
+url.workspace = true
+zeroize.workspace = true

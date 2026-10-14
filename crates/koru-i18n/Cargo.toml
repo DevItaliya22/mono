@@ -1,0 +1,14 @@
+[package]
+rust-version.workspace = true
+name = "koru-i18n"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The eight supported languages, and every string a person reads."
+
+# **Nothing.** A leaf, the way `koru-channel` is a leaf: what language to draw in
+# is a question every layer above has, so this one may not reach any of them.
+# A dependency here would be linked by the store daemon, the mobile build and
+# every tool, to answer "what does Continue say in Japanese".
+[dependencies]

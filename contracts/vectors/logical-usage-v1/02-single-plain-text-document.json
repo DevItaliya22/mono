@@ -1,0 +1,96 @@
+{
+  "case": "02-single-plain-text-document",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "One document, two unformatted paragraphs, English (ASCII).",
+  "covers": [
+    "D65",
+    "D29"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "The quick brown fox jumps over the lazy dog.",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 44
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 14 = 14",
+    "    doc-1/n2 (paragraph): node.text 44 = 44",
+    "  document doc-1: 58",
+    "  -> documents_units 58 + files_bytes 0 = 58",
+    "account: documents_units 58 + files_bytes 0 = 58"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 58,
+        "files_bytes": 0,
+        "logical_usage_units": 58,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 58,
+      "files_bytes": 0,
+      "logical_usage_units": 58,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "The promise this pins: your words and your files, nothing else (CTO, 2026-09-05).",
+    "58 characters is the whole document: two nodes cost nothing for existing, and the two plain runs cost nothing.",
+    "Was 186 under the superseded revision, which charged 64 per node.",
+    "ASCII, so characters and UTF-8 bytes agree here. Vectors 03 and 04 are where they part."
+  ]
+}

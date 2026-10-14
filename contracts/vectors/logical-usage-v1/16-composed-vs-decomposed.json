@@ -1,0 +1,107 @@
+{
+  "case": "16-composed-vs-decomposed",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "The same visible text in two Unicode spellings, one document each.",
+  "covers": [
+    "PRINCIPLES.md#internationalization-is-structural"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Précis — Grüße — Água",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 29
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "document": "doc-2",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Précis — Grüße — Água",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 32
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 21 = 21",
+    "  document doc-1: 21",
+    "    doc-2/n1 (paragraph): node.text 24 = 24",
+    "  document doc-2: 24",
+    "  -> documents_units 45 + files_bytes 0 = 45",
+    "account: documents_units 45 + files_bytes 0 = 45"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 45,
+        "files_bytes": 0,
+        "logical_usage_units": 45,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 45,
+      "files_bytes": 0,
+      "logical_usage_units": 45,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "21 scalars against 24 for text that looks identical. Deliberate, not a defect: content is never NFC-normalised (PRINCIPLES.md), so the two spellings are two different strings and the store carries each byte-exactly.",
+    "A grapheme-cluster count would make them equal and is refused: grapheme segmentation depends on a Unicode table that changes between library versions, and a bill must not move when a dependency is upgraded.",
+    "UTF-8 bytes would not have escaped this either (29 against 32).",
+    "Now the pure form of the case: with structure free, these two documents are nothing but their characters.",
+    "Strings are koru_store_core::fixtures COMPOSED and DECOMPOSED."
+  ]
+}

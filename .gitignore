@@ -1,0 +1,88 @@
+target
+.dev-data
+# Worktrees an agent (Claude Code) creates inside the checkout.
+.claude/worktrees
+
+# Fonts are fetched by scripts/setup/fetch-fonts.* (NotoSansKR alone is ~10MB).
+assets/fonts/
+
+# The sherpa-onnx prebuilt native archives the voice worker links
+# (koru-voice-sherpa's `runtime` feature, which apps/koru-voice turns on).
+# 120 MB for the Windows one, and the same reason the fonts are not here:
+# fetched and hash-verified by scripts/setup/fetch-voice-runtime.sh (or .ps1)
+# against the pins in crates/koru-voice-sherpa/src/artifacts.rs.
+third-party/sherpa-onnx/
+
+# Third-party code fetched by scripts/setup/fetch-third-party.sh (or .ps1) from the
+# pins in third-party/fetch.manifest: the patched crates, and upstream files
+# used as they are. Only the pins and Koru's patches are committed.
+third-party/crates/
+crates/koru-blocks/assets/TypeScript.sublime-syntax
+apps/android/gradlew
+apps/android/gradlew.bat
+apps/android/gradle/wrapper/gradle-wrapper.jar
+
+# Machine-readable output of koru-voice-bench, one file per run. Scratch: the
+# report the run prints is what gets read.
+bench-*.json
+
+# Staged bundles, from `koru.bat dist-local` / `./koru.sh dist-local`.
+# Reproducible from a tag.
+dist
+
+# Native mobile build products and machine-local IDE state.
+apps/android/.gradle/
+# The Kotlin compiler's session files. One was tracked by accident and every
+# Gradle run writes another.
+apps/android/.kotlin/
+apps/android/local.properties
+apps/android/koru.local.conf
+apps/android/**/build/
+apps/ios/DerivedData/
+apps/ios/koru.local.conf
+# Xcode's per-user state. **The directory is `xcuserdata/`, not
+# `*.xcuserdata/`** — the glob only matched a directory *ending* in that word,
+# so neither the container nor the `<user>.xcuserdatad/` inside it was ignored
+# and one developer's scheme list reached the repository.
+apps/ios/**/xcuserdata/
+apps/ios/**/*.xcuserdatad/
+apps/ios/**/*.xcuserstate
+
+#ides
+.idea
+apps/ios/KoruMobile/GitStamp.json
+
+__pycache__/
+
+# Environment files: the `.env.production` that points a build at a Koru
+# Cloud, a root's own `.env.local`, apps/android's build settings, or any
+# local override. They hold machine- and account-specific values and must
+# never reach git. The examples carry names and no values.
+.env
+.env.*
+!.env.example
+
+# Downloaded and repackaged speech models, from `koru.bat voice-models`. Each
+# export is ~475 MB and a re-run rebuilds it byte-identically from the pinned
+# digest, so none of it belongs in history — 152 MB of archives were committed
+# by accident once and had to be surgically removed. `dist` above already covers
+# it; this stanza is named so nobody widens the work directory out of that
+# cover without seeing why it was there.
+dist/voice-models/
+voice-models-work/
+
+# The agent skills, installed from koruworks/skills by scripts/setup/setup-skills.sh
+# (the skills CLI) and never committed: the skills in .agents/skills/ for
+# Codex, the link .claude/skills -> .agents/skills for Claude Code (a symlink,
+# or a junction on Windows without Developer Mode), and the CLI's own record
+# of the install.
+# **.claude/skills has no trailing slash**: that form matches only a
+# directory, and a symlink is a file, so the mac spelling of the link was once
+# not ignored and staged itself into the tree.
+.agents/skills/
+.claude/skills
+skills-lock.json
+
+# A maintainer's private notes beside AGENTS.md (AGENTS.md, "Maintainers'
+# private notes"). Never part of this repository.
+AGENTS.private.md

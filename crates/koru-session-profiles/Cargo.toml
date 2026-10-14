@@ -1,0 +1,11 @@
+[package]
+rust-version.workspace = true
+name = "koru-session-profiles"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Shared raw terminal-session launch profiles and executable presence probes."
+
+[dependencies]
+koru-session-protocol = { path = "../koru-session-protocol" }

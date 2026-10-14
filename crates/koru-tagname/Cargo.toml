@@ -1,0 +1,13 @@
+[package]
+rust-version.workspace = true
+name = "koru-tagname"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The tag *name* grammar: the fold key that decides identity, the `/` path hierarchy, and what counts as a `#tag` in a line of text."
+
+[dependencies]
+# NFKD and NFC, for the fold key. The only dependency, deliberately: everything
+# here is string logic, which is what lets a surface with no node model use it.
+unicode-normalization.workspace = true

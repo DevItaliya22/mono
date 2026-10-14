@@ -1,0 +1,48 @@
+[package]
+rust-version.workspace = true
+name = "koru-voice-sherpa"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Turns the sherpa-onnx runtime into a `koru_voice::SpeechEngine` — the streaming Nemotron adapter and the offline Parakeet adapter, behind a feature that is off by default so an ordinary workspace build never compiles an inference runtime nor lets its build script reach the network."
+
+# **The runtime is optional and off, and that is a build-script decision rather
+# than a size one.**
+#
+# `sherpa-onnx-sys`' build script downloads a matching prebuilt native archive
+# from GitHub releases whenever `SHERPA_ONNX_LIB_DIR` is unset. This crate is a
+# workspace member, so a plain `cargo test --workspace` on a fresh clone would
+# reach the network during the *build* — which no runtime check, no
+# `model missing` message and no `cfg(test)` guard can do anything about.
+# `runtime` is therefore off by default and nothing in the workspace turns it
+# on; `docs/features/voice/RUNTIME_ARTIFACTS.md` names who provisions the native
+# archive for the builds that do.
+#
+# Everything that does not need the native library sits **outside** the gate and
+# is compiled and tested by every ordinary build: the model layout, the language
+# mapping, the per-target artifact table and the chunk-and-redecode counter. An
+# adapter whose only tested part is the twenty lines that call into C is an
+# adapter nobody can review.
+[features]
+default = []
+# Compile and link the sherpa-onnx runtime. Turned on by the benchmark and by
+# nothing else in this tree. Read the doc above before adding a second caller.
+runtime = ["dep:sherpa-onnx"]
+
+[dependencies]
+koru-voice = { path = "../koru-voice" }
+
+# **Not a workspace dependency, deliberately.** `[workspace.dependencies]` exists
+# so a version cannot drift between crates that share one; this has exactly one
+# consumer and putting it in the shared table would put the name — and the
+# invitation — in front of every crate in the tree. The version is exact because
+# the native archive the build script fetches is keyed by
+# `CARGO_PKG_VERSION`: a caret bump would silently change which artifact a
+# pinned hash is supposed to match.
+[dependencies.sherpa-onnx]
+version = "=1.13.6"
+optional = true
+
+[dev-dependencies]
+tempfile = { workspace = true }

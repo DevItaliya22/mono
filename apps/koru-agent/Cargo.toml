@@ -1,0 +1,330 @@
+[package]
+rust-version.workspace = true
+name = "koru-agent"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Koru Agent: owns device integration, supervises the gateway, holds the hotkey, and routes search results."
+
+# A library with a thin binary: the lifecycle gate needs
+# `CARGO_BIN_EXE_koru-agent`, which
+# exists only inside this package's own tests, and those tests drive the
+# registry and the routing table directly.
+[lib]
+name = "koru_agent"
+path = "src/lib.rs"
+
+[[bin]]
+name = "koru-agent"
+path = "src/main.rs"
+
+[dependencies]
+koru-socials-publisher = { path = "../../crates/koru-socials-publisher" }
+koru-features = { path = "../../crates/koru-features" }
+koru-account-runtime = { path = "../../crates/koru-account-runtime" }
+koru-env = { path = "../../crates/koru-env" }
+# The endpoint, the framing, the blocking listener, and the peer's pid. It
+# cannot start a process — that is this crate's job, because which binary and
+# which channel are knowledge about a product. See ADR-105.
+koru-url-scheme = { path = "../../crates/koru-url-scheme" }
+koru-link = { path = "../../crates/koru-link" }
+koru-ipc = { path = "../../crates/koru-ipc" }
+koru-i18n = { path = "../../crates/koru-i18n" }
+# Every message the IPC carries, and the one number that says how to read them.
+koru-agent-wire = { path = "../../crates/koru-agent-wire" }
+koru-session-protocol = { path = "../../crates/koru-session-protocol" }
+koru-session-paths = { path = "../../crates/koru-session-paths" }
+# **What a session row in the tray's Agents menu is called** — the same
+# display-name projection every `+` menu renders, so the notification area and
+# the tab strip cannot disagree about what a profile is named.
+koru-session-profiles = { path = "../../crates/koru-session-profiles" }
+koru-session-client = { path = "../../crates/koru-session-client" }
+koru-session-wire = { path = "../../crates/koru-session-wire" }
+# The mechanism for running a role of this same executable as a supervised
+# child; the roles themselves (which one, what bootstrap) are named here.
+koru-agent-worker = { path = "../../crates/koru-agent-worker" }
+# The sessions role's whole composition: `--worker sessions` calls straight
+# into the same run_supervised the standalone binary uses, so the two launch
+# paths cannot drift while both exist.
+koru-session-host = { path = "../../crates/koru-session-host" }
+# The gateway role's whole composition: `--worker gateway` calls straight into
+# the same `koru_api_gateway::start`/`serve` the standalone binary drives, for
+# the same reason the sessions role calls `run_supervised` — two launch paths,
+# one composition, so they cannot drift while both exist.
+#
+# **It is a real weight.** It brings the Store, AI and events workers, the
+# projection read model and axum into this process's link. It adds no GUI
+# toolkit: `winit`, `tray-icon` and `rfd` were already here.
+koru-api-gateway = { path = "../../crates/koru-api-gateway" }
+# The delegate role's whole composition: `--worker delegate` calls straight
+# into `koru_delegate_host::run_supervised`, for the reason the sessions and
+# gateway roles call theirs — one launch path, one composition (D12).
+koru-delegate-host = { path = "../../crates/koru-delegate-host" }
+# `LocalDelegate`: what the supervisor probes the delegate child with, and
+# asks it to stop through.
+koru-delegate-api = { path = "../../crates/koru-delegate-api" }
+# **The `delegate` diagnostic reads the ledgers, not the workers** (P1.17).
+# `koru-delegate-sqlite` opens `runs.db` read-only and `koru-artifact-sqlite`
+# opens `artifacts.db` the same way, because a worker that will not answer
+# is exactly when somebody wants to know what it was holding — the reason
+# `koru-store-server projection` reads `projection.db` rather than asking
+# the Store. Both are already in this package's graph through
+# `koru-delegate-host` and `koru-api-gateway`; naming them buys the
+# read-only seam and no new weight.
+koru-delegate-sqlite = { path = "../../crates/koru-delegate-sqlite" }
+koru-delegate-core = { path = "../../crates/koru-delegate-core" }
+koru-artifact-sqlite = { path = "../../crates/koru-artifact-sqlite" }
+# `artifacts_folder` — the one rule that says where a run's retained
+# results sit, so the disk report and the register path cannot disagree.
+koru-artifact-core = { path = "../../crates/koru-artifact-core" }
+koru-api-client = { path = "../../crates/koru-api-client" }
+koru-settings = { path = "../../crates/koru-settings" }
+# The event model, for the overlay's fire-and-forget `search.opened`.
+koru-events = { path = "../../crates/koru-events" }
+koru-api-discovery = { path = "../../crates/koru-api-discovery" }
+# **Supervising the voice worker, which means naming three things it owns**:
+# the launch bootstrap it reads from stdin, the `status` question that echoes
+# the `launch_id` back (Q-V34 -- the greeting deliberately has no field for
+# one), and the report that answers it. Naming them rather than re-declaring
+# them is the `koru-store-wire` lesson: a client that sent `json!` literals
+# against types it could not see drifted from the server twice.
+#
+# It carries `cpal` in with it, which this process never calls -- audio never
+# leaves the worker. That is the price of one declaration of the handshake
+# instead of two, and it is the trade `apps/koru-voice`'s own `bootstrap.rs`
+# anticipated when it made the type `pub`.
+koru-voice-worker = { path = "../koru-voice" }
+# Dialling the worker: what the readiness poll connects with, and what an
+# `EnsureService` answer is a promise about.
+koru-voice-client = { path = "../../crates/koru-voice-client" }
+koru-voice = { path = "../../crates/koru-voice" }
+koru-dictation = { path = "../../crates/koru-dictation" }
+# **Is a model installed**, which is the whole of what the tray's Voice input
+# row asks of the cache. It is already in this process -- `koru-voice-worker`
+# links it -- and naming it here is what lets the menu ask without going
+# through the worker's request path. Read offline: nothing on a menu build
+# fetches anything.
+koru-voice-models = { path = "../../crates/koru-voice-models" }
+# The consent record's file name and its reader: the tray row is honest about
+# whether voice has been set up, and the row that opens the consent step needs
+# to know there is one to open.
+koru-voice-consent = { path = "../../crates/koru-voice-consent" }
+# **The dictation chord, written for this platform.** The row teaches it, and a
+# chord printed anywhere in this tree comes from `REGISTRY` through `show_hint`
+# rather than being spelled at the call site -- which is what makes it right on
+# macOS and what makes it follow the binding if it changes. `winit` arrives with
+# it and this process already has one.
+koru-keys = { path = "../../crates/koru-keys" }
+koru-network-bridge = { path = "../../crates/koru-network-bridge" }
+koru-network-edge = { path = "../../crates/koru-network-edge" }
+koru-network-iroh = { path = "../../crates/koru-network-iroh" }
+# The machine-local, cross-channel relay on/off preference (decision №7 of the
+# iroh-relay roadmap): read at startup, written by the live switch.
+koru-relay-preference = { path = "../../crates/koru-relay-preference" }
+koru-device = { path = "../../crates/koru-device" }
+koru-sync-control = { path = "../../crates/koru-sync-control" }
+koru-pairing = { path = "../../crates/koru-pairing" }
+koru-account-session = { path = "../../crates/koru-account-session" }
+koru-account-client = { path = "../../crates/koru-account-client" }
+koru-account-wire = { path = "../../crates/koru-account-wire" }
+koru-account-core = { path = "../../crates/koru-account-core" }
+koru-oauth-credentials = { path = "../../crates/koru-oauth-credentials", features = ["desktop"] }
+koru-oauth-loopback = { path = "../../crates/koru-oauth-loopback" }
+# Which build this is, and where its channel keeps data.
+koru-channel = { path = "../../crates/koru-channel" }
+# **The agent wrote no log at all**, and it is the process that owns the tray,
+# the global shortcut, the search overlay, the routing between windows, the
+# supervision of the store and updating. A hotkey that did nothing, or an
+# overlay that came up black, left no trace anywhere — and every `tracing` line
+# in it and in its dependencies was compiled and then dropped for want of a
+# subscriber. It files beside `koru.log` and `koru-store.log`, in the same
+# folder, so one directory answers "what happened".
+koru-log = { path = "../../crates/koru-log" }
+tracing.workspace = true
+# Checking, downloading and verifying a release, and handing the package to
+# koru-updater. **This is a real weight** — reqwest, minisign-verify, zip and
+# sha2 arrive with it, in a process that linked none of them — and it is the
+# price of the agent being the one that updates the installation. It has to be
+# this process: a swap replaces all four binaries at once, so something has to
+# bring the other three down in order and be the last one standing, and the
+# agent is the only one that outlives every window.
+koru-update = { path = "../../crates/koru-update" }
+# Starting the store, which already refuses a foreign channel and already does
+# the bind race. The agent adds nothing to it.
+# Store diagnostics and the authenticated whole-Store backup request exposed
+# from the tray. Blocking calls run only on Agent worker threads.
+koru-store-client = { path = "../../crates/koru-store-client" }
+# The ids the registry routes on, parsed at the boundary out of the strings the
+# wire carries.
+koru-store-core = { path = "../../crates/koru-store-core" }
+# Reminder scheduling owns policy here; these two dependencies are the narrow
+# timezone and native mechanism seams it drives on its worker thread.
+koru-time-zone = { path = "../../crates/koru-time-zone" }
+koru-native-notifications = { path = "../../crates/koru-native-notifications" }
+# The overlay: the same surface `apps/koru` shows, hosted here.
+koru-search-ui = { path = "../../crates/koru-search-ui" }
+koru-voice-ui = { path = "../../crates/koru-voice-ui" }
+# The window, the loop, and the machine-local preferences.
+koru-window = { path = "../../crates/koru-window" }
+koru-draw = { path = "../../crates/koru-draw" }
+# Decoding the window icon out of the embedded `.ico`. Default features off:
+# the only format needed is the one we ship.
+image = { version = "0.25", default-features = false, features = ["ico", "png"] }
+uuid = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+blake3 = { workspace = true }
+base64.workspace = true
+fs2.workspace = true
+tokio = { workspace = true }
+rusqlite = { workspace = true }
+zeroize = { workspace = true }
+rand_core.workspace = true
+sha2.workspace = true
+url.workspace = true
+qrcode.workspace = true
+winit.workspace = true
+vello.workspace = true
+
+# The notification area. The gtk/libxdo weight that kept `tray-icon` off this
+# list is *Linux's* — on macOS it wraps NSStatusItem and pulls neither
+# (ADR-118, confirmed with `cargo tree`) — so Windows and macOS share one
+# implementation and Linux keeps the stub. `default-features = false` is what
+# keeps the Linux-only features from ever arriving by default.
+[target.'cfg(any(windows, target_os = "macos"))'.dependencies]
+tray-icon = { version = "0.24", default-features = false }
+
+# The global search shortcut. Windows has `RegisterHotKey` directly; macOS
+# needs Carbon's `RegisterEventHotKey`, which this wraps — same authors as
+# `tray-icon`, and no Accessibility permission required.
+[target.'cfg(target_os = "macos")'.dependencies]
+global-hotkey = { version = "0.8", default-features = false }
+block2 = "0.6.2"
+objc2-foundation = { version = "0.3", default-features = false, features = [
+    "std", "block2", "NSNotification", "NSOperation", "NSString", "NSTimeZone"
+] }
+objc2-app-kit = { version = "0.3", default-features = false, features = [
+    "std", "NSWorkspace"
+] }
+# `sysctlbyname` for the build record's OS line ("macOS 26.0"); the
+# alternative, spawning `sw_vers` at every agent start, is a process for a string.
+libc.workspace = true
+# The device's signing and endpoint secrets on signed builds (M17): the same
+# Keychain crate, at the same pin, the account refresh token already uses.
+keyring.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+koru-windows-input = { path = "../../crates/koru-windows-input" }
+rfd = "0.15"
+koru-winres = { path = "../../crates/koru-winres" }
+windows-core = "0.62.2"
+windows = { version = "0.62", features = [
+    "ApplicationModel",
+    "Win32_Foundation",
+    "Win32_System_Com",
+    "Win32_System_StationsAndDesktops",
+    "Win32_System_Threading",
+    "Win32_UI_Accessibility",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_Notifications",
+    "Win32_UI_WindowsAndMessaging",
+] }
+windows-sys = { workspace = true, features = [
+    "Win32_Graphics_Gdi",
+    "Win32_UI_HiDpi",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+[dev-dependencies]
+koru-socials-publisher = { path = "../../crates/koru-socials-publisher", features = ["no-network"] }
+# Every surface on by default in tests; `koru_features::testing::with` opts
+# one test into the simplified product.
+koru-features = { path = "../../crates/koru-features", features = ["testing"] }
+koru-delegate-host = { path = "../../crates/koru-delegate-host", features = ["test-support"] }
+koru-session-host = { path = "../../crates/koru-session-host", features = ["no-provider-probes"] }
+koru-session-runtime = { path = "../../crates/koru-session-runtime" }
+koru-account-runtime = { path = "../../crates/koru-account-runtime", features = ["test-support"] }
+ed25519-dalek.workspace = true
+koru-account-core = { path = "../../crates/koru-account-core" }
+# **`no-reader` on**, or a `cargo test` run queries the developer's own index.
+# `cfg(test)` inside `koru-search-ui` cannot reach here: a dependency is never
+# compiled with it. Resolver 2+ keeps a dev-only feature out of the binary.
+koru-search-ui = { path = "../../crates/koru-search-ui", features = ["no-reader"] }
+koru-dictation = { path = "../../crates/koru-dictation", features = ["no-engine"] }
+# **`no-sink` on**, or the Agent's own gate posts its fixtures into the shared
+# analytics project. Feature unification is per package: this package now
+# depends on `koru-api-gateway`, whose composition opens a real events worker,
+# and that worker constructs the configured sink without being asked to.
+# `cfg(test)` inside `koru-events-server` cannot reach here — a dependency is
+# never compiled with it — and resolver 2+ keeps a dev-only feature out of the
+# shipped binary. The same shape as `no-reader` above; the gateway process
+# suite spawns `koru-agent --worker gateway`, which is what makes it reachable.
+#
+# **It covers the five moved gateway suites too**, and it has to: `gateway_sync`,
+# `gateway_ai`, `gateway_catalog_events`, `gateway_settings` and
+# `gateway_host_parity` each spawn a real gateway child out of *this* image, so
+# the events worker they open is the one this package's feature resolution
+# built. `crates/koru-api-gateway` turned the same guard on for the same suites
+# before they moved here with the binary they used to spawn.
+koru-events-server = { path = "../koru-events-server", features = ["no-sink"] }
+tempfile = "3"
+koru-session-api = { path = "../../crates/koru-session-api" }
+koru-api-wire = { path = "../../crates/koru-api-wire" }
+# **Plan 6's recovery battery, and two things it must not spell as literals.**
+# `koru-store-wire` carries the declared `TaskQuery`, so the Tasks case sends
+# the type the route parses rather than a `json!` shape that can drift from it;
+# `koru-api-gateway-core` carries the scope constants, so a case names a scope
+# rather than repeating a string the gateway could rename underneath it. Both
+# are already in this package's dependency graph through `koru-api-gateway`,
+# and neither opens a worker, so the `no-sink` guard above still covers the
+# package.
+koru-store-wire = { path = "../../crates/koru-store-wire" }
+koru-api-gateway-core = { path = "../../crates/koru-api-gateway-core" }
+# The delegate process suite reads a run's authority back to prove it was
+# revoked when the run ended; `AuthorityState` is the wire's word for it.
+koru-artifact-wire = { path = "../../crates/koru-artifact-wire" }
+reqwest.workspace = true
+
+# --- the suites that came with the retired standalone binaries ---------------
+#
+# `koru-api-gateway.exe` and `koru-session-host.exe` are gone, and
+# `CARGO_BIN_EXE_*` is set only for binaries the *testing package itself*
+# declares — so their integration suites had to move to the package that
+# declares the one image left hosting both roles. Everything below is what those
+# suites name and this package did not already have.
+#
+# `gateway_ai.rs` reads the mock provider's own vocabulary rather than matching
+# on JSON: `AttemptStatus`, `MessageState` and the request types are the
+# contract the route parses, and a `json!` shape beside them would drift.
+koru-ai-core = { path = "../../crates/koru-ai-core" }
+koru-ai-wire = { path = "../../crates/koru-ai-wire" }
+# `gateway_lifecycle.rs` builds a real `GatewayState` around a real Store worker
+# and drives `router()` in process — it spawns no gateway at all — so it needs
+# the worker type by name, and `axum`/`tower` to send one request through the
+# router without a socket. Already in this package's graph through
+# `koru-api-gateway`; named here because a test cannot `use` what its own
+# package does not declare.
+koru-store-server = { path = "../koru-store-server" }
+# `delegate_worker_process.rs` reads the Run document beside the worker to
+# prove it agrees with `runs.db`, which the package now depends on.
+koru-delegate-document = { path = "../../crates/koru-delegate-document" }
+koru-delegate-core = { path = "../../crates/koru-delegate-core" }
+koru-delegate-schedule = { path = "../../crates/koru-delegate-schedule" }
+koru-recurrence = { path = "../../crates/koru-recurrence" }
+# The layout the worker materializes a run's context into, so the test names
+# the file by the same function the worker wrote it with rather than by a
+# path spelled twice.
+koru-delegate-context = { path = "../../crates/koru-delegate-context" }
+# The document model the attached page is built in, so the run is handed a
+# page the Markdown exporter can render rather than a bare Loro text.
+koru-core = { path = "../../crates/koru-core" }
+axum.workspace = true
+tower = { version = "0.5", features = ["util"] }
+
+# The window's icon and version block. **`FileDescription` carries no version**:
+# the notification area keys "always show this icon" off that string, so a
+# version in it makes every build a different app and the icon vanishes.
+[build-dependencies]
+koru-channel = { path = "../../crates/koru-channel" }
+koru-winres = { path = "../../crates/koru-winres" }

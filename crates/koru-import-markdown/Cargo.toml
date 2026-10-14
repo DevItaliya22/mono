@@ -1,0 +1,24 @@
+[package]
+rust-version.workspace = true
+name = "koru-import-markdown"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Markdown importer for Koru documents."
+
+[dependencies]
+koru-link = { path = "../koru-link" }
+koru-import = { path = "../koru-import" }
+pulldown-cmark.workspace = true
+koru-core = { path = "../koru-core" }
+koru-store-core = { path = "../koru-store-core" }
+# Decoding `data:`-URI images (Google Docs export, some Obsidian exports)
+# into the blob store, so an embedded picture imports as a picture.
+base64.workspace = true
+# Reading an image's intrinsic dimensions (header only, no full decode) so an
+# imported picture keeps its aspect ratio instead of a default size.
+image = "0.25"
+
+[dev-dependencies]
+tempfile.workspace = true

@@ -1,0 +1,124 @@
+// SPDX-License-Identifier: MPL-2.0
+
+use super::*;
+use koru_core::{Heading, ListStyle, Mark};
+use koru_workspace_host::{RichListSpec, RichTextKind};
+
+fn text_blocks(blocks: &[RichBlock]) -> Vec<&koru_workspace_host::RichTextBlock> {
+    blocks
+        .iter()
+        .filter_map(|block| match block {
+            RichBlock::Text(text) => Some(text),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The one fact the greeting exists to carry.
+#[test]
+fn the_greeting_names_the_version_it_is_about() {
+    let markdown = greeting("0.0.4-nightly.20260816+3b71911");
+    assert!(markdown.contains("0.0.4-nightly.20260816+3b71911"));
+    assert!(markdown.contains("https://www.koru.do/releases"));
+}
+
+/// **One paragraph, not a heading.** The document's own title row already names
+/// the version; a second heading here would give the page two of them, and the
+/// way that happens is a stray `#` or a line that Markdown reads as a setext
+/// underline.
+#[test]
+fn the_greeting_is_a_single_paragraph() {
+    let blocks = blocks("0.0.4", None);
+    let texts = text_blocks(&blocks);
+    assert_eq!(texts.len(), 1, "the greeting is one block");
+    assert_eq!(texts[0].heading, None, "and not a heading");
+    assert_eq!(texts[0].list, None);
+    assert_eq!(texts[0].kind, RichTextKind::Paragraph);
+    assert!(texts[0].text.contains("0.0.4"));
+}
+
+/// The releases page is a real link, so clicking it in the page opens the site.
+#[test]
+fn the_greeting_links_to_the_releases_page() {
+    let blocks = blocks("0.0.4", None);
+    let texts = text_blocks(&blocks);
+    let link = texts[0]
+        .links
+        .first()
+        .expect("the releases page is a link, not bare text");
+    assert_eq!(link.url, "https://www.koru.do/releases");
+    assert_eq!(&texts[0].text[link.start..link.end], "releases page");
+}
+
+/// A build that shipped without notes still says what it is. This is the
+/// ordinary case for `cargo run` and for most `dist-local` bundles, so it must
+/// be a whole page rather than a degraded one.
+#[test]
+fn a_build_with_no_notes_still_greets() {
+    let blocks = blocks("0.0.4", None);
+    assert!(!blocks.is_empty());
+}
+
+/// The notes keep their shape on the way through — this is what makes the tab
+/// worth having rather than a wall of unformatted text.
+#[test]
+fn release_notes_arrive_as_real_structure() {
+    let notes = "## Find and replace\n\n\
+                 Press **Ctrl+F** to find text.\n\n\
+                 - a bullet\n\
+                 - another\n";
+    let blocks = blocks("0.0.4", Some(notes));
+    let texts = text_blocks(&blocks);
+
+    assert!(
+        texts
+            .iter()
+            .any(|t| t.heading == Some(Heading::H2) && t.text.contains("Find and replace")),
+        "a heading stays a heading"
+    );
+    assert!(
+        texts.iter().any(|t| matches!(
+            t.list,
+            Some(RichListSpec {
+                style: ListStyle::Bullet,
+                ..
+            })
+        )),
+        "bullets stay bullets"
+    );
+    assert!(
+        texts
+            .iter()
+            .any(|t| t.runs.iter().any(|r| r.marks.has(Mark::Bold))),
+        "bold stays bold"
+    );
+}
+
+/// **Why [`blocks`] parses twice instead of joining two strings.**
+///
+/// A setext underline turns the paragraph *above* it into a heading. Joined into
+/// one document, a release note that opened with `===` would reach back and
+/// promote our greeting — silently, and only for the releases whose notes happen
+/// to start that way. Somebody will propose the one-string version as a
+/// simplification; this is the answer.
+#[test]
+fn notes_cannot_reach_back_and_reformat_the_greeting() {
+    let blocks = blocks("0.0.4", Some("===\n\nordinary prose\n"));
+    let texts = text_blocks(&blocks);
+    assert_eq!(
+        texts[0].heading, None,
+        "the greeting is still a paragraph, whatever the notes open with"
+    );
+    assert!(texts[0].text.contains("0.0.4"));
+}
+
+/// A fence left open by the author must not swallow the rest of the page, and
+/// must not swallow the greeting either — the greeting is parsed before the
+/// notes are seen at all.
+#[test]
+fn an_unclosed_fence_in_the_notes_does_not_eat_the_greeting() {
+    let blocks = blocks("0.0.4", Some("```\nnever closed\n"));
+    let texts = text_blocks(&blocks);
+    assert_eq!(texts[0].kind, RichTextKind::Paragraph);
+    assert!(texts[0].text.contains("Updated to Koru 0.0.4"));
+}

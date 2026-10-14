@@ -1,0 +1,18 @@
+[package]
+rust-version.workspace = true
+name = "koru-import-legacy-workspace"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Importer for Koru's legacy single-Loro-document workspace folders."
+
+[dependencies]
+koru-import = { path = "../koru-import" }
+koru-store-core = { path = "../koru-store-core" }
+koru-core = { path = "../koru-core" }
+koru-docstore = { path = "../koru-docstore" }
+blake3.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

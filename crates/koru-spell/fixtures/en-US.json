@@ -1,0 +1,67 @@
+{
+  "cases": [
+    {
+      "name": "valid plain prose is clean",
+      "text": "This is a simple test.",
+      "expected": []
+    },
+    {
+      "name": "a classic typo is flagged at its exact bytes",
+      "text": "This is teh test.",
+      "expected": [{ "word": "teh", "start": 8, "end": 11 }]
+    },
+    {
+      "name": "contractions and possessives stay whole and valid",
+      "text": "It isn't Steven's fault.",
+      "expected": []
+    },
+    {
+      "name": "the typographic apostrophe checks like the ASCII one",
+      "text": "It isn’t right.",
+      "expected": []
+    },
+    {
+      "name": "morphology: prefix and inflection forms are valid",
+      "text": "She rechecked the running dogs.",
+      "expected": []
+    },
+    {
+      "name": "morphology: broken inflections are flagged",
+      "text": "The dogz runing fast.",
+      "expected": [
+        { "word": "dogz", "start": 4, "end": 8 },
+        { "word": "runing", "start": 9, "end": 15 }
+      ]
+    },
+    {
+      "name": "hyphenated compounds check by their parts",
+      "text": "A well-known test-file example.",
+      "expected": []
+    },
+    {
+      "name": "identifiers and underscores never reach the dictionary",
+      "text": "Call getDocumentById on foo_bar now.",
+      "expected": []
+    },
+    {
+      "name": "dotted domains never reach the dictionary",
+      "text": "See api.koru.do for details.",
+      "expected": []
+    },
+    {
+      "name": "an unknown product name is honestly flagged (personal dictionary's job)",
+      "text": "Koru imports notes.",
+      "expected": [{ "word": "Koru", "start": 0, "end": 4 }]
+    },
+    {
+      "name": "a pill anchor separates its neighbours",
+      "text": "teh⁠next",
+      "expected": [{ "word": "teh", "start": 0, "end": 3 }]
+    },
+    {
+      "name": "numbers are not words",
+      "text": "Version 2 has 42 fixes.",
+      "expected": []
+    }
+  ]
+}

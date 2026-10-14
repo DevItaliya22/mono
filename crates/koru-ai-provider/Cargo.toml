@@ -1,0 +1,28 @@
+[package]
+rust-version.workspace = true
+name = "koru-ai-provider"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Provider adapters and registry for Koru-owned AI requests and events."
+
+[dependencies]
+keyring.workspace = true
+koru-ai-core = { path = "../koru-ai-core" }
+koru-ai-provider-koru = { path = "../koru-ai-provider-koru" }
+koru-ai-provider-ollama = { path = "../koru-ai-provider-ollama" }
+koru-ai-provider-openai = { path = "../koru-ai-provider-openai" }
+koru-env = { path = "../koru-env" }
+serde_json.workspace = true
+zeroize.workspace = true
+
+# `keyring`'s Apple store refuses to compile for iOS without its `protected`
+# (data-protection keychain) feature, and `keyring` exposes no feature that
+# turns it on — only a direct dependency can. This crate reaches the phone
+# through `koru-mobile-host` → `koru-api-gateway-core` → `koru-ai-server`;
+# whether it should is `dev`'s question, this line only lets the static
+# library build. Features unify, so the store gets `protected` and nothing
+# else changes.
+[target.'cfg(target_os = "ios")'.dependencies]
+apple-native-keyring-store = { version = "1.0.2", features = ["protected"] }

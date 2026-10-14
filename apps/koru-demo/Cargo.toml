@@ -1,0 +1,70 @@
+[package]
+rust-version.workspace = true
+name = "koru-demo"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Compiled accessibility workflow runner using UIA selection and guarded Windows input."
+
+# **A binary with a library beside it**, for the reason `koru-voice-bench` and
+# `apps/koru-store-server` give: the part that has to be tested is the locator
+# grammar, the selection rule, the waits and the supervisor, and a `main.rs` is
+# the part that cannot be. The same split lets the interactive lane depend on
+# the library without going through a process.
+[lib]
+name = "koru_demo"
+path = "src/lib.rs"
+
+[[bin]]
+name = "koru-demo"
+path = "src/main.rs"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+koru-windows-input = { path = "../../crates/koru-windows-input" }
+# The capture mechanism the runner's `record` verb drives: exact-HWND Graphics
+# Capture, explicit H.264, first-encoded-frame origin. Runner vocabulary (the
+# `koru-demo-recording/1` pairing) stays here; only the mechanism moved.
+koru-recording = { path = "../../crates/koru-recording" }
+koru-keys = { path = "../../crates/koru-keys" }
+winit = { workspace = true }
+
+# **Which root, and is anything alive there.** §7.5 of the accessibility roadmap
+# forbids guessing a workspace or attaching to the user's ordinary window, and
+# the honest way to not guess is to ask the rendezvous the named root publishes.
+# `probe_at` is the liveness question that mints no credential, which is what
+# `koru-agent status` already asks with it.
+koru-api-discovery = { path = "../../crates/koru-api-discovery" }
+# The channel segment that rendezvous is named by. One table, not a literal.
+koru-channel = { path = "../../crates/koru-channel" }
+
+# **The client half of UI Automation, on the binding stack already in the tree.**
+# The roadmap's "reuse the existing `windows` bindings" (§4), and the same five
+# features the four accessibility proofs declare — see `guide/contributing/deps/ACCESSKIT.md`.
+# `Win32_System_Variant` is not optional: a property condition takes a `VARIANT`.
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62.2", features = [
+    "Win32_Foundation",
+    "Win32_System_Com",
+    # `VARIANT` — and with it `CreatePropertyCondition`, whose signature takes
+    # one — is gated behind **both** of these. Asking for `Win32_System_Variant`
+    # alone compiles and then reports the method as missing, which reads like a
+    # binding-version problem and is not one.
+    "Win32_System_Ole",
+    "Win32_System_Variant",
+    "Win32_UI_Accessibility",
+    "Win32_UI_HiDpi",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Shell",
+    "Win32_System_Console",
+    # **Which binary the window in front of you is actually running.** A Koru
+    # holding `koru.exe` open keeps every later `cargo build` from replacing it,
+    # so a tester can be looking at a window whose code is hours behind their
+    # tree — and a tree that answers every locator correctly is indistinguishable
+    # from one that answers none of them for a good reason. `OpenProcess` +
+    # `QueryFullProcessImageNameW` is the read that makes that visible.
+    "Win32_System_Threading",
+] }
+windows-core = "0.62.2"

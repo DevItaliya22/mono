@@ -1,0 +1,49 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "sessionId": "<private-session>",
+    "modes": {
+      "currentModeId": "<mode-1>",
+      "availableModes": [
+        {"id": "<mode-1>", "name": "<label>", "description": "<label>"},
+        {"id": "<mode-2>", "name": "<label>", "description": "<label>"},
+        {"id": "<mode-3>", "name": "<label>", "description": "<label>"}
+      ]
+    },
+    "configOptions": [
+      {
+        "currentValue": "model-a",
+        "options": [
+          {"value": "model-a", "name": "<label>", "description": "<label>"},
+          {"value": "model-b", "name": "<label>", "description": "<label>"},
+          {"value": "model-c", "name": "<label>", "description": "<label>"}
+        ],
+        "id": "model",
+        "name": "<label>",
+        "category": "model",
+        "type": "select"
+      },
+      {
+        "currentValue": "<mode-1>",
+        "options": [
+          {"value": "<mode-1>", "name": "<label>", "description": "<label>"},
+          {"value": "<mode-2>", "name": "<label>", "description": "<label>"},
+          {"value": "<mode-3>", "name": "<label>", "description": "<label>"}
+        ],
+        "id": "mode",
+        "name": "<label>",
+        "category": "mode",
+        "type": "select"
+      }
+    ],
+    "models": {
+      "availableModels": [
+        {"modelId": "model-a", "name": "<label>", "description": "<label>"},
+        {"modelId": "model-b", "name": "<label>", "description": "<label>"},
+        {"modelId": "model-c", "name": "<label>", "description": "<label>"}
+      ],
+      "currentModelId": "model-a"
+    }
+  }
+}

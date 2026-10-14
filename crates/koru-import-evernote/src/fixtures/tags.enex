@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<en-export>
+  <note>
+    <title>First tagged</title>
+    <content><![CDATA[<en-note><p>one</p></en-note>]]></content>
+    <tag>#Café</tag>
+    <tag>#fun/home</tag>
+  </note>
+  <note>
+    <title>Second tagged</title>
+    <content><![CDATA[<en-note><p>two</p></en-note>]]></content>
+    <tag>#cafe</tag>
+  </note>
+</en-export>

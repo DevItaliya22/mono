@@ -1,0 +1,119 @@
+{
+  "case": "08-permanently-deleted-document",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "Two documents: one live, one permanently removed. Loro still holds the removed document's history.",
+  "covers": [
+    "D21",
+    "D39"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "The quick brown fox jumps over the lazy dog.",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 44
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "document": "doc-2",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": false,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Draft to discard",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 16
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 14 = 14",
+    "    doc-1/n2 (paragraph): node.text 44 = 44",
+    "  document doc-1: 58",
+    "  document doc-2: permanently removed from the durable set -> 0",
+    "  -> documents_units 58 + files_bytes 0 = 58",
+    "account: documents_units 58 + files_bytes 0 = 58"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 58,
+        "files_bytes": 0,
+        "logical_usage_units": 58,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 58,
+      "files_bytes": 0,
+      "logical_usage_units": 58,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "The purged document contributes 0 even though its CRDT operations remain in the snapshot: Loro serialization and history never consume user quota (D21).",
+    "A node removed by delete_permanently / empty_trash disappears from walk_all and stops counting by the same rule."
+  ]
+}

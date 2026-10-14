@@ -1,0 +1,127 @@
+// SPDX-License-Identifier: MPL-2.0
+
+use super::*;
+
+#[test]
+fn the_truthiness_rule_is_koru_envs() {
+    for value in [
+        None,
+        Some(""),
+        Some("0"),
+        Some("false"),
+        Some("No"),
+        Some(" OFF "),
+        Some("\toff\n"),
+        Some("1"),
+        Some("true"),
+        Some("yes"),
+        Some("On"),
+        Some("anything"),
+        Some(" 0 1 "),
+    ] {
+        assert_eq!(
+            switch_value(value),
+            koru_env::switch_value(value),
+            "value {value:?}"
+        );
+    }
+}
+
+#[test]
+fn a_set_variable_wins_in_both_directions_and_an_unset_one_keeps_the_baked_default() {
+    let lookup = |pairs: &'static [(&'static str, &'static str)]| {
+        move |name: &str| {
+            pairs
+                .iter()
+                .find(|(key, _)| *key == name)
+                .map(|(_, value)| value.to_string())
+        }
+    };
+    assert_eq!(
+        Features::resolve(Features::ALL_OFF, lookup(&[])),
+        Features::ALL_OFF,
+        "nothing set, nothing baked: the simplified product"
+    );
+    assert_eq!(
+        Features::resolve(Features::ALL_ON, lookup(&[])),
+        Features::ALL_ON
+    );
+    let on = Features::resolve(
+        Features::ALL_OFF,
+        lookup(&[
+            ("KORU_ENABLE_AI", "1"),
+            ("KORU_ENABLE_TASKS", "yes"),
+            ("KORU_ENABLE_CANVAS", "on"),
+        ]),
+    );
+    assert_eq!(
+        on,
+        Features {
+            ai: true,
+            tasks: true,
+            canvas: true,
+            ..Features::ALL_OFF
+        }
+    );
+    let off = Features::resolve(
+        Features::ALL_ON,
+        lookup(&[
+            ("KORU_ENABLE_CLOUD_SYNC", "0"),
+            ("KORU_ENABLE_REMINDERS", ""),
+            ("KORU_ENABLE_SOCIALS", "off"),
+        ]),
+    );
+    assert_eq!(
+        off,
+        Features {
+            cloud_sync: false,
+            reminders: false,
+            socials: false,
+            ..Features::ALL_ON
+        }
+    );
+}
+
+#[test]
+fn the_names_are_the_ones_the_registry_declares() {
+    for name in env::ALL {
+        let var = koru_env::get(name).unwrap_or_else(|| panic!("{name} is not in koru-env VARS"));
+        assert_eq!(var.kind, koru_env::Kind::Switch, "{name}");
+    }
+}
+
+#[test]
+fn a_test_build_shows_everything_and_an_override_is_per_thread() {
+    assert_eq!(*features(), Features::ALL_ON);
+    testing::with(Features::ALL_OFF, || {
+        assert!(
+            !ai()
+                && !tasks()
+                && !agents()
+                && !reminders()
+                && !cloud_sync()
+                && !canvas()
+                && !socials()
+        );
+        // Nested overrides restore the outer one.
+        testing::with(
+            Features {
+                tasks: true,
+                ..Features::ALL_OFF
+            },
+            || assert!(tasks() && !ai()),
+        );
+        assert!(!tasks());
+        let other = std::thread::spawn(features).join().expect("thread");
+        assert_eq!(*other, Features::ALL_ON, "another thread is not overridden");
+    });
+    assert_eq!(*features(), Features::ALL_ON);
+}
+
+#[test]
+fn the_summary_names_every_flag() {
+    assert_eq!(
+        Features::ALL_OFF.to_string(),
+        "cloud_sync=off agents=off tasks=off ai=off reminders=off canvas=off socials=off"
+    );
+}

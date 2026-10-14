@@ -1,0 +1,36 @@
+[package]
+rust-version.workspace = true
+name = "koru-projection"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "A read model of every document the store holds, for search, retrieval and views."
+
+[dependencies]
+# The node model. **This crate is the only thing above the store that links
+# it** — that is the whole point: `koru-store-core` stays opaque, and the walk
+# lives here instead.
+koru-core = { path = "../koru-core" }
+# Ids, the commit signal, and the store itself for enumerating and forking.
+koru-store-core = { path = "../koru-store-core" }
+# The published hold contract behind `covered`: how long a document may wait
+# before its rows are readable is stated once, on the wire, and the projector's
+# debounce reads it from there rather than the other way round.
+koru-store-wire = { path = "../koru-store-wire" }
+# The one title chain, so a task row's title is computed here exactly as the
+# desktop computes it from an open document (ADR-250). A leaf that links only
+# `emojis` — cheap enough that the read model can hold the same rule the views
+# hold, rather than a second spelling of it.
+koru-title = { path = "../koru-title" }
+koru-time-zone = { path = "../koru-time-zone" }
+chrono.workspace = true
+loro = { workspace = true }
+rusqlite = { workspace = true }
+tracing = "0.1"
+
+[dev-dependencies]
+tempfile.workspace = true
+uuid.workspace = true
+# A date attribute is the reason typed attributes exist, so a test has to be
+# able to build one.

@@ -1,0 +1,58 @@
+[package]
+rust-version.workspace = true
+name = "koru-mobile-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The portable mobile host: embedded Store, pairing, replication, and the generated Protobuf edge both platform shims marshal."
+
+[dependencies]
+koru-account-runtime = { path = "../koru-account-runtime" }
+koru-account-session = { path = "../koru-account-session" }
+koru-account-core = { path = "../koru-account-core" }
+koru-account-client = { path = "../koru-account-client" }
+koru-account-wire = { path = "../koru-account-wire" }
+url.workspace = true
+koru-agent-wire = { path = "../koru-agent-wire" }
+koru-oauth-credentials = { path = "../koru-oauth-credentials" }
+koru-store-wire = { path = "../koru-store-wire" }
+# The Store's service ports and the one waiting-documents mapping the
+# desktop's route also calls. Already in the graph through
+# `koru-store-server`; named here so the phone calls the same functions.
+koru-store-api = { path = "../koru-store-api" }
+zeroize.workspace = true
+koru-api-gateway-core = { path = "../koru-api-gateway-core" }
+# The shared transfer engine's vocabulary — the status, the policy port and
+# the announcement seam. The engine itself is composed by the Store worker
+# this host already embeds; nothing here reimplements a transfer.
+koru-blob-sync = { path = "../koru-blob-sync" }
+koru-contract = { path = "../koru-contract" }
+# The run vocabulary and the Run document reader: a delegated run is opened
+# with `RunDocument`, never walked as a node tree (P1.18, proposal §8).
+koru-delegate-core = { path = "../koru-delegate-core" }
+koru-delegate-document = { path = "../koru-delegate-document" }
+koru-device = { path = "../koru-device" }
+koru-pairing = { path = "../koru-pairing" }
+koru-replication = { path = "../koru-replication" }
+koru-network-iroh = { path = "../koru-network-iroh" }
+koru-store-server = { path = "../../apps/koru-store-server" }
+koru-store-core = { path = "../koru-store-core" }
+koru-sync-control = { path = "../koru-sync-control" }
+koru-title = { path = "../koru-title" }
+loro.workspace = true
+prost.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+uuid.workspace = true
+tracing.workspace = true
+# Routes the replication runtime's tracing to the Android/Apple platform
+# consoles — without it a phone that cannot pull a document fails invisibly.
+tracing-subscriber.workspace = true
+koru-core = { path = "../koru-core" }
+
+[dev-dependencies]
+koru-account-runtime = { path = "../koru-account-runtime", features = ["test-support"] }
+base64.workspace = true
+tempfile.workspace = true

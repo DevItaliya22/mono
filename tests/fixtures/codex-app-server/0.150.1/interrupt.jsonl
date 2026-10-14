@@ -1,0 +1,5 @@
+{"method":"turn/interrupt","id":5,"params":{"threadId":"<thread-id>","turnId":"<turn-id>"}}
+{"id":5,"result":{}}
+{"method":"turn/completed","params":{"threadId":"<thread-id>","turn":{"id":"<turn-id>","items":[],"itemsView":"notLoaded","status":"interrupted","error":null,"startedAt":0,"completedAt":1,"durationMs":1}},"emittedAtMs":1}
+{"method":"turn/interrupt","id":6,"params":{"threadId":"<thread-id>","turnId":"<completed-turn-id>"}}
+{"error":{"code":-32600,"message":"no active turn to interrupt"},"id":6}

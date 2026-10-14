@@ -1,0 +1,44 @@
+{
+  "wrapperVersion": "0.76.0",
+  "sdkVersion": "0.3.257",
+  "runtimeVersion": "2.1.257",
+  "conflictingAllowedTools": true,
+  "workspaceAllowsChildren": true,
+  "promptAttemptedBoth": true,
+  "permissionRequests": 0,
+  "completed": true,
+  "beforeHash": "c1635f643ceff71c906011b85f33f1b135a4a07aeaa5546d44fb6c5fad11c96d",
+  "promptReply": true,
+  "stopReason": "end_turn",
+  "effectiveTools": {
+    "nativeInit": true,
+    "toolListPresent": true,
+    "agentOffered": false,
+    "taskOffered": false
+  },
+  "afterHash": "c1635f643ceff71c906011b85f33f1b135a4a07aeaa5546d44fb6c5fad11c96d",
+  "restored": true,
+  "realKoruArtifactRegistered": true,
+  "cancelAfterProviderDelta": true,
+  "boundedShutdown": true,
+  "ordinaryTestsRequireNoProvider": true,
+  "earlierPromptRefusal": {
+    "code": -32603,
+    "category": "unknown",
+    "laterSameConfigurationSucceeded": true
+  },
+  "nodeVersion": "24.19.0",
+  "registeredFactoryProbe": {
+    "npmShim": true,
+    "defaultTimeoutSeconds": 5,
+    "completedSeconds": 2.62,
+    "http": true,
+    "authenticated": true,
+    "boundedShutdown": true,
+    "rawClaudeAbsent": true,
+    "cargoPathCharacters": 12460,
+    "childPathCharacters": 72,
+    "cargoNodeResolvable": true,
+    "cargoCmdNodeResolutionFailed": true
+  }
+}

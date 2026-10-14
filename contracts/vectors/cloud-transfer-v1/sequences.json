@@ -1,0 +1,7 @@
+[
+  {"id":"T55","limit":200000,"steps":[["start_a",200001,"ok"],["start_b",200001,"ok"],["accept_a",0,"ok"],["accept_b",0,"ok"]]},
+  {"id":"T56","limit":16777216,"steps":[["start_a",1,"ok"],["policy_a",1,"ok"],["policy_a",2,"sync_policy_changed"]]},
+  {"id":"T57","limit":200000,"steps":[["start_a",200001,"ok"],["defer_a",0,"ok"],["send_a",0,"ok"]]},
+  {"id":"T58","limit":0,"steps":[["start_a",1,"sync_unavailable"]]},
+  {"id":"T59","limit":200000,"steps":[["start_a",200001,"ok"],["drain_b",0,"ok"],["accept_a",0,"sync_transfer_invalid"]]}
+]

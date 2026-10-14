@@ -1,0 +1,22 @@
+[package]
+rust-version.workspace = true
+name = "koru-when"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Natural-language dates, times and durations. A parser, not a model."
+
+# **One dependency, and that is the point.**
+#
+# This crate answers *what did the person type* and nothing else. It has its own
+# result types (`TemporalExpression`, plus the compatibility `When`), so it
+# deliberately does **not** link `koru-core`: the three temporal types and the
+# rules about which attribute takes which one are the committing layer's. The
+# caller resolves with explicit context and maps onto model types at its own
+# edge (docs/architecture/TIME.md).
+#
+# It also never calls a clock. Both reference points are arguments, which is what
+# makes every rule in the grammar a plain unit test.
+[dependencies]
+chrono = { workspace = true }

@@ -1,0 +1,30 @@
+[package]
+rust-version.workspace = true
+name = "koru-replication"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Transport-neutral durable Store replication behavior and protocol."
+
+[dependencies]
+base64.workspace = true
+koru-account-session = { path = "../koru-account-session" }
+blake3.workspace = true
+koru-device = { path = "../koru-device" }
+koru-store-core = { path = "../koru-store-core" }
+koru-sync-control = { path = "../koru-sync-control" }
+loro.workspace = true
+loro-protocol.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+uuid.workspace = true
+tracing.workspace = true
+tokio = { workspace = true, features = ["sync"] }
+koru-core = { path = "../koru-core" }
+
+[dev-dependencies]
+ed25519-dalek.workspace = true
+koru-account-core = { path = "../koru-account-core" }
+tempfile.workspace = true

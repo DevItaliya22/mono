@@ -1,0 +1,27 @@
+[package]
+rust-version.workspace = true
+name = "koru-update"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Koru's signed release protocol, update client, and safe archive primitives."
+
+[dependencies]
+# The channel enum lives here now; `serde` because the CDN manifest is JSON.
+koru-channel = { path = "../koru-channel", features = ["serde"] }
+directories.workspace = true
+fs2.workspace = true
+minisign-verify.workspace = true
+reqwest.workspace = true
+semver.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+url.workspace = true
+uuid.workspace = true
+zip.workspace = true
+
+[dev-dependencies]
+minisign.workspace = true
+tempfile.workspace = true

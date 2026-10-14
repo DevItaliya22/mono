@@ -1,0 +1,46 @@
+{
+  "event_id": "44444444-4444-4444-4444-444444444444",
+  "name": "terminal.experience.summary",
+  "version": 1,
+  "occurred_at_ms": 1756000000000,
+  "actor": {
+    "kind": "user"
+  },
+  "origin": {
+    "device_id": "22222222-2222-2222-2222-222222222222",
+    "session_id": "11111111-1111-1111-1111-111111111111"
+  },
+  "scope": {
+    "profile_id": "33333333-3333-3333-3333-333333333333"
+  },
+  "attrs": {
+    "delta_present_p95_ms_bucket": {
+      "t": "bucket",
+      "v": 25
+    },
+    "first_present_ms_bucket": {
+      "t": "bucket",
+      "v": 50
+    },
+    "jank_per_thousand_bucket": {
+      "t": "bucket",
+      "v": 25
+    },
+    "render_cpu_p95_ms_bucket": {
+      "t": "bucket",
+      "v": 5
+    },
+    "sample_count_bucket": {
+      "t": "bucket",
+      "v": 500
+    },
+    "stream_gap_count_bucket": {
+      "t": "bucket",
+      "v": 2
+    },
+    "switch_present_ms_bucket": {
+      "t": "bucket",
+      "v": 10
+    }
+  }
+}

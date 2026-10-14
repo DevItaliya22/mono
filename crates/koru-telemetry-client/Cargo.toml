@@ -1,0 +1,26 @@
+[package]
+rust-version.workspace = true
+name = "koru-telemetry-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The client of the hosted metrics service — packs the drain's batch back into the TelemetryBatch wire shape and uploads it to m.koru.do."
+
+# **The only client code that names m.koru.do.** The events worker's drain
+# keeps its mechanics — consent gate, outbox, backoff, split-on-permanent — and
+# delivers through this crate instead of straight to a vendor: a shipped binary
+# holds no credential because the ingest route is anonymous, and where the
+# events go from there is the service's configuration, never the client's
+# (`docs/architecture/eventbus/README.md`).
+#
+# It links no database and no journal: what it receives is already projected,
+# already approved, and already stripped.
+[dependencies]
+koru-metrics-sink = { path = "../koru-metrics-sink" }
+koru-events = { path = "../koru-events" }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }

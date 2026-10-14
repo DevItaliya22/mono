@@ -1,0 +1,13 @@
+[package]
+rust-version.workspace = true
+name = "koru-ai-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Internal typed client for the Koru AI server port."
+
+[dependencies]
+koru-ai-api = { path = "../koru-ai-api" }
+koru-ai-core = { path = "../koru-ai-core" }
+koru-ai-wire = { path = "../koru-ai-wire" }

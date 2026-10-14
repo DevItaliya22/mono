@@ -1,0 +1,63 @@
+[package]
+rust-version.workspace = true
+name = "koru-workspace-crypto"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Koru Cloud workspace cryptography: key-grant envelopes, content encryption, blob identity and at-rest record formats."
+
+# **This crate is the sole owner of every cryptographic library in the
+# workspace, and the pins are deliberately here rather than in
+# `[workspace.dependencies]`.** A format pin is not a version to be kept in step
+# with other crates — it is part of the format. Anything that needs these
+# constructions goes through this crate's API, which is what keeps one answer to
+# "what does Koru ciphertext look like".
+[dependencies]
+# RFC 9180 HPKE, pure Rust. **0.13 rather than 0.14** — 0.14 moved to the
+# RustCrypto pre-1.0 generation (sha2 0.11, aead 0.6, rand_core 0.10), which
+# would put a second SHA-2 implementation in a build that already carries
+# sha2 0.10 through `koru-device`. 0.13 is on the same generation as the rest of
+# the tree and has been in the wild since February 2025. Default features are
+# `alloc + x25519 + p256`, which is exactly the two KEMs D88 needs.
+hpke = "0.13"
+# The AEAD of `ContentCipherSuiteV1` (Cobblestone-256). Hardware-accelerated on
+# every platform Koru targets: AES-NI on x86-64, the ARMv8 crypto extensions on
+# Apple silicon and on every Android device we support.
+aes-gcm = "0.10"
+# HMAC-SHA-512 for the chunked scheme's HKDF-Expand. **Not the `hkdf` crate**:
+# its `Hkdf::from_prk` refuses a pseudorandom key shorter than the hash output,
+# and c2sp.org/chunked-encryption expands a 32-byte input key with SHA-512 by
+# design. See `sealed.rs` for the fifteen lines this replaces it with, and the
+# Wycheproof vectors that pin them.
+hmac = "0.12"
+sha2 = { workspace = true }
+# Keyed BLAKE3 for `CloudObjectId`, and its `derive_key` for the purpose
+# subkeys D90 requires. Already the workspace's content-addressing hash.
+blake3 = { workspace = true }
+# Constant-time equality for commitments, tags and key ids.
+subtle = "2.6"
+# The RNG that HPKE encapsulation and the chunked scheme's salt need.
+# **0.9 because that is what `hpke` 0.13 takes**; the workspace's `rand_core`
+# 0.6 belongs to `ed25519-dalek` 2 and the two never meet.
+rand_core = { version = "0.9", features = ["os_rng"] }
+# The device's existing Ed25519 identity key signs the grant envelope (D87).
+# No second signing identity is invented here.
+koru-device = { path = "../koru-device" }
+koru-store-core = { path = "../koru-store-core" }
+uuid = { workspace = true }
+zeroize = { workspace = true }
+
+[dev-dependencies]
+# Golden vectors are JSON, embedded with `include_str!` so the default suite
+# never touches disk.
+serde_json = { workspace = true }
+serde = { workspace = true }
+# **Tests only.** Project Wycheproof ships the chunked-encryption ciphertexts
+# zlib-compressed, because the counter-rollover cases are megabytes of mostly
+# zeroes. Already in the lockfile through `zip`; nothing in the shipped crate
+# links it.
+flate2 = "1"
+# The `KORU_UPDATE_WORKSPACE_CRYPTO_VECTORS` switch, registered in `VARS` there
+# so it appears in `koru.bat envs` and in reference/ENV.md.
+koru-env = { path = "../koru-env" }

@@ -1,0 +1,25 @@
+[package]
+rust-version.workspace = true
+name = "koru-appearance-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Koru's shared workspace and profile icon-and-color picker."
+
+[features]
+# Propagate the editor's test-only browser guard to crates that test above this
+# reusable picker without making the production application browserless.
+no-browser = ["koru-editor/no-browser"]
+
+[dependencies]
+koru-core = { path = "../koru-core" }
+koru-draw = { path = "../koru-draw" }
+koru-editor = { path = "../koru-editor" }
+koru-ui = { path = "../koru-ui" }
+vello.workspace = true
+winit.workspace = true
+
+[dev-dependencies]
+# A test of a crate above the editor must carry the browser guard itself.
+koru-editor = { path = "../koru-editor", features = ["no-browser"] }

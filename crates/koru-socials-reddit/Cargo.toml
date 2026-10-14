@@ -1,0 +1,28 @@
+[package]
+rust-version.workspace = true
+name = "koru-socials-reddit"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Native Reddit authorization and text submission for Socials workers."
+
+[features]
+default = []
+no-network = ["koru-socials-auth/no-network"]
+
+[dependencies]
+chrono.workspace = true
+koru-socials-auth = { path = "../koru-socials-auth" }
+koru-oauth-credentials = { path = "../koru-oauth-credentials", features = ["desktop"] }
+koru-oauth-loopback = { path = "../koru-oauth-loopback" }
+oauth2 = { version = "5", default-features = false, features = ["reqwest-blocking"] }
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+url.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+koru-device = { path = "../koru-device" }
+koru-socials-auth = { path = "../koru-socials-auth", features = ["no-network"] }

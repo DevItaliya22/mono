@@ -1,0 +1,6 @@
+{"method":"turn/start","id":3,"params":{"threadId":"<thread-id>","input":[{"type":"text","text":"<fixture-text>"}]}}
+{"id":3,"result":{"turn":{"id":"<turn-id>","items":[],"itemsView":"notLoaded","status":"inProgress","error":null,"startedAt":null,"completedAt":null,"durationMs":null}}}
+{"method":"item/agentMessage/delta","params":{"threadId":"<thread-id>","turnId":"<turn-id>","itemId":"<item-id>","delta":"PRO"},"emittedAtMs":0}
+{"method":"item/agentMessage/delta","params":{"threadId":"<thread-id>","turnId":"<turn-id>","itemId":"<item-id>","delta":"BE_OK"},"emittedAtMs":1}
+{"method":"item/completed","params":{"item":{"type":"agentMessage","id":"<item-id>","text":"PROBE_OK","phase":"final_answer","memoryCitation":null,"delivery":null},"threadId":"<thread-id>","turnId":"<turn-id>","completedAtMs":2},"emittedAtMs":2}
+{"method":"turn/completed","params":{"threadId":"<thread-id>","turn":{"id":"<turn-id>","items":[{"type":"agentMessage","id":"<item-id>","text":"PROBE_OK","phase":"final_answer","memoryCitation":null,"delivery":null}],"itemsView":"summary","status":"completed","error":null,"startedAt":0,"completedAt":2,"durationMs":2}},"emittedAtMs":2}

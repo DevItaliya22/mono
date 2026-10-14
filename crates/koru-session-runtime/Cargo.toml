@@ -1,0 +1,37 @@
+[package]
+rust-version.workspace = true
+name = "koru-session-runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Headless PTY transport and session runtime for Koru."
+
+[dependencies]
+agent-client-protocol-schema = { version = "=1.7.0", default-features = false }
+base64.workspace = true
+blake3.workspace = true
+# The name of the variable a delegated launch hands its bearer down in,
+# declared once so `koru.bat envs` and reference/ENV.md account for it.
+koru-env = { path = "../koru-env" }
+koru-events = { path = "../koru-events" }
+koru-session-observability = { path = "../koru-session-observability" }
+koru-session-profiles = { path = "../koru-session-profiles" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+koru-terminal-emulator = { path = "../koru-terminal-emulator" }
+serde.workspace = true
+serde_json.workspace = true
+# Antigravity's ACP server prints no version; its pin is the executable's
+# SHA-256, the same digest `Get-FileHash` shows a person.
+sha2.workspace = true
+tracing.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+portable-pty.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

@@ -1,0 +1,20 @@
+[package]
+rust-version.workspace = true
+name = "koru-artifact-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The typed boundary between the gateway's /v1/artifacts routes and the artifact store — scopes, the principal, the port — and the service that answers it over any repository."
+
+[dependencies]
+# The run token's digest and the derived registration ids (§7.3, D6).
+blake3.workspace = true
+koru-artifact-core = { path = "../koru-artifact-core" }
+koru-artifact-wire = { path = "../koru-artifact-wire" }
+# Minting a run token: two v4 UUIDs' worth of randomness.
+uuid.workspace = true
+
+[dev-dependencies]
+koru-artifact-sqlite = { path = "../koru-artifact-sqlite" }
+serde_json.workspace = true

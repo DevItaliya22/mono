@@ -1,0 +1,35 @@
+# The dependency update routine. Security updates arrive as soon as an
+# advisory is published, whatever the schedule; the weekly runs keep versions
+# current.
+# cargo-deny in ci.yml fails on any advisory these have not fixed yet.
+#
+# Every pull request Dependabot opens goes through the same required checks.
+# Unsigned bot commits need a maintainer to adopt the reviewed change as their
+# own signed-off commit. Author email strings never bypass the DCO check.
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      # Patch releases of everything in one pull request a week; minor and
+      # major updates one at a time, because they are the ones that break.
+      cargo-patch:
+        update-types: ["patch"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # Keeps the pinned commit SHAs and their tag comments moving together.
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: gradle
+    directory: /apps/android
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

@@ -1,0 +1,18 @@
+[package]
+rust-version.workspace = true
+name = "koru-export-textbundle"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "TextBundle and TextPack exporter for Koru documents."
+
+[dependencies]
+koru-export = { path = "../koru-export" }
+koru-export-markdown = { path = "../koru-export-markdown" }
+serde_json.workspace = true
+zip.workspace = true
+
+[dev-dependencies]
+koru-core = { path = "../koru-core" }
+tempfile.workspace = true

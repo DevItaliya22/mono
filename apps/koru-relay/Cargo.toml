@@ -1,0 +1,33 @@
+[package]
+rust-version.workspace = true
+name = "koru-relay"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Koru iroh relay: a thin wrapper around the upstream iroh-relay server library, and the probe that verifies a relay end to end."
+
+# The binary is deliberately thin: the server is the upstream library,
+# configured — never forked. The library half of this crate holds the probe:
+# relay-only endpoint construction, the nonce exchange, the bounded timeout and
+# the one-line result. The `probe` subcommand and a deployment's monitor run
+# exactly this code, so what the monitor proves is what the tests proved.
+
+[dependencies]
+iroh = { workspace = true }
+iroh-relay = { workspace = true, features = ["server"] }
+koru-env = { path = "../../crates/koru-env" }
+koru-log = { path = "../../crates/koru-log" }
+# For the rustls `ConfigBuilder` that `CertConfig::LetsEncrypt` takes from the
+# caller — see the workspace manifest's note on this dependency.
+rustls = { workspace = true }
+serde = { workspace = true }
+tokio = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+
+[dev-dependencies]
+koru-relay-test-support = { path = "../../crates/koru-relay-test-support" }

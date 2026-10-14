@@ -1,0 +1,51 @@
+[package]
+rust-version.workspace = true
+name = "koru-api-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The sole product client namespace for Koru's public API gateway."
+
+[features]
+default = ["delegate"]
+# Settings and workspace-list hosts do not need the delegated scheduling model.
+delegate = ["dep:koru-delegate-api", "dep:koru-delegate-core"]
+
+[dependencies]
+bytes.workspace = true
+koru-ai-core = { path = "../koru-ai-core" }
+koru-ai-wire = { path = "../koru-ai-wire" }
+koru-api-discovery = { path = "../koru-api-discovery" }
+koru-api-wire = { path = "../koru-api-wire" }
+# The artifact bodies. Serde and schema only, like the AI wire beside it.
+koru-artifact-wire = { path = "../koru-artifact-wire" }
+# The run bodies and the optional `delegate` capability.
+koru-delegate-api = { path = "../koru-delegate-api", optional = true }
+koru-delegate-core = { path = "../koru-delegate-core", optional = true }
+koru-agent-wire = { path = "../koru-agent-wire" }
+koru-channel = { path = "../koru-channel" }
+koru-ipc = { path = "../koru-ipc" }
+koru-session-api = { path = "../koru-session-api" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+# The settings registry and its typed sections. A leaf, like the ids and the
+# events model this crate already names.
+koru-settings = { path = "../koru-settings" }
+# The events model: envelope, registry, wire bodies. A leaf, like the ids the
+# store half already names.
+koru-events = { path = "../koru-events" }
+koru-env = { path = "../koru-env" }
+koru-store-client = { path = "../koru-store-client" }
+koru-store-core = { path = "../koru-store-core" }
+base64.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+# One call: a settings patch that did not land says so before it reconciles.
+# A window cannot show that failure — the worker is not on its thread — so the
+# log is the only place it can be seen.
+tracing = { workspace = true }
+tokio = { workspace = true }
+
+[dev-dependencies]
+tempfile.workspace = true

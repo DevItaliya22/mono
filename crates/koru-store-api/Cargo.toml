@@ -1,0 +1,50 @@
+[package]
+rust-version.workspace = true
+name = "koru-store-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The Koru Store's localhost HTTP and WebSocket API."
+
+# The only crate in the store that knows HTTP exists. `koru-store-core` stays
+# synchronous and transport-free so a mobile build can embed it; everything
+# async lives here and in the daemon.
+[dependencies]
+tracing = { workspace = true }
+http-body = "1"
+
+# `schema` because the OpenAPI document is derived from the wire types, which
+# are made of core's ids and models. Declared here rather than relied on
+# through `koru-store-wire`, so removing that edge could not silently break this.
+koru-store-core = { path = "../koru-store-core", features = ["schema"] }
+koru-store-sqlite = { path = "../koru-store-sqlite" }
+koru-sync-control = { path = "../koru-sync-control" }
+koru-time-zone = { path = "../koru-time-zone" }
+# Every request and response body, defined once and named by the client too.
+koru-store-wire = { path = "../koru-store-wire" }
+# The event model — a typed payload per committed catalog fact, so a handler
+# cannot publish a name the registry does not declare. The model only: where an
+# event *goes* is the daemon's, behind `catalog_events::CatalogEventSink`.
+koru-events = { path = "../koru-events" }
+axum = { workspace = true }
+# The official Loro wire codec. Framing only — no transport, no CRDT logic.
+loro-protocol = { workspace = true }
+loro = { workspace = true }
+tokio = { workspace = true }
+# `WebSocket` is a Stream + Sink; splitting it into a reader and a single
+# writer needs these combinators.
+futures-util = { workspace = true }
+serde = { workspace = true }
+schemars = { workspace = true }
+# Session tokens: two v4 UUIDs of getrandom entropy, rather than a `rand`
+# dependency for one call. See `sessions::Sessions::mint`.
+uuid = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+# Device ids for the authorization snapshot a route test installs; already in
+# the graph through `koru-sync-control`.
+koru-device = { path = "../koru-device" }
+tempfile = { workspace = true }
+tower = { version = "0.5", features = ["util"] }

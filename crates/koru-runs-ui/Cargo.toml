@@ -1,0 +1,60 @@
+[package]
+rust-version.workspace = true
+name = "koru-runs-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The run views — Overview, Activity and Result for one delegated run, and the control handover a person takes through them."
+
+# **The dependency list is the charter.** This surface shows a run a person
+# never watched and hands the session back and forth with the agent running
+# it. To do that it needs the run's vocabulary, the typed `/v1/runs` client
+# and the widgets — and nothing that opens a store, a database, a session
+# host or a document. It reads a run *only* through the client, which is
+# what keeps every byte of that read off the thread that answers a person;
+# `src/dependency.rs` fails the build if the list grows.
+[dependencies]
+# `client.runs()`: the header, the window of history, the stream, cancel,
+# resume and the rating. This surface reimplements none of it and reaches
+# no other way to a run.
+koru-api-client = { path = "../koru-api-client" }
+# The wire bodies those calls speak.
+koru-delegate-api = { path = "../koru-delegate-api" }
+# The delegated-agent instructions themselves — the same `resolve` the
+# delegate worker calls, so the System prompt tab shows the file that is in
+# force rather than a second copy of it. A leaf over the string table and
+# `std`'s filesystem; the read happens on this surface's own thread
+# (`links.rs`), never in a frame.
+koru-delegate-preamble = { path = "../koru-delegate-preamble" }
+# **The Markdown surface both this tab and the Artifacts column draw
+# with.** A run's result is a Markdown file and so is the preamble; this is
+# the one crate that reads either as a Koru document and writes it back. It
+# reaches no store and no run — it is handed bytes — and its own dependency
+# test says so.
+koru-markdown-view = { path = "../koru-markdown-view" }
+# The run's own vocabulary: its status, its attention markers, who holds
+# the session, every step kind, the economics summary and the rating.
+koru-delegate-core = { path = "../koru-delegate-core" }
+# `TakeoverUrgency` — which of the two takeovers a person asked for — and
+# `HandoverState`, which is how the host tells this surface where the
+# handover stands. One vocabulary, so the host translates nothing.
+koru-session-protocol = { path = "../koru-session-protocol" }
+# Which build this is, so the worker dials the gateway its own cargo
+# invocation built. A leaf that links nothing.
+koru-channel = { path = "../koru-channel" }
+# Every string a person reads, in eight languages, and every time through
+# `koru_i18n::time`.
+koru-i18n = { path = "../koru-i18n" }
+# Drawing: the palette, the text engine, the scene helpers.
+koru-draw = { path = "../koru-draw" }
+# The widgets: the confirmation panel D36's irreversible action needs, the
+# text input the optional note is typed into, and the one normalisation of
+# a cursor shape.
+koru-ui = { path = "../koru-ui" }
+vello.workspace = true
+winit.workspace = true
+
+[dev-dependencies]
+# Fixture ids. The surface itself mints none.
+uuid = { workspace = true }

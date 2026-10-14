@@ -1,0 +1,103 @@
+{
+  "case": "07-nodes-in-the-document-trash",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "The same content as 02, but the second paragraph has been moved into the document's own trash subtree.",
+  "covers": [
+    "D39",
+    "D21"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "t0",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "trash",
+                "text": ""
+              },
+              {
+                "id": "n2",
+                "parent": "t0",
+                "ordinal": 0,
+                "depth": 1,
+                "kind": "paragraph",
+                "text": "The quick brown fox jumps over the lazy dog.",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 44
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "blobs": []
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 14 = 14",
+    "    doc-1/t0 (trash): no authored text; structure, marks, references and non-text values are free = 0",
+    "    doc-1/n2 (paragraph): node.text 44 = 44",
+    "  document doc-1: 58",
+    "  -> documents_units 58 + files_bytes 0 = 58",
+    "account: documents_units 58 + files_bytes 0 = 58"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 58,
+        "files_bytes": 0,
+        "logical_usage_units": 58,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 58,
+      "files_bytes": 0,
+      "logical_usage_units": 58,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "Identical to vector 02. walk::project deliberately uses walk_all rather than walk so the bin is projected, and D39 says it keeps counting; moving a node to the bin therefore changes the bill by nothing.",
+    "The trash root node is skipped. With structure free that is now a statement about traversal rather than about price."
+  ]
+}

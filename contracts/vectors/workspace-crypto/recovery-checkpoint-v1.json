@@ -1,0 +1,108 @@
+{
+  "binding": "The complete header is the key-derivation context of both the wrapped DEK and the body, so altering any byte fails at the commitment before a chunk is decrypted, and a body cannot be recombined with another header.",
+  "bootstrap_contract": {
+    "approval": "APPROVALS.md row: workspace-recovery-bootstrap-v1.md v1, Steven Liechti (CTO), 2026-09-05, commit 49c2e397",
+    "bootstrap_format_version": 1,
+    "document": "docs/cloud-platform/contracts/workspace-recovery-bootstrap-v1.md"
+  },
+  "cases": [
+    {
+      "checkpoint": "00010001001300011111111111111111111111111111111112121212121212121212121212121212131313131313131313131313131313130000000389d252e82ddae029aad164100a8df88f344d7ad50643c795669cad4790db026a8e07056f580e57cee7db6f1cf782b63ef47ddff9222754d674ae87d6c53cf07c0ba47db77a96785fb09f7f9588f33098e814d91dade89f4562d909544818f583061e1ef4ebe51cb8cd0d0ffb4127b8b20c18c7a651a022c3abb6edac95d02f436da55257a12e5b181a46fde60fd28b266eab1caa657ae948535a9015411a6f7627a6ffe3ecd0051ce262ce7cdbc4531ff61e26b228089be5275a6203535f8e36485337b780881544fba84b1cfe60d9181ac64bd62ae569b59486042278cf7491c31fca063afe211357a10f86319be91ab13431aa3fed6ef1455722719a5d441cf7bd2ee807249a65618cfeeb5a7fe9b89a58e419cd15a84dffd5a0e6e7374a3dd50f1867838a05c16155d1714d1fd094d89a2f18845d343cfe7a6fa9636df793c8f6c54460bead8d0a7a1a0fb7677141645ddb74356d286036dcf8e0ca70a15f9c5d8b141e80aea0f19d8e3a75401097ca71e84a6abd7a6886e24ef7629cbdc7cb129640701829830808e6ad198f1256268aedf6e4848114467cac037f1a924775bb3f31f145e7361cd5564f30ea121ba74e1cc68fb0bb3f61ebe9e3de62548f88623e2412610db7c4aa480075d85f6537180ea7e2bc0ecb0e6e0b6dd69acf690654f44e6cdfd573cddf19ea003f688591c9b9ef12cb2ab775e1a8bd2d8322540c11469fc6f8",
+      "expect": {
+        "blob_identity_key_version": 4,
+        "document_count": 2,
+        "documents": [
+          {
+            "document_id": "10101010-1010-1010-1010-101010101010",
+            "frontier": "010203",
+            "key_version": 2,
+            "role": "MANIFEST",
+            "snapshot": {
+              "ciphertext_digest": "a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0",
+              "locator": "7365672f6d616e69666573742f30"
+            },
+            "updates": [
+              {
+                "ciphertext_digest": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+                "locator": "7365672f6d616e69666573742f31"
+              }
+            ],
+            "version_vector": "0405"
+          },
+          {
+            "document_id": "20202020-2020-2020-2020-202020202020",
+            "frontier": "06",
+            "key_version": 1,
+            "role": "DOCUMENT",
+            "snapshot": {
+              "ciphertext_digest": "b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0",
+              "locator": "7365672f646f632f30"
+            },
+            "updates": [],
+            "version_vector": "070809"
+          }
+        ],
+        "object_count": 2,
+        "objects": [
+          {
+            "cloud_object_id": "0101010101010101010101010101010101010101010101010101010101010101",
+            "key_version": 1
+          },
+          {
+            "cloud_object_id": "0202020202020202020202020202020202020202020202020202020202020202",
+            "key_version": 3
+          }
+        ],
+        "required_key_versions": [
+          1,
+          2,
+          3
+        ]
+      },
+      "name": "round trip with exactly the approved fields",
+      "result": "valid",
+      "wek": "9e0717725399175a238aa208f7858c29cf34a01c9d5282e8ddc0808aae5dee29"
+    },
+    {
+      "checkpoint": "00010001001300011111111111111111111111111111111199999999999999999999999999999999131313131313131313131313131313130000000389d252e82ddae029aad164100a8df88f344d7ad50643c795669cad4790db026a8e07056f580e57cee7db6f1cf782b63ef47ddff9222754d674ae87d6c53cf07c0ba47db77a96785fb09f7f9588f33098e814d91dade89f4562d909544818f583061e1ef4ebe51cb8cd0d0ffb4127b8b20c18c7a651a022c3abb6edac95d02f436da55257a12e5b181a46fde60fd28b266eab1caa657ae948535a9015411a6f7627a6ffe3ecd0051ce262ce7cdbc4531ff61e26b228089be5275a6203535f8e36485337b780881544fba84b1cfe60d9181ac64bd62ae569b59486042278cf7491c31fca063afe211357a10f86319be91ab13431aa3fed6ef1455722719a5d441cf7bd2ee807249a65618cfeeb5a7fe9b89a58e419cd15a84dffd5a0e6e7374a3dd50f1867838a05c16155d1714d1fd094d89a2f18845d343cfe7a6fa9636df793c8f6c54460bead8d0a7a1a0fb7677141645ddb74356d286036dcf8e0ca70a15f9c5d8b141e80aea0f19d8e3a75401097ca71e84a6abd7a6886e24ef7629cbdc7cb129640701829830808e6ad198f1256268aedf6e4848114467cac037f1a924775bb3f31f145e7361cd5564f30ea121ba74e1cc68fb0bb3f61ebe9e3de62548f88623e2412610db7c4aa480075d85f6537180ea7e2bc0ecb0e6e0b6dd69acf690654f44e6cdfd573cddf19ea003f688591c9b9ef12cb2ab775e1a8bd2d8322540c11469fc6f8",
+      "error": "CRYPTO_COMMITMENT_MISMATCH",
+      "name": "wrong incarnation: a body under another checkpoint's header",
+      "result": "invalid",
+      "wek": "9e0717725399175a238aa208f7858c29cf34a01c9d5282e8ddc0808aae5dee29"
+    },
+    {
+      "checkpoint": "00010001001300021111111111111111111111111111111112121212121212121212121212121212131313131313131313131313131313130000000389d252e82ddae029aad164100a8df88f344d7ad50643c795669cad4790db026a8e07056f580e57cee7db6f1cf782b63ef47ddff9222754d674ae87d6c53cf07c0ba47db77a96785fb09f7f9588f33098e814d91dade89f4562d909544818f583061e1ef4ebe51cb8cd0d0ffb4127b8b20c18c7a651a022c3abb6edac95d02f436da55257a12e5b181a46fde60fd28b266eab1caa657ae948535a9015411a6f7627a6ffe3ecd0051ce262ce7cdbc4531ff61e26b228089be5275a6203535f8e36485337b780881544fba84b1cfe60d9181ac64bd62ae569b59486042278cf7491c31fca063afe211357a10f86319be91ab13431aa3fed6ef1455722719a5d441cf7bd2ee807249a65618cfeeb5a7fe9b89a58e419cd15a84dffd5a0e6e7374a3dd50f1867838a05c16155d1714d1fd094d89a2f18845d343cfe7a6fa9636df793c8f6c54460bead8d0a7a1a0fb7677141645ddb74356d286036dcf8e0ca70a15f9c5d8b141e80aea0f19d8e3a75401097ca71e84a6abd7a6886e24ef7629cbdc7cb129640701829830808e6ad198f1256268aedf6e4848114467cac037f1a924775bb3f31f145e7361cd5564f30ea121ba74e1cc68fb0bb3f61ebe9e3de62548f88623e2412610db7c4aa480075d85f6537180ea7e2bc0ecb0e6e0b6dd69acf690654f44e6cdfd573cddf19ea003f688591c9b9ef12cb2ab775e1a8bd2d8322540c11469fc6f8",
+      "error": "CRYPTO_UNSUPPORTED_FORMAT_VERSION",
+      "name": "unimplemented bootstrap_format_version stops before decryption",
+      "result": "invalid",
+      "stage": "parse"
+    },
+    {
+      "checkpoint": "00010001001300011111111111111111111111111111111112121212121212121212121212121212131313131313131313131313131313130000000389d252e82ddae029aad164100a8df88f344d7ad50643c795669cad4790db026a8e07056f580e57cee7db6f1cf782b63ef47ddff9222754d674ae87d6c53cf07c0ba47db77a96785fb09f7f9588f33098e814d91dade89f4562d909544818f583061e1ef4ebe51cb8cd0d0ffb4127b8b20c18c7a651a022c3abb6edac95d02f436da55257a12e5b181a46fde60fd28b266eab1caa657ae948535a9015411a6f7627a6ffe3ecd0051ce262ce7cdbc4531ff61e26b228089be5275a6203535f8e36485337b780881544fba84b1cfe60d9181ac64bd62ae569b59486042278cf7491c31fca063afe211357a10f86319be91ab13431aa3fed6ef1455722719a5d441cf7bd2ee807249a65618cfeeb5a7fe9b89a58e419cd15a84dffd5a0e6e7374a3dd50f1867838a05c16155d1714d1fd094d89a2f18845d343cfe7a6fa9636df793c8f6c54460bead8d0a7a1a0fb7677141645ddb74356d286036dcf8e0ca70a15f9c5d8b141e80aea0f19d8e3a75401097ca71e84a6abd7a6886e24ef7629cbdc7cb129640701829830808e6ad198f1256268aedf6e4848114467cac037f1a924775bb3f31f145e7361cd5564f30ea121ba74e1cc68fb0bb3f61ebe9e3de62548f88623e2412610db7c4aa480075d85f6537180ea7e2bc0ecb0e6e0b6dd69acf690654f44e6cdfd573cddf19ea003f688591c9b9ef12cb2ab775e1a8bd2d8322540c11469fc6",
+      "error": "CRYPTO_AUTHENTICATION_FAILED",
+      "name": "one byte removed from the final chunk (refused by the AEAD tag, not by the framing)",
+      "result": "invalid",
+      "wek": "9e0717725399175a238aa208f7858c29cf34a01c9d5282e8ddc0808aae5dee29"
+    },
+    {
+      "checkpoint": "000100010013000111111111111111111111111111111111121212121212121212121212121212121313131313131313131313131313131300000003",
+      "error": "CRYPTO_MALFORMED",
+      "name": "truncated to the header alone: no wrapped DEK, no body",
+      "result": "invalid",
+      "wek": "9e0717725399175a238aa208f7858c29cf34a01c9d5282e8ddc0808aae5dee29"
+    }
+  ],
+  "format": "WorkspaceRecoveryCheckpointV1",
+  "format_version": 1,
+  "header_fields": [
+    "format_version (envelope framing)",
+    "suite_id",
+    "purpose",
+    "H1 bootstrap_format_version",
+    "H2 workspace_id",
+    "H3 cloud_dataset_incarnation_id",
+    "H4 checkpoint_id",
+    "H5 wek_version"
+  ],
+  "header_len": 60
+}

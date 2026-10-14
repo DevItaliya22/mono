@@ -1,0 +1,11 @@
+-- 009_workspace_blob_attributes_migration.sql
+--
+-- workspace.db 8 -> 9. Adds `blobs.attributes`, the typed key/value map (JSON)
+-- that carries a blob's origin device today and any later fact about a blob
+-- without another schema change. Nullable; existing rows read as no attributes.
+--
+-- SQLite has no ADD COLUMN IF NOT EXISTS, so this column is applied through
+-- the idempotent `columns` path of the migration runner (see db.rs), which
+-- generates exactly this statement after checking PRAGMA table_info:
+--
+ALTER TABLE blobs ADD COLUMN attributes TEXT;

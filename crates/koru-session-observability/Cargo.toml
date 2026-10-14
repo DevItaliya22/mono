@@ -1,0 +1,21 @@
+[package]
+rust-version.workspace = true
+name = "koru-session-observability"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Content-free diagnostics, counters, and experience aggregation for Koru sessions."
+
+# Session protocol stays a pure model. Runtime hosts and views share this
+# narrow layer instead of each inventing counters, telemetry cadence, or log
+# fields. It performs no I/O and owns no timer, root, runtime, or publisher.
+[dependencies]
+koru-env = { path = "../koru-env" }
+koru-events = { path = "../koru-events" }
+koru-session-protocol = { path = "../koru-session-protocol" }
+tracing.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+tracing-subscriber.workspace = true

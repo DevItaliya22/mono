@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.do.koru.app</string>
+	</array>
+	<!-- Associated Domains (applinks:koru.do) joins this file when a Team id
+	     signs device builds and koru.do serves apple-app-site-association —
+	     the i5 daylight item. The simulator ignores entitlements, so the
+	     Universal Link handler is already testable with simctl openurl. -->
+</dict>
+</plist>

@@ -1,0 +1,43 @@
+[package]
+rust-version.workspace = true
+name = "koru-delegate-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The shared vocabulary of delegated runs and content-free schedule outcomes — and nothing that starts, stores, transports or draws one."
+
+# **A leaf, deliberately.** Every plan of the delegation milestone speaks these
+# types: the orchestrator worker, `runs.db`, the Run document, the events, the
+# surfaces and the phone. So this crate links exactly the leaf crates whose ids
+# it needs to speak Koru's vocabulary (ROADMAP §9: "forbidding everything but
+# serde/schemars/uuid would force it to clone types that already exist") and
+# nothing that runs a process, opens a database, carries a wire or draws.
+# `src/tests/dependency.rs` is the fence.
+#
+# `schema` follows `koru-store-core`'s convention rather than
+# `koru-session-protocol`'s: the ids this crate carries from the store have
+# their JSON Schema behind that crate's `schema` feature, and a mobile build
+# that embeds the run vocabulary never turns it on. The API plan that publishes
+# `/v1/runs` enables it there.
+[features]
+default = []
+schema = ["dep:schemars", "koru-store-core/schema"]
+
+[dependencies]
+# `DeviceId` — the executing device, the device that holds a result.
+koru-device = { path = "../koru-device" }
+# `EventId` — a pending publication re-publishes under the same id (§7.1).
+koru-events = { path = "../koru-events" }
+# `AgentTurnId`, `SessionId`, `IdempotencyKey`, `ApprovalId`, `AttachmentId`,
+# `SessionProfileKey`, `ProjectId`, `ProviderKind` — the session vocabulary a
+# run is spoken in.
+koru-session-protocol = { path = "../koru-session-protocol" }
+# `ProfileId`, `WorkspaceId`, `DocumentId`, `DocumentVersionId`, `BlobHash`.
+koru-store-core = { path = "../koru-store-core" }
+schemars = { workspace = true, optional = true }
+serde = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }

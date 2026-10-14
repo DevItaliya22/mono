@@ -1,0 +1,19 @@
+[package]
+rust-version.workspace = true
+name = "koru-artifact-sqlite"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Sole owner of artifacts.db: the forward-only, refuse-newer migration and the SQLite implementation of the artifact repository port."
+
+[dependencies]
+koru-artifact-core = { path = "../koru-artifact-core" }
+# Opening and versioning the file: the one policy every Koru database shares.
+koru-sqlite = { path = "../koru-sqlite" }
+rusqlite.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+uuid.workspace = true

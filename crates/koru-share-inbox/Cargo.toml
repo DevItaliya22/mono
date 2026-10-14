@@ -1,0 +1,27 @@
+[package]
+rust-version.workspace = true
+name = "koru-share-inbox"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The staging inbox a share extension writes and the desktop app drains."
+
+# **A leaf, and deliberately so.** This crate holds one thing: the on-disk
+# format that sits between a share extension and Koru. Two processes write it —
+# the macOS `KoruShare.appex` and iOS's, both compiling
+# `apps/ios/KoruShared/ShareInbox.swift` — and one reads it, so a second
+# Rust spelling of the format would be the drift this crate exists to stop.
+#
+# It names no node, no workspace and no store: a shared payload is a path and a
+# display name until an importer is handed it. `koru-channel` is the only
+# non-serde dependency, because *where* the inbox lives is the channel root,
+# and reaching that root any other way links half the update client (ADR-105).
+[dependencies]
+koru-channel = { path = "../koru-channel" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

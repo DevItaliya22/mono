@@ -1,0 +1,101 @@
+{
+  "case": "19-blob-not-yet-durable",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "A document references a file whose upload never finalized, so Cloud holds no bytes for it.",
+  "covers": [
+    "D40",
+    "D21"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "file",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "image",
+                "text": "",
+                "name": "Diagram",
+                "blob": "wbi-ws1-0001",
+                "mime": "image/png",
+                "runs": []
+              }
+            ]
+          }
+        ],
+        "blobs": [
+          {
+            "dedup_identity": "wbi-ws1-0001",
+            "verified_plaintext_length_bytes": null,
+            "durable": false,
+            "note": "reserved and never finalized; no verified plaintext length exists"
+          }
+        ]
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 14 = 14",
+    "    doc-1/n2 (image): node.name 7 = 7",
+    "  document doc-1: 21",
+    "  blob wbi-ws1-0001: referenced but not durable -> 0",
+    "  -> documents_units 21 + files_bytes 0 = 21",
+    "account: documents_units 21 + files_bytes 0 = 21"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 21,
+        "files_bytes": 0,
+        "logical_usage_units": 21,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 21,
+      "files_bytes": 0,
+      "logical_usage_units": 21,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "Not unknown. The absence of durable bytes is a known fact, so the answer is a number: the file costs nothing because Cloud holds none of it, and the reference costs nothing because references are free.",
+    "The 21 is the two authored strings, 'Quarterly plan' and 'Diagram'.",
+    "The in-flight bytes are covered by account.reserved_upload_bytes (Plan 3.8), which is physical in-flight accounting and carries no algorithm version."
+  ]
+}

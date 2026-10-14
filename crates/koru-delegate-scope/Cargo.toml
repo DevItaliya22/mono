@@ -1,0 +1,19 @@
+[package]
+rust-version.workspace = true
+name = "koru-delegate-scope"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Whether two working scopes are the same folder or nest, and which run holds one — canonical path identity, alias and nesting detection, D34's two admission answers and restart reconciliation. It has no opinion about what a run does there, starts nothing and stores nothing itself."
+
+# **A leaf over the vocabulary, deliberately.** The orchestrator (P1.6) calls
+# this before every real start, and `runs.db` (P1.3) implements the one port
+# it declares. It links the run vocabulary it speaks and `std`'s filesystem —
+# `canonicalize` is the whole of its I/O — and no database, no wire, no
+# process and no surface. `src/tests/dependency.rs` is the fence.
+[dependencies]
+# `WorkspaceScope`, `RunId`, `RunAttemptId`, `ProjectId`, `RelativeFolder`.
+koru-delegate-core = { path = "../koru-delegate-core" }
+# `ScheduleRef` is a UUID until M2 mints its own `ScheduleId`.
+uuid = { workspace = true }

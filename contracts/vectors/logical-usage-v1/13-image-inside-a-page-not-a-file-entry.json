@@ -1,0 +1,100 @@
+{
+  "case": "13-image-inside-a-page-not-a-file-entry",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "An image pasted into an ordinary page, whose listing kind is 'page' rather than 'file'.",
+  "covers": [
+    "D21",
+    "D65"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "page",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "image",
+                "text": "",
+                "name": "Diagram",
+                "blob": "wbi-ws1-0001",
+                "mime": "image/png",
+                "runs": []
+              }
+            ]
+          }
+        ],
+        "blobs": [
+          {
+            "dedup_identity": "wbi-ws1-0001",
+            "verified_plaintext_length_bytes": 1048576,
+            "durable": true,
+            "note": "1 MiB of plaintext (an internal engineering figure, so binary and spelled MiB); the length is verified from the authenticated envelope framing (D40)"
+          }
+        ]
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 14 = 14",
+    "    doc-1/n2 (image): node.name 7 = 7",
+    "  document doc-1: 21",
+    "  blob wbi-ws1-0001: durable, referenced -> 1048576",
+    "  -> documents_units 21 + files_bytes 1048576 = 1048597",
+    "account: documents_units 21 + files_bytes 1048576 = 1048597"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 21,
+        "files_bytes": 1048576,
+        "logical_usage_units": 1048597,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 21,
+      "files_bytes": 1048576,
+      "logical_usage_units": 1048597,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "Identical to vector 09. The desktop's Projections::live_file_blob_hashes filters listed.kind = 'file' and would report 0 stored bytes here.",
+    "LogicalUsageV1 counts every blob reference from any counted node of any counted document, whatever the listing calls the document."
+  ]
+}

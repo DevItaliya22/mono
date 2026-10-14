@@ -1,0 +1,23 @@
+[package]
+rust-version.workspace = true
+name = "koru-mobile-native"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Android JNI shim over koru-mobile-host. Marshalling only; generated Protobuf defines the contract."
+
+[lib]
+name = "koru_mobile"
+crate-type = ["cdylib"]
+
+[dependencies]
+koru-account-session = { path = "../koru-account-session" }
+zeroize.workspace = true
+# Linked for the shared account host seam; mobile composition follows in Plan 1.5.
+koru-account-runtime = { path = "../koru-account-runtime" }
+koru-account-core = { path = "../koru-account-core" }
+jni = "0.22.4"
+koru-contract = { path = "../koru-contract" }
+koru-mobile-host = { path = "../koru-mobile-host" }
+prost.workspace = true

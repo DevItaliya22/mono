@@ -1,0 +1,108 @@
+{
+  "case": "17-mixed-algorithm-version-account",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "An account part-way through a migration to a hypothetical LogicalUsageV2. Two workspaces, one already shadow-recomputed. The case fixes what may be read and what may never be summed.",
+  "covers": [
+    "D39",
+    "D28"
+  ],
+  "notes": [
+    "The hypothetical V2 here is the alternative the CTO considered and rejected on 2026-09-05 — counting text in UTF-8 bytes instead of characters. It is used only to give the two versions different numbers; nothing here reopens it.",
+    "ws-1 holds vector 03's Japanese document, ws-2 holds vector 04's Arabic document.",
+    "Step 2 of the migration is complete for ws-1 and not for ws-2. The live components and the live aggregate are untouched, so every quota decision in flight is still answered by v1.",
+    "The forbidden answer is 236 (ws-1 at v2 plus ws-2 at v1). It is a number that is true under neither version, and no rounding, flag or 'best effort' makes it acceptable.",
+    "A component whose version differs from the aggregate's is refused on read, not coerced.",
+    "The switch is one transaction serialized by the same account-level quota authority that serializes reserve/finalize, so no durable receipt commits mid-switch. Until it commits, rollback is dropping the shadows.",
+    "The point of this case is unchanged by the 2026-09-05 decisions; only the numbers moved."
+  ],
+  "input": {
+    "account": "acct-1",
+    "account_state": {
+      "logical_usage_units": 162,
+      "logical_usage_algorithm_version": 1
+    },
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "content": "the Japanese document of vector 03",
+        "logical_usage_units": 41,
+        "logical_usage_algorithm_version": 1,
+        "shadow_logical_usage_units": 115,
+        "shadow_algorithm_version": 2,
+        "shadow_computed_at_frontier": "current"
+      },
+      {
+        "workspace": "ws-2",
+        "state": "ENABLED",
+        "content": "the Arabic document of vector 04",
+        "logical_usage_units": 121,
+        "logical_usage_algorithm_version": 1,
+        "shadow_logical_usage_units": null,
+        "shadow_algorithm_version": null,
+        "shadow_computed_at_frontier": null
+      }
+    ]
+  },
+  "derivation": [
+    "invariant: account.logical_usage_algorithm_version = 1, so every counted workspace component must read at version 1",
+    "ws-1: live component 41 at v1 (a v2 shadow of 115 exists and is not part of any total)",
+    "ws-2: live component 121 at v1 (no shadow yet)",
+    "account aggregate = 41 + 121 = 162 at version 1",
+    "forbidden: 115 (v2 shadow) + 121 (v1 live) = 236",
+    "after ws-2 is also shadowed, the switch transaction yields 115 + 208 = 323 at version 2"
+  ],
+  "expected": {
+    "during_migration": {
+      "account": {
+        "usage_state": "OK",
+        "logical_usage_units": 162,
+        "algorithm_version": 1
+      },
+      "workspaces": [
+        {
+          "workspace": "ws-1",
+          "logical_usage_units": 41,
+          "algorithm_version": 1
+        },
+        {
+          "workspace": "ws-2",
+          "logical_usage_units": 121,
+          "algorithm_version": 1
+        }
+      ],
+      "must_not_produce": [
+        236,
+        249
+      ],
+      "rule": "MIXED_VERSION_SUM_FORBIDDEN — a component whose version differs from the aggregate's is refused on read, never summed and never coerced"
+    },
+    "if_a_workspace_is_unknown_at_the_new_version": {
+      "account_switches": false,
+      "account_stays_at_version": 1,
+      "rule": "USAGE_UNKNOWN or CLOUD_SCHEMA_UPDATE_REQUIRED at vN+1 blocks the switch for the whole account; the migration retries. An account is never left half-migrated by a fault."
+    },
+    "after_the_switch": {
+      "account": {
+        "usage_state": "OK",
+        "logical_usage_units": 323,
+        "algorithm_version": 2
+      },
+      "workspaces": [
+        {
+          "workspace": "ws-1",
+          "logical_usage_units": 115,
+          "algorithm_version": 2
+        },
+        {
+          "workspace": "ws-2",
+          "logical_usage_units": 208,
+          "algorithm_version": 2
+        }
+      ],
+      "rule": "one transaction; components, aggregate and version stamps move together; shadows cleared"
+    },
+    "customer_effect": "No data is deleted and no durable receipt already issued is invalidated. An account the switch pushes over the pool behaves as any over-quota account: ACCOUNT_OVER_QUOTA on new durable receipts, local editing unaffected, the usage-reducing staging lane available."
+  }
+}

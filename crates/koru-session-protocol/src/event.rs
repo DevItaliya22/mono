@@ -1,0 +1,284 @@
+// SPDX-License-Identifier: MPL-2.0
+
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+use crate::{
+    AgentTurnId, ApprovalId, AttachmentId, AttentionState, CachedInputRelationship, CancelReason,
+    ErrorCode, HandoverState, ModelName, ProviderKind, SessionFailure, SessionId, StreamSequence,
+    ToolCallId, ToolFailure, ToolKind,
+};
+
+/// Lifecycle and low-volume facts for one session. Render content has its own
+/// bounded [`crate::RenderUpdate`] stream.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum SessionEvent {
+    Output {
+        byte_count: u64,
+    },
+    Bell,
+    Started,
+    Exited {
+        code: Option<i32>,
+    },
+    Failed {
+        error: SessionFailure,
+    },
+    WorkingDirectoryChanged {
+        working_directory: String,
+    },
+    TitleChanged {
+        title: String,
+    },
+    AttentionChanged {
+        attention: AttentionState,
+    },
+    AttachmentCreated {
+        attachment_id: AttachmentId,
+    },
+    AttachmentRemoved {
+        attachment_id: AttachmentId,
+    },
+    AttachmentRejected {
+        attachment_id: AttachmentId,
+        code: ErrorCode,
+    },
+    AttachmentDelivered {
+        attachment_id: AttachmentId,
+        turn_id: AgentTurnId,
+    },
+    /// Protocol v14. The controller handover moved: someone asked, the holder
+    /// released, the lease was taken, or it was given back. A new tag, so a
+    /// host never sends it to a peer that negotiated less than v14.
+    HandoverChanged {
+        handover: HandoverState,
+    },
+}
+
+impl SessionEvent {
+    /// First negotiated protocol version that can read this event. A host
+    /// forwards nothing a subscriber could not parse: an unknown tag would
+    /// end the subscriber's connection, not one event.
+    pub fn minimum_protocol_version(&self) -> u32 {
+        match self {
+            Self::HandoverChanged { .. } => crate::DELEGATION_PROTOCOL_VERSION,
+            _ => 1,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SequencedSessionEvent {
+    pub session_id: SessionId,
+    pub sequence: StreamSequence,
+    pub event: SessionEvent,
+}
+
+/// One bounded chunk for an explicitly authorized non-visual output
+/// subscription. Render subscribers consume `RenderUpdate` instead.
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct RawOutputChunk {
+    pub session_id: SessionId,
+    pub sequence: StreamSequence,
+    pub bytes: Vec<u8>,
+}
+
+impl std::fmt::Debug for RawOutputChunk {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RawOutputChunk")
+            .field("session_id", &self.session_id)
+            .field("sequence", &self.sequence)
+            .field("byte_count", &self.bytes.len())
+            .finish()
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ApprovalDecision {
+    Approve,
+    Reject,
+}
+
+/// One usage report for one turn.
+///
+/// **The report is the total for `turn_id` so far, and a later report for
+/// the same turn replaces the earlier one.** Whether the provider sends
+/// deltas, running totals or replacements is the adapter's business to
+/// declare in its compatibility note and normalize here; above this type
+/// there is one total per turn. A missing count is `None` — unavailable is
+/// never zero.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AgentUsage {
+    pub input_tokens: Option<u64>,
+    pub output_tokens: Option<u64>,
+    pub cached_input_tokens: Option<u64>,
+    /// Protocol v14. How `cached_input_tokens` relates to `input_tokens`,
+    /// as the adapter declared it. Absent from an older peer, which reads as
+    /// `Undeclared` — incomplete, never guessed.
+    #[serde(default)]
+    pub cached_input: CachedInputRelationship,
+    /// Protocol v14. The model the provider reported for this turn, or
+    /// `None` when it said nothing. Never a copy of the model that was asked
+    /// for: that lives on the session summary as `requested`.
+    #[serde(default)]
+    pub model: Option<ModelName>,
+}
+
+/// Provider-neutral managed-session facts. Provider IDs and native wire values
+/// never cross this boundary.
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum AgentEvent {
+    TurnStarted {
+        turn_id: AgentTurnId,
+    },
+    MessageDelta {
+        turn_id: AgentTurnId,
+        text: String,
+    },
+    ToolStarted {
+        turn_id: AgentTurnId,
+        tool_call_id: ToolCallId,
+        label: String,
+        /// Protocol v17 (UC17). What the agent asked the tool to do, as the
+        /// adapter read it from the call — a command line, the paths of a
+        /// change, an MCP tool's arguments — bounded to
+        /// [`TOOL_CONTENT_CHARS`]. `None` when the provider gave none, and
+        /// from an older peer.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        input: Option<String>,
+    },
+    ToolCompleted {
+        turn_id: AgentTurnId,
+        tool_call_id: ToolCallId,
+        succeeded: bool,
+        /// Protocol v14. Which tool it was, as the adapter classifies it —
+        /// never the provider's own name for it. Absent from an older peer,
+        /// which reads as `None`: unknown, never guessed.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        tool: Option<ToolKind>,
+        /// Protocol v14. Why it did not work, as the adapter classified it
+        /// from the structured fields it already reads — never the
+        /// provider's error text, which does not cross this boundary at
+        /// all. `None` when it succeeded, and `None` from an older peer,
+        /// which the run reads as [`ToolFailure::Unclassified`].
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        failure: Option<ToolFailure>,
+        /// Protocol v17. The tool's own account of why it failed, as the
+        /// provider reported it, bounded to [`TOOL_DETAIL_CHARS`]
+        /// characters — the first thing a person asks of a failed row, and
+        /// the one piece of provider text that crosses here. `None` when it
+        /// succeeded, when the provider said nothing readable, and from an
+        /// older peer. Never the arguments, never the results.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        detail: Option<String>,
+        /// Protocol v17 (UC17). What the tool produced, as the adapter read
+        /// it — a command's output, a change's diff, an MCP result — bounded
+        /// to [`TOOL_CONTENT_CHARS`]. `None` when the provider gave none,
+        /// and from an older peer.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        output: Option<String>,
+    },
+    ApprovalRequired {
+        turn_id: AgentTurnId,
+        approval_id: ApprovalId,
+        summary: String,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        choices: Vec<crate::ApprovalChoice>,
+    },
+    ApprovalResolved {
+        turn_id: AgentTurnId,
+        approval_id: ApprovalId,
+        decision: ApprovalDecision,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        choice: Option<crate::ApprovalChoiceId>,
+    },
+    ApprovalExpired {
+        turn_id: AgentTurnId,
+        approval_id: ApprovalId,
+    },
+    WaitingForInput {
+        turn_id: AgentTurnId,
+    },
+    AttachmentAccepted {
+        turn_id: AgentTurnId,
+        attachment_id: AttachmentId,
+    },
+    AttachmentRejected {
+        turn_id: AgentTurnId,
+        attachment_id: AttachmentId,
+        code: ErrorCode,
+    },
+    Usage {
+        turn_id: AgentTurnId,
+        usage: AgentUsage,
+    },
+    ChildSessionCreated {
+        turn_id: AgentTurnId,
+        child_session_id: SessionId,
+    },
+    TurnCompleted {
+        turn_id: AgentTurnId,
+    },
+    TurnCancelled {
+        turn_id: AgentTurnId,
+        /// Protocol v14. Why the turn was cancelled. A peer that predates the
+        /// field reads `Run`, which is what every cancellation meant before
+        /// a takeover could end a step without ending the job.
+        #[serde(default)]
+        reason: CancelReason,
+    },
+    TurnFailed {
+        turn_id: AgentTurnId,
+        error: SessionFailure,
+    },
+    ProviderState {
+        provider: ProviderKind,
+        state: crate::ManagedState,
+    },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct SequencedAgentEvent {
+    pub session_id: SessionId,
+    pub sequence: StreamSequence,
+    pub event: AgentEvent,
+}
+
+/// Atomic bounded recovery point for a managed transcript. `events` is the
+/// retained normalized tail ending at `cursor`; `earlier_truncated` makes
+/// eviction explicit instead of pretending the tail is complete.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AgentEventObservation {
+    pub events: Vec<SequencedAgentEvent>,
+    pub cursor: StreamSequence,
+    pub earlier_truncated: bool,
+}
+
+impl std::fmt::Debug for AgentEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let (kind, turn) = match self {
+            Self::TurnStarted { turn_id } => ("TurnStarted", Some(turn_id)),
+            Self::MessageDelta { turn_id, .. } => ("MessageDelta", Some(turn_id)),
+            Self::ToolStarted { turn_id, .. } => ("ToolStarted", Some(turn_id)),
+            Self::ToolCompleted { turn_id, .. } => ("ToolCompleted", Some(turn_id)),
+            Self::ApprovalRequired { turn_id, .. } => ("ApprovalRequired", Some(turn_id)),
+            Self::ApprovalResolved { turn_id, .. } => ("ApprovalResolved", Some(turn_id)),
+            Self::ApprovalExpired { turn_id, .. } => ("ApprovalExpired", Some(turn_id)),
+            Self::WaitingForInput { turn_id } => ("WaitingForInput", Some(turn_id)),
+            Self::AttachmentAccepted { turn_id, .. } => ("AttachmentAccepted", Some(turn_id)),
+            Self::AttachmentRejected { turn_id, .. } => ("AttachmentRejected", Some(turn_id)),
+            Self::Usage { turn_id, .. } => ("Usage", Some(turn_id)),
+            Self::ChildSessionCreated { turn_id, .. } => ("ChildSessionCreated", Some(turn_id)),
+            Self::TurnCompleted { turn_id } => ("TurnCompleted", Some(turn_id)),
+            Self::TurnCancelled { turn_id, .. } => ("TurnCancelled", Some(turn_id)),
+            Self::TurnFailed { turn_id, .. } => ("TurnFailed", Some(turn_id)),
+            Self::ProviderState { .. } => ("ProviderState", None),
+        };
+        f.debug_struct(kind)
+            .field("turn_id", &turn)
+            .finish_non_exhaustive()
+    }
+}

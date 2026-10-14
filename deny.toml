@@ -1,0 +1,76 @@
+# cargo-deny: the licenses Koru's dependencies may carry, and the advisory
+# database every build is checked against. Public CI runs
+# `cargo deny check licenses advisories bans sources` (.github/workflows/ci.yml).
+#
+# The license list is the set licensing/THIRD-PARTY.md audited and
+# accepted, and no wider: permissive licenses whose obligations
+# THIRD-PARTY-NOTICES.txt meets, and MPL-2.0 (the only copyleft among our
+# crates, and Koru's own). A dependency under anything else fails CI until
+# licensing/ says why it is acceptable and it is added here. GPL and LGPL
+# are deliberately absent: a crate under either would make the binary that
+# links it a GPL work, which is the eSpeak NG problem that document describes.
+#
+# Native code that Cargo cannot see (sherpa-onnx, whisper.cpp, ONNX Runtime)
+# is outside this check; crates/koru-release/licences/bundled/ lists it by hand.
+
+[graph]
+all-features = true
+
+[licenses]
+version = 2
+# Workspace packages are `publish = false` and Koru's own, all MPL-2.0. (The
+# hosted Koru Cloud services are proprietary and are not in this repository.)
+private = { ignore = true }
+confidence-threshold = 0.93
+allow = [
+    "0BSD",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CC0-1.0",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "MPL-2.0",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+# Two permissive licenses outside the list, allowed for the one crate that
+# carries each rather than for the whole graph.
+exceptions = [
+    # bzip2's own BSD-style license; the Rust port of libbzip2, which
+    # koru-release and the sherpa-onnx build script use to unpack archives.
+    { name = "libbz2-rs-sys", allow = ["bzip2-1.0.6"] },
+    # LLVM's libFuzzer (University of Illinois/NCSA, BSD-style), reached
+    # through rav1e by image decoding.
+    { name = "libfuzzer-sys", allow = ["NCSA"] },
+]
+
+[advisories]
+version = 2
+# Every vulnerability, unsound and yanked crate fails; an exception is an
+# `ignore` entry with the advisory id and the reason it does not apply.
+#
+# Unmaintained notices fail only for a crate a workspace member depends on
+# directly, which is the one we can act on by choosing another. Nine
+# transitive ones (atomic-polyfill, bincode, bitmaps, im, paste,
+# proc-macro-error, sized-chunks, ttf-parser, yaml-rust) reach us through
+# loro, parley, gtk and the like; Dependabot and their upstreams move those.
+yanked = "deny"
+unmaintained = "workspace"
+ignore = []
+
+[bans]
+# Duplicate versions are a fact of a graph this size, not a defect.
+multiple-versions = "allow"
+wildcards = "allow"
+
+[sources]
+# Every crate comes from crates.io (THIRD-PARTY.md, "No crate comes from git").
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

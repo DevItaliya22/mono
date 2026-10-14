@@ -1,0 +1,46 @@
+[package]
+rust-version.workspace = true
+name = "koru-store-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+# **Sync, and deliberately so.** No tokio, no axum, no HTTP, no filesystem
+# policy. This crate is the engine the desktop daemon hosts, and the same engine
+# a mobile build embeds directly — a store that only worked behind a socket
+# would need a fork to run on a phone.
+#
+# It also names nothing from `koru-core` or `koru-docstore`. Not because those are
+# UI crates (they are not) but because they *are* the one-giant-`LoroDoc` model
+# this replaces; depending on them would import the shape we are redoing.
+# **`schema` is off by default, and core's own builds leave it off.** The
+# OpenAPI document is generated from the wire types, and those are made of the
+# ids and models declared here — whose `Serialize`/`Deserialize` are written by
+# hand, so `#[derive(JsonSchema)]` cannot reach them and the orphan rule stops
+# `koru-store-wire` from implementing a foreign trait for a foreign type. The
+# impls therefore have to live beside the types, behind a flag.
+#
+# This is **not** the `utoipa` decision being reopened (see `api_catalog.rs`).
+# That was refused because `ToSchema` arrives attached to an HTTP framework, and
+# putting one in core would invert the boundary this crate exists to hold.
+# `schemars` is a JSON Schema derive with no transport, and a mobile build that
+# embeds core never turns it on.
+[features]
+default = []
+schema = ["dep:schemars"]
+
+[dependencies]
+koru-env = { path = "../koru-env" }
+tracing = { workspace = true }
+schemars = { workspace = true, optional = true }
+
+loro = { workspace = true }
+uuid = { workspace = true }
+# Checkpoint checksums. Small, pure Rust, and the same hash that addresses
+# blobs — so the store has one hash function rather than two.
+blake3 = { workspace = true }
+sha2 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+unicode-normalization = { workspace = true }

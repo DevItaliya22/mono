@@ -1,0 +1,35 @@
+[package]
+rust-version.workspace = true
+name = "koru-recording"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Window capture and H.264 encoding (Windows Graphics Capture) plus the geometry vocabulary of a recording. The mechanism; what a recording is *of* stays with its consumer."
+
+# **The second consumer ADR-350 waited for.** The capture below lived in
+# `apps/koru-demo` while the compiled-case runner was its only consumer; the
+# in-app session recorder (the internal session-recorder design) is the second.
+# What moved here is mechanism only — runner vocabulary (`StepResult`,
+# `EventKind`, the `koru-demo-recording/1` pairing) stays in `koru-demo`.
+#
+# Nothing here is constructed by `cargo test --workspace`: the Graphics
+# Capture session is `#[cfg(windows)]` and behind explicit `capture::start`
+# calls, so an ordinary test run cannot record the desktop.
+
+[dependencies]
+# The session-telemetry contract is serialized: `koru-session-recording/1`
+# beside every clip as `.actions.json`.
+serde.workspace = true
+serde_json.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+# Exact-HWND Graphics Capture and an explicit H.264 encoder. The crate default
+# is HEVC; every caller sets `VideoSettingsSubType::H264`. Evaluated against
+# 2.0.1: `Window::from_raw_hwnd`, `VideoSettingsBuilder::{frame_rate, bitrate}`,
+# and `windows` 0.62.2 matching this crate. ADR-349-windowscapture.
+windows-capture = "2.0.1"
+windows = { version = "0.62.2", features = [
+    "Win32_Foundation",
+    "Win32_UI_HiDpi",
+] }

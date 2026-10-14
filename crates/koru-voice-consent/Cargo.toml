@@ -1,0 +1,32 @@
+[package]
+rust-version.workspace = true
+name = "koru-voice-consent"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "What a person agreed to before Koru downloads a speech model or opens a microphone: one machine-local file, versioned, written atomically, per OS user and device. It knows no catalog, no model cache, no audio and no UI, and it does not decide where it lives."
+
+# **Two dependencies, and the absences are the charter.**
+#
+# `serde` and `serde_json` are the file, and nothing else is needed to be one.
+#
+# **Not here, deliberately.** No `koru-voice-models`: consent is what somebody
+# agreed to, and whether verified bytes are on the disk is a different fact
+# that is *derived from the disk* (`koru_voice_models::anything_installed`)
+# rather than copied into a boolean here. A crate that knew about the cache
+# would be a crate somebody could ask "am I installed", and the answer would
+# eventually be a stale flag. No `koru-voice`: a `ModelId` is a path component
+# in a cache this crate has never heard of, and the record stores the strings
+# it *showed a person* rather than identities it would then have to keep valid.
+# No path resolution and therefore no `directories`, no `koru-channel` and no
+# `koru-window`: **the host names the file**, which is ADR-111's rule for
+# `search.conf` applied to a second kind of machine-local state, and it is what
+# lets an agent under `--root` and a test's temporary directory both be
+# ordinary callers rather than special cases.
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

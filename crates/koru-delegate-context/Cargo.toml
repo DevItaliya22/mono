@@ -1,0 +1,46 @@
+[package]
+rust-version.workspace = true
+name = "koru-delegate-context"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Pins the exact bytes a delegated run was given and lays them out for a provider; it captures through the store's own history seam and copies through its blob store, and it never decides what a document's deletion means."
+
+# **A pin, a layout, a state — and no opinion about Trash.** This crate is
+# ROADMAP §7.2 end to end: a document or block becomes a `capture_history`
+# version pinned by its `DocumentVersionId`, a file becomes its `BlobHash`
+# with retention asserted, both are laid out under
+# `<run-workspace>/.koru/context/<RunId>/`, and only then may a provider
+# start. Deletion changes nothing here (D47): a pinned source that is later
+# trashed or purged is *reported* as such beside the pin, read from what the
+# store says at that moment, and nothing here cascades, purges or restores.
+#
+# It links the store's *service* (`koru-store-core`) rather than a SQLite
+# backend, so the worker reaches it through whatever `Store` it was handed;
+# the tests open a real `Store<SqliteCatalog, SqliteBackend>` under a
+# temporary root, which is the one process-and-disk scenario this crate owns.
+[dependencies]
+# `RunId`, `RunContextItem`, `BlobKind`, `BlockNodeId` — the run's vocabulary.
+koru-delegate-core = { path = "../koru-delegate-core" }
+# `BlobSource` and `ExportError` — the exporter's inputs.
+koru-export = { path = "../koru-export" }
+# The one Markdown renderer Koru has; a pinned version is rendered through it.
+koru-export-markdown = { path = "../koru-export-markdown" }
+# `DeliveryMode` — the two ways a provider receives an attachment.
+koru-session-protocol = { path = "../koru-session-protocol" }
+# `Store`, `DocumentVersion`, `DocumentEntry`, `Blob`, `HistoryReason` — the
+# seams §7.2 captures through and reads back from.
+koru-store-core = { path = "../koru-store-core" }
+serde = { workspace = true }
+# `manifest.json` — the one file this crate writes that is not a copy.
+serde_json = { workspace = true }
+# `WorkspaceDoc::from_snapshot` — a version's bytes are a document; the
+# renderer needs the model to walk it.
+koru-core = { path = "../koru-core" }
+
+[dev-dependencies]
+# The real store under a temporary root — `tests/store.rs`.
+koru-store-sqlite = { path = "../koru-store-sqlite" }
+tempfile = { workspace = true }
+uuid = { workspace = true }

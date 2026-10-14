@@ -1,0 +1,15 @@
+{
+  "beforeSha256": "d8053c7880d61a0ffa25c8bd367eb2d5adc78ee7c0a3eb65b4d33be3a6c07ab4",
+  "afterSha256": "d8053c7880d61a0ffa25c8bd367eb2d5adc78ee7c0a3eb65b4d33be3a6c07ab4",
+  "restored": true,
+  "testExit": 101,
+  "elapsedSeconds": 15.65,
+  "toolCategories": {
+    "known_create": 1,
+    "tool_discovery": 1,
+    "read": 0,
+    "shell": 0,
+    "native_child": 0,
+    "other": 0
+  }
+}

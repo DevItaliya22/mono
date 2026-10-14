@@ -1,0 +1,25 @@
+[package]
+rust-version.workspace = true
+name = "koru-agent-wire"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Every message the Koru Agent's IPC carries, and the one version number that says how to read them."
+
+# **A leaf, and serde is the whole of it.** Two processes name these
+# declarations — the agent and every shell — so a renamed field breaks both
+# builds rather than arriving as a silent `None`. That is the lesson
+# `koru-store-wire` paid for; this is the same shape one layer out.
+#
+# It cannot live in `koru-ipc`, which must not know what an Agent is, and it
+# cannot live in the agent's own lib without `apps/koru` acquiring winit, vello
+# and the search surface in order to send a message.
+[dependencies]
+serde = { workspace = true }
+
+[dev-dependencies]
+# The tags and field names are asserted as JSON, because that is what crosses
+# the wire. A dev-dependency: nothing shipped here serializes on its own —
+# `koru_ipc::frame` does it — so the leaf stays a leaf.
+serde_json = { workspace = true }

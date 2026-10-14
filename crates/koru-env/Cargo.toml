@@ -1,0 +1,14 @@
+[package]
+rust-version.workspace = true
+name = "koru-env"
+version = "0.1.0"
+edition = "2024"
+license.workspace = true
+publish = false
+
+# A leaf: no dependencies, so anything may depend on it — the same rule that
+# makes koru-channel and koru-link safe to reach from everywhere.
+[dependencies]
+
+[dev-dependencies]
+tempfile = { workspace = true }

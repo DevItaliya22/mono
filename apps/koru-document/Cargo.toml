@@ -1,0 +1,102 @@
+[package]
+rust-version.workspace = true
+name = "koru-document"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "The built-in document: prose over a flat body, with a formatting toolbar."
+
+[lib]
+name = "koru_document"
+path = "src/lib.rs"
+# No doctests exist here, and the target is not free: under sccache, cargo's
+# pipelining lets the doctest rustdoc start when a dependency's .rmeta is
+# ready but before its .rlib lands, and this crate's rustdoc failed two full
+# workspace runs out of three with E0463 "can't find crate for koru_workspace_host"
+# while the unit suites were green. Turning the empty target off removes the
+# race; a first real doctest here means turning this back on and paying it.
+doctest = false
+
+[[bin]]
+name = "koru-document"
+path = "src/main.rs"
+
+[dependencies]
+koru-features = { path = "../../crates/koru-features" }
+koru-core = { path = "../../crates/koru-core" }
+# Chords, the primary modifier, and how a shortcut is written. Shared so
+# `koru-workspace-host` and `koru-editor` agree without depending on each other.
+koru-keys = { path = "../../crates/koru-keys" }
+# The caption row's geometry and its window buttons. Generic furniture that
+# names no view, so a single-view binary may draw the same title bar the
+# container does rather than growing a second copy of it.
+koru-shell-chrome = { path = "../../crates/koru-shell-chrome" }
+# The words on that caption's status chip. The chrome crate draws the chip and
+# is not allowed to know what it says (ADR-262), so the window that draws its
+# own caption reads the eight columns itself — the same two rows the container
+# reads for the same chip.
+koru-i18n = { path = "../../crates/koru-i18n" }
+koru-draw = { path = "../../crates/koru-draw" }
+koru-editor = { path = "../../crates/koru-editor" }
+koru-workspace-host = { path = "../../crates/koru-workspace-host" }
+# The four actions a dictation asks for. This crate routes them into its own
+# find bar, its own prompts or the document body; it never starts a session.
+koru-dictation = { path = "../../crates/koru-dictation" }
+koru-ui = { path = "../../crates/koru-ui" }
+# Window requests and snap placement are platform-window vocabulary, not
+# workspace-host vocabulary. Keep this direct so the host cannot become a
+# facade for `koru-window` again.
+koru-window = { path = "../../crates/koru-window" }
+koru-workspace = { path = "../../crates/koru-workspace" }
+vello.workspace = true
+winit.workspace = true
+unicode-segmentation.workspace = true
+# One call: today's date, so the Remove-from-Tasks question prints the due date
+# the chip beside the row prints. The label rules themselves stay in
+# `koru_editor::chips`; what is needed here is only the wall clock, which the
+# label function takes as an argument so a test can pin it.
+chrono.workspace = true
+
+[dev-dependencies]
+# Every surface on by default in tests; `koru_features::testing::with` opts
+# one test into the simplified product.
+koru-features = { path = "../../crates/koru-features", features = ["testing"] }
+# **The same crate, with `no-engine` on** — the `no-reader` shape. A test that
+# routes a dictation must not be able to reach a worker, and `cfg(test)` inside
+# `koru-dictation` cannot cover a crate that depends on it.
+koru-dictation = { path = "../../crates/koru-dictation", features = ["no-engine"] }
+# **The same crate, with `no-browser` on.** A plain click on a link hands the
+# URL to the OS handler, and `cfg(test)` inside `koru-editor` cannot reach
+# here — a dependency is never compiled with it. Without this a test that
+# clicks a link opens a real browser window on whoever runs the suite.
+koru-editor = { path = "../../crates/koru-editor", features = ["no-browser"] }
+
+# **The UI Automation *client*, and only in the interactive text proof.**
+# Koru's accessibility bridge is a UIA *provider*;
+# `tests/accessibility_text_native.rs` stands outside it and asks the questions
+# Narrator asks, which is the only way to establish that a paragraph's text,
+# caret and selection really do reach an external client. The same binding
+# stack `koru-workspace-host`'s own native proof and `apps/koru-agent` already
+# use, so no second stack arrives.
+#
+# Gate T5 is *receipt* of a UIA event, not its creation, so the test hands
+# `AddAutomationEventHandler` a real `IUIAutomationEventHandler` implemented in
+# this process. `windows::core::implement` is unconditional in 0.62 — there is
+# no `implement` feature to switch on, and asking for one is a resolver error
+# rather than a harmless no-op.
+[target.'cfg(windows)'.dev-dependencies]
+windows = { version = "0.62.2", features = [
+    "Win32_Foundation",
+    "Win32_System_Com",
+    "Win32_System_Variant",
+    "Win32_UI_Accessibility",
+    "Win32_UI_WindowsAndMessaging",
+] }
+accesskit = { workspace = true }
+# **Named directly because `#[implement]` expands to `windows_core::` paths.**
+# The macro is re-exported by `windows::core`, but the code it generates refers
+# to the crate by its own name, so a test that implements a COM interface has to
+# have it in scope. Same version as `windows` above; it is already in the lock
+# as that crate's own dependency, so nothing new is compiled.
+windows-core = "0.62.2"

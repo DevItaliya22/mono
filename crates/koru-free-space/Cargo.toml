@@ -1,0 +1,30 @@
+[package]
+rust-version.workspace = true
+name = "koru-free-space"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "How much a Koru write may use on a volume: the number the operating system itself would let an important write have."
+
+[dependencies]
+fs2.workspace = true
+
+# `statvfs` on APFS leaves out purgeable space — local snapshots, optimised
+# storage, caches — that the system frees on demand for an important write.
+# Foundation's own answer counts it. Already in the graph through the window
+# and clipboard crates, at the same version.
+[target.'cfg(target_vendor = "apple")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSArray",
+    "NSDictionary",
+    "NSError",
+    "NSString",
+    "NSURL",
+    "NSValue",
+] }
+
+[dev-dependencies]
+tempfile.workspace = true

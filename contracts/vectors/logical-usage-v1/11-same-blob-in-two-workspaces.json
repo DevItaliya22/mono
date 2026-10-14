@@ -1,0 +1,167 @@
+{
+  "case": "11-same-blob-in-two-workspaces",
+  "contract": "LogicalUsageV1",
+  "algorithm_version": 1,
+  "description": "The same file uploaded into two workspaces of one account.",
+  "covers": [
+    "D21",
+    "D28"
+  ],
+  "input": {
+    "account": "acct-1",
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-1",
+            "listing": {
+              "kind": "file",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "image",
+                "text": "",
+                "name": "Diagram",
+                "blob": "wbi-ws1-0001",
+                "mime": "image/png",
+                "runs": []
+              }
+            ]
+          }
+        ],
+        "blobs": [
+          {
+            "dedup_identity": "wbi-ws1-0001",
+            "verified_plaintext_length_bytes": 1048576,
+            "durable": true,
+            "note": "1 MiB of plaintext (an internal engineering figure, so binary and spelled MiB); the length is verified from the authenticated envelope framing (D40)"
+          }
+        ]
+      },
+      {
+        "workspace": "ws-2",
+        "state": "ENABLED",
+        "counted": true,
+        "documents": [
+          {
+            "document": "doc-2",
+            "listing": {
+              "kind": "file",
+              "trashed_at": null
+            },
+            "durable": true,
+            "nodes": [
+              {
+                "id": "n1",
+                "parent": null,
+                "ordinal": 0,
+                "depth": 0,
+                "kind": "paragraph",
+                "text": "Quarterly plan",
+                "runs": [
+                  {
+                    "start": 0,
+                    "end": 14
+                  }
+                ]
+              },
+              {
+                "id": "n2",
+                "parent": null,
+                "ordinal": 1,
+                "depth": 0,
+                "kind": "image",
+                "text": "",
+                "name": "Diagram",
+                "blob": "wbi-ws2-0001",
+                "mime": "image/png",
+                "runs": []
+              }
+            ]
+          }
+        ],
+        "blobs": [
+          {
+            "dedup_identity": "wbi-ws2-0001",
+            "verified_plaintext_length_bytes": 1048576,
+            "durable": true,
+            "note": "byte-identical plaintext to wbi-ws1-0001; a different workspace identity key gives it a different dedup identity"
+          }
+        ]
+      }
+    ]
+  },
+  "derivation": [
+    "workspace ws-1 (ENABLED):",
+    "    doc-1/n1 (paragraph): node.text 14 = 14",
+    "    doc-1/n2 (image): node.name 7 = 7",
+    "  document doc-1: 21",
+    "  blob wbi-ws1-0001: durable, referenced -> 1048576",
+    "  -> documents_units 21 + files_bytes 1048576 = 1048597",
+    "workspace ws-2 (ENABLED):",
+    "    doc-2/n1 (paragraph): node.text 14 = 14",
+    "    doc-2/n2 (image): node.name 7 = 7",
+    "  document doc-2: 21",
+    "  blob wbi-ws2-0001: durable, referenced -> 1048576",
+    "  -> documents_units 21 + files_bytes 1048576 = 1048597",
+    "account: documents_units 42 + files_bytes 2097152 = 2097194"
+  ],
+  "expected": {
+    "workspaces": [
+      {
+        "workspace": "ws-1",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 21,
+        "files_bytes": 1048576,
+        "logical_usage_units": 1048597,
+        "algorithm_version": 1
+      },
+      {
+        "workspace": "ws-2",
+        "workspace_state": "ENABLED",
+        "counted": true,
+        "usage_state": "OK",
+        "documents_units": 21,
+        "files_bytes": 1048576,
+        "logical_usage_units": 1048597,
+        "algorithm_version": 1
+      }
+    ],
+    "account": {
+      "usage_state": "OK",
+      "documents_units": 42,
+      "files_bytes": 2097152,
+      "logical_usage_units": 2097194,
+      "algorithm_version": 1
+    }
+  },
+  "notes": [
+    "Counted twice. Cross-workspace deduplication is an explicit non-goal (D21), and the identity key is per workspace (amendment item 6), so the same plaintext has two dedup identities.",
+    "This is also what makes D66's breakdown add up: the account total is by construction the sum of its workspace components, with no cross-workspace term to reconcile."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "cases": [
+    {
+      "name": "British spellings are valid",
+      "text": "The colour of the neighbour's armour pleased the organisers.",
+      "expected": []
+    },
+    {
+      "name": "a classic typo is flagged",
+      "text": "This is teh test.",
+      "expected": [{ "word": "teh", "start": 8, "end": 11 }]
+    },
+    {
+      "name": "morphology: inflections are valid",
+      "text": "She realised the dogs were running.",
+      "expected": []
+    },
+    {
+      "name": "broken inflections are flagged",
+      "text": "The dogz runing fast.",
+      "expected": [{ "word": "dogz" }, { "word": "runing" }]
+    }
+  ]
+}

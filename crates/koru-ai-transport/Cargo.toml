@@ -1,0 +1,18 @@
+[package]
+rust-version.workspace = true
+name = "koru-ai-transport"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Provider-neutral blocking HTTP stream framing for Koru AI."
+
+[features]
+default = []
+test-server = ["dep:url"]
+
+[dependencies]
+reqwest = { workspace = true, features = ["stream"] }
+serde_json.workspace = true
+tokio.workspace = true
+url = { workspace = true, optional = true }

@@ -1,0 +1,11 @@
+{
+  "kind": "begin",
+  "session": "77777777-7777-7777-7777-777777777777",
+  "generation": 5,
+  "language": "auto",
+  "tier": "compact",
+  "model": null,
+  "input": {
+    "kind": "system_default"
+  }
+}

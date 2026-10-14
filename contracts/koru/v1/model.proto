@@ -1,0 +1,168 @@
+// SPDX-License-Identifier: MPL-2.0
+
+syntax = "proto3";
+
+package koru.v1;
+
+import "google/protobuf/any.proto";
+import "koru/v1/ids.proto";
+
+option java_multiple_files = true;
+option java_package = "app.koru.contract.v1";
+option swift_prefix = "KOR";
+
+message ProfileProjection {
+  ProfileId id = 1;
+  string display_name = 2;
+  string locale = 3;
+}
+
+message WorkspaceProjection {
+  WorkspaceId id = 1;
+  ProfileId profile_id = 2;
+  string title = 3;
+}
+
+message DocumentSummary {
+  DocumentId id = 1;
+  WorkspaceId workspace_id = 2;
+  string title = 3;
+}
+
+message BlobReference {
+  BlobId id = 1;
+  string mime_type = 2;
+  uint64 size = 3;
+  optional uint32 width = 4;
+  optional uint32 height = 5;
+}
+
+message TextRange {
+  uint32 start_utf8 = 1;
+  uint32 end_utf8 = 2;
+}
+
+// Koru marks use stable language-neutral keys. Unknown keys and values remain
+// part of the projection even when a client cannot render them.
+message TextMark {
+  TextRange range = 1;
+  string kind = 2;
+  bytes value = 3;
+}
+
+message EntityReference {
+  oneof target {
+    DocumentId document_id = 1;
+    BlockId block_id = 2;
+    UserId user_id = 3;
+    string url = 4;
+  }
+}
+
+message InlineObject {
+  InlineObjectId id = 1;
+  AttributeId attribute_id = 2;
+  uint32 anchor_utf8 = 3;
+  string role = 4;
+  EntityReference reference = 5;
+  optional string label = 6;
+}
+
+// text contains one U+FFFC OBJECT REPLACEMENT CHARACTER at each inline-object
+// anchor. InsertInlineObject and RemoveInlineObject edit both atomically.
+message RichText {
+  string text = 1;
+  repeated TextMark marks = 2;
+  repeated InlineObject inline_objects = 3;
+}
+
+enum BlockKind {
+  BLOCK_KIND_UNSPECIFIED = 0;
+  BLOCK_KIND_PARAGRAPH = 1;
+  BLOCK_KIND_TASK = 2;
+  BLOCK_KIND_LIST = 3;
+  BLOCK_KIND_IMAGE = 4;
+  BLOCK_KIND_CODE = 5;
+  BLOCK_KIND_TABLE = 6;
+  BLOCK_KIND_DIVIDER = 7;
+  BLOCK_KIND_CANVAS = 8;
+  BLOCK_KIND_EMBED = 9;
+  BLOCK_KIND_CONTACT = 10;
+}
+
+enum Alignment {
+  ALIGNMENT_UNSPECIFIED = 0;
+  ALIGNMENT_START = 1;
+  ALIGNMENT_CENTER = 2;
+  ALIGNMENT_END = 3;
+  ALIGNMENT_JUSTIFY = 4;
+}
+
+enum ListStyle {
+  LIST_STYLE_UNSPECIFIED = 0;
+  LIST_STYLE_BULLET = 1;
+  LIST_STYLE_CHECKBOX = 2;
+  LIST_STYLE_NUMBERED = 3;
+  LIST_STYLE_LETTER = 4;
+  LIST_STYLE_ROMAN = 5;
+}
+
+message ImageSize {
+  uint32 width = 1;
+  uint32 height = 2;
+}
+
+message BlockProperties {
+  optional string name = 1;
+  optional string icon = 2;
+  optional string color = 3;
+  bool done = 4;
+  Alignment alignment = 5;
+  optional uint32 heading_level = 6;
+  ListStyle list_style = 7;
+  optional ImageSize image_size = 8;
+  optional string language = 9;
+}
+
+message ParagraphPayload {
+  RichText rich_text = 1;
+}
+message TaskPayload {
+  RichText rich_text = 1;
+}
+message ListPayload {}
+message ImagePayload {
+  BlobReference blob = 1;
+}
+message CodePayload {
+  RichText rich_text = 1;
+}
+message TablePayload {
+  RichText rich_text = 1;
+}
+message DividerPayload {}
+message EmbedPayload {
+  EntityReference target = 1;
+}
+message ContactPayload {
+  RichText name = 1;
+}
+
+// The Any envelope is intentional: an older client retains type_url and bytes
+// for a future block instead of decoding an unknown oneof arm as empty.
+message BlockEnvelope {
+  BlockId id = 1;
+  optional BlockId parent_id = 2;
+  BlockKind kind = 3;
+  BlockProperties properties = 4;
+  google.protobuf.Any payload = 5;
+}
+
+message DocumentProjection {
+  DocumentId id = 1;
+  WorkspaceId workspace_id = 2;
+  string title = 3;
+  uint64 revision = 4;
+  // Pre-order. Encounter order among blocks with the same parent is sibling order.
+  repeated BlockEnvelope blocks = 5;
+}

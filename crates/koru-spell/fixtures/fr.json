@@ -1,0 +1,24 @@
+{
+  "cases": [
+    {
+      "name": "elision: the article is grammar, the tail is checked",
+      "text": "L'école est ouverte aujourd'hui.",
+      "expected": []
+    },
+    {
+      "name": "typographic elision apostrophes work the same",
+      "text": "Il dit qu’il n’arrive pas à l’heure.",
+      "expected": []
+    },
+    {
+      "name": "a scrambled word is flagged",
+      "text": "Le chein dort dans la maison.",
+      "expected": [{ "word": "chein" }]
+    },
+    {
+      "name": "conjugations are valid",
+      "text": "Nous mangeons ensemble chaque soir.",
+      "expected": []
+    }
+  ]
+}
