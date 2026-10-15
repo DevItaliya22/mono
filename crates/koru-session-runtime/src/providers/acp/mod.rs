@@ -847,12 +847,45 @@ impl Drop for AcpControl {
 fn private_temp() -> Result<std::path::PathBuf, ProviderFailure> {
     static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let sequence = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    let directory =
-        std::env::temp_dir().join(format!("koru-acp-{}-{sequence}", std::process::id()));
+    let temp = std::env::temp_dir();
+    sweep_abandoned_temp(&temp);
+    let directory = temp.join(format!("koru-acp-{}-{sequence}", std::process::id()));
     let _ = std::fs::remove_dir_all(&directory);
     std::fs::create_dir(&directory)
         .map_err(|error| ProviderFailure::io(ProviderStage::Spawn, &error))?;
     Ok(directory)
+}
+
+/// **The folders of runtimes that died without shutting down.** A shutdown
+/// removes its own folder (`StdioJsonRpc::release_scratch`); a runtime that
+/// was killed cannot, and each one leaves a bundle unpacked in it — about
+/// 300 MB a launch, which filled a disk. They are removed here, at the next
+/// launch, once the process a folder is named after no longer runs. A process
+/// id reused by another program keeps its folder: the sweep may leave one
+/// behind, never remove a live session's.
+fn sweep_abandoned_temp(temp: &std::path::Path) {
+    let own = std::process::id();
+    let Ok(entries) = std::fs::read_dir(temp) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let Some(owner) = entry.file_name().to_str().and_then(temp_owner) else {
+            continue;
+        };
+        if owner == own || super::process::process_exists(owner) {
+            continue;
+        }
+        if entry.file_type().is_ok_and(|kind| kind.is_dir()) {
+            let _ = std::fs::remove_dir_all(entry.path());
+        }
+    }
+}
+
+/// The process a `koru-acp-<pid>-<sequence>` folder belongs to.
+fn temp_owner(name: &str) -> Option<u32> {
+    let (pid, sequence) = name.strip_prefix("koru-acp-")?.split_once('-')?;
+    sequence.parse::<u64>().ok()?;
+    pid.parse().ok()
 }
 
 fn failure(
