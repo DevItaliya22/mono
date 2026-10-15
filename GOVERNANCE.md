@@ -91,7 +91,9 @@ provides:
 - the release and update downloads official builds install from.
 
 Koru also operates relay servers for peer-to-peer connections. The relay's
-code (`apps/koru-relay`) is in this repository; only its deployment is ours.
+code (`apps/koru-relay`) and the recipe for its container image
+(`apps/koru-relay/Dockerfile`) are in this repository; only its deployment is
+ours.
 
 **The service's server code is closed source** and is not in this
 repository. The client side is here: everything the apps link, including the
