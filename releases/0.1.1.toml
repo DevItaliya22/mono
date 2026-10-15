@@ -1,0 +1,36 @@
+title = "Security and disk-space fixes"
+
+summary = [
+  "Coding agents no longer leave large temporary folders behind.",
+  "Updates the library behind Koru's encrypted connections to its latest fixed version.",
+]
+
+body = """
+## Security
+
+Koru 0.1.1 updates rustls, the library behind Koru's encrypted (TLS)
+connections — to Koru Cloud, the update service, AI providers and imports —
+from 0.23.45 to 0.23.46. That release fixes four issues reported after
+Koru 0.1.0 was published (RUSTSEC-2026-0346, -0347, -0348 and -0349, at
+https://rustsec.org).
+
+Koru was not exposed to three of them, because it does not use the
+features they are in: compressed certificates, post-quantum key exchange
+and Encrypted Client Hello. The fourth lets connection secrets appear in
+diagnostic output; the app never prints those values. The update is a precaution,
+so that Koru does not ship a version with known advisories.
+
+## Coding agents
+
+Some coding agents unpack themselves into a temporary folder each time a
+session starts, about 300 MB. Koru removed that folder when a session ended
+normally, but not when Koru was closed abruptly or crashed, so the folders
+could pile up and fill a disk. Koru now removes those leftovers the next
+time it starts an agent; a folder still in use is never touched. Folders
+left by earlier versions, named `koru-acp-…` in your temporary folder, are
+cleaned up the same way.
+
+## Everything else
+
+Nothing else changes in the desktop app.
+"""
