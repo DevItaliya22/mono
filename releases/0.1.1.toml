@@ -1,0 +1,26 @@
+title = "Security maintenance update"
+
+summary = [
+  "Updates the library behind Koru's encrypted connections to its latest fixed version.",
+  "Nothing else changes: your documents, settings and sync work as before.",
+]
+
+body = """
+## Security
+
+Koru 0.1.1 updates rustls, the library behind Koru's encrypted (TLS)
+connections — to Koru Cloud, the update service, AI providers and imports —
+from 0.23.45 to 0.23.46. That release fixes four issues reported after
+Koru 0.1.0 was published (RUSTSEC-2026-0346, -0347, -0348 and -0349, at
+https://rustsec.org).
+
+Koru was not exposed to three of them, because it does not use the
+features they are in: compressed certificates, post-quantum key exchange
+and Encrypted Client Hello. The fourth lets connection secrets appear in
+diagnostic output; the app never prints those values. The update is a precaution,
+so that Koru does not ship a version with known advisories.
+
+## Everything else
+
+Nothing else changes in the desktop app.
+"""
