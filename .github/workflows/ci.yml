@@ -111,7 +111,16 @@ jobs:
     name: DCO
     # Only a pull request has commits to check; a push to main carries
     # commits that were checked as a pull request first.
-    if: github.event_name == 'pull_request'
+    #
+    # Dependabot's pull requests skip it (a skipped job satisfies the required
+    # check). Both names below come from GitHub's authentication, not from
+    # commit metadata a contributor supplies: the account that opened the pull
+    # request, and the one whose push started this run. Anyone else pushing to
+    # the branch changes the second, and the check runs again in full.
+    if: >-
+      github.event_name == 'pull_request' &&
+      !(github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.actor == 'dependabot[bot]')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

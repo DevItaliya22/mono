@@ -16,8 +16,9 @@ CONTRIBUTING.md states: the sign-off is the author certifying the Developer
 Certificate of Origin (DCO, at the repository root), so someone else's
 sign-off does not count. Merge commits are skipped. Bot-looking author
 addresses are not exempt: Git author metadata is supplied by the contributor,
-not authenticated by GitHub. A maintainer must adopt an unsigned bot change
-as their own reviewed, signed-off commit before merging it.
+not authenticated by GitHub. Dependabot's pull requests are exempt in ci.yml
+instead, by the GitHub accounts behind the pull request, so this script never
+sees them.
 
 Exit 0 when every commit passes, 1 when any fails (each one is listed with how
 to fix it), 2 when the range cannot be read.
