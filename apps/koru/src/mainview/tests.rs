@@ -5442,11 +5442,12 @@ fn a_press_away_from_the_menu_button_only_dismisses_its_menu() {
 #[test]
 fn enabled_overflow_rows_run_their_distinct_actions() {
     crate::tests::with_menu(true, || {
-        for action in [
-            MenuAction::WindowAlwaysOnTop,
-            MenuAction::HeaderSettings,
-            MenuAction::HeaderUpdates,
-        ] {
+        let mut actions = vec![MenuAction::WindowAlwaysOnTop, MenuAction::HeaderSettings];
+        // Updates is one of the rows hidden for now.
+        if context_menu::OVERFLOW_HIDDEN_ROWS_SHOWN {
+            actions.push(MenuAction::HeaderUpdates);
+        }
+        for action in actions {
             let (mut v, mut workspace) = container();
             let (x, y) = button_rect(&v, CaptionAction::WindowMenu).centre();
             v.mouse_down(&mut workspace.ws, x, y, false);
