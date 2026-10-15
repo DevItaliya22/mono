@@ -397,7 +397,7 @@ dependencies {
     // WorkManager, for one thing only: resuming a blob transfer Android
     // interrupted by killing this process. It is never a tick — D244 makes the
     // account poll the phone's heartbeat and this does not compete with it.
-    implementation("androidx.work:work-runtime-ktx:2.11.2")
+    implementation("androidx.work:work-runtime-ktx:2.12.0")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.foundation:foundation")
