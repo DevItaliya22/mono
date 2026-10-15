@@ -45,7 +45,7 @@ jobs:
     timeout-minutes: 10
     steps:
       # actions/checkout v6.1.0
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           submodules: false
@@ -68,7 +68,7 @@ jobs:
     timeout-minutes: 15
     steps:
       # actions/checkout v6.1.0
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           submodules: false
@@ -93,7 +93,7 @@ jobs:
       RUSTC_WRAPPER: ""
     steps:
       # actions/checkout v6.1.0
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           submodules: false
@@ -117,7 +117,7 @@ jobs:
     steps:
       # actions/checkout v6.1.0. The full history, so the range between the
       # base and the pull request's head can be read.
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           submodules: false
@@ -142,7 +142,7 @@ jobs:
       LIBCLANG_PATH: C:\Program Files\LLVM\bin
     steps:
       # actions/checkout v6.1.0
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           submodules: false
@@ -194,7 +194,7 @@ jobs:
       LIBCLANG_PATH: C:\Program Files\LLVM\bin
     steps:
       # actions/checkout v6.1.0
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           submodules: false
