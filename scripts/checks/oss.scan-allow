@@ -23,10 +23,8 @@ scripts/checks/test_oss_checks.py cto * # scanner test samples
 crates/koru-release/licences/bundled/onnxruntime.txt email * # upstream notice, reproduced verbatim
 crates/koru-release/licences/crates/dlopen2.txt email * # upstream license record, reproduced verbatim
 
-# Frozen bytes, deliberately left: published release notes and contract
-# vectors are hashed or already shipped, so they are not edited.
-releases/0.0.3-nightly.*.toml cto * # shipped release notes, frozen
-releases/0.0.3-nightly.*.toml email hello@koru.do # shipped release notes, frozen; public product mailbox
+# Frozen bytes, deliberately left: contract vectors are hashed, so they are
+# not edited.
 contracts/vectors/logical-usage-v1/*.json cto * # frozen contract vector text
 contracts/vectors/regional-bootstrap-resolver-v1/cases.json email user@api.koru.do # frozen vector; an account identifier shape, not a mailbox
 
