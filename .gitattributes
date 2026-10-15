@@ -28,6 +28,8 @@
 *.swift text eol=lf
 *.proto text eol=lf
 *.sql   text eol=lf
+Dockerfile text eol=lf
+*.dockerignore text eol=lf
 
 # Koru's patches to third-party crates are pinned by sha256 in
 # third-party/fetch.manifest, so their bytes must be the same on every

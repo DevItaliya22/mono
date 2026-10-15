@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: MPL-2.0
+
+# Build-context filter for Dockerfile beside it (BuildKit reads the
+# <Dockerfile-name>.dockerignore next to the Dockerfile; paths are relative to
+# the build context, which is the repository root).
+#
+# Everything out, then what the build reads back in: cargo resolves the whole
+# workspace even for one package, so every member's manifest and sources must
+# be present, but docs, assets, release archives and above all the
+# multi-gigabyte target/ must not ride along as context.
+*
+!Cargo.toml
+!Cargo.lock
+!rust-toolchain.toml
+!apps
+!crates
+!third-party
+!scripts/setup/fetch-third-party.sh
+
+# Not cargo workspace members (Gradle and Xcode build them), and the Android
+# tree's build output alone runs to gigabytes.
+apps/android
+apps/ios
+apps/macos
+
+# Fetched inside the image from the pins, never taken from the host: a local
+# copy may be stale or edited.
+third-party/crates
+third-party/sherpa-onnx
+
+# Build output; never context.
+**/target
