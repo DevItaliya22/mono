@@ -32,9 +32,12 @@ The name and email must be yours and must match the commit's author. A
 pseudonym you are publicly known by is fine; an anonymous or placeholder
 identity is not.
 
-Bot-authored changes follow the same check. A maintainer adopts an unsigned
-dependency update as their own reviewed, signed-off commit before merging it;
-an author email that looks like a bot does not establish its identity.
+Dependabot's pull requests are the one exception: a version bump has no
+person behind it to certify anything. CI recognises them by the GitHub
+account that opened the pull request and pushed to it, which GitHub
+authenticates, never by a commit's author email, which anyone can set. A
+commit anyone else pushes to such a branch makes the check run again, in
+full.
 
 Forgot? Fix it before pushing again:
 

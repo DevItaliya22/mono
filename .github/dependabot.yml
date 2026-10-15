@@ -3,9 +3,10 @@
 # current.
 # cargo-deny in ci.yml fails on any advisory these have not fixed yet.
 #
-# Every pull request Dependabot opens goes through the same required checks.
-# Unsigned bot commits need a maintainer to adopt the reviewed change as their
-# own signed-off commit. Author email strings never bypass the DCO check.
+# Every pull request Dependabot opens goes through the same required checks,
+# except DCO: its commits carry no sign-off, and ci.yml skips that check for
+# pull requests GitHub says Dependabot opened and pushed. Author email strings
+# never bypass it.
 version: 2
 updates:
   - package-ecosystem: cargo
