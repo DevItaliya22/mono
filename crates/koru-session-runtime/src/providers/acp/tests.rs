@@ -1000,6 +1000,38 @@ fn correlated_handshakes_require_exact_jsonrpc_and_exclusive_result_or_error() {
     }
 }
 
+/// A killed runtime's folder goes at the next launch; this process's own,
+/// and anything not named like one, stay.
+#[test]
+fn a_dead_runtimes_temp_folder_is_swept_and_a_live_ones_kept() {
+    let temp = tempfile::tempdir().unwrap();
+    let mut finished = std::process::Command::new(std::env::current_exe().unwrap())
+        .arg("--list")
+        .stdout(std::process::Stdio::null())
+        .spawn()
+        .unwrap();
+    let dead = finished.id();
+    finished.wait().unwrap();
+    let own = std::process::id();
+    let names = [
+        format!("koru-acp-{dead}-0"),
+        format!("koru-acp-{own}-0"),
+        "koru-acp-notes".to_owned(),
+    ];
+    for name in &names {
+        std::fs::create_dir(temp.path().join(name)).unwrap();
+        std::fs::write(temp.path().join(name).join("payload"), b"x").unwrap();
+    }
+
+    sweep_abandoned_temp(temp.path());
+
+    assert!(!temp.path().join(&names[0]).exists(), "the dead runtime's");
+    assert!(temp.path().join(&names[1]).exists(), "this runtime's own");
+    assert!(temp.path().join(&names[2]).exists(), "not a runtime's");
+    assert_eq!(temp_owner("koru-acp-12-3"), Some(12));
+    assert_eq!(temp_owner("koru-acp-12"), None);
+}
+
 mod antigravity;
 
 mod approvals;

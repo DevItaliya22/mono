@@ -403,6 +403,45 @@ fn read_frames(
     inbound.close();
 }
 
+/// Whether a process with this id is running. **Unsure answers "running"**:
+/// the caller deletes what a gone process left, so a wrong "gone" would cost
+/// a live session its files, and a wrong "running" only leaves a folder.
+#[cfg(windows)]
+pub(super) fn process_exists(pid: u32) -> bool {
+    use windows_sys::Win32::Foundation::{
+        CloseHandle, ERROR_INVALID_PARAMETER, GetLastError, STILL_ACTIVE,
+    };
+    use windows_sys::Win32::System::Threading::{
+        GetExitCodeProcess, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION,
+    };
+    // SAFETY: a query-only handle, closed before returning.
+    unsafe {
+        let process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid);
+        if process.is_null() {
+            // No such process; anything else (access denied) is somebody's.
+            return GetLastError() != ERROR_INVALID_PARAMETER;
+        }
+        let mut code = 0;
+        let queried = GetExitCodeProcess(process, &mut code) != 0;
+        CloseHandle(process);
+        !queried || code == STILL_ACTIVE as u32
+    }
+}
+
+#[cfg(unix)]
+pub(super) fn process_exists(pid: u32) -> bool {
+    // SAFETY: signal 0 delivers nothing; it only checks the id.
+    if unsafe { libc::kill(pid as libc::pid_t, 0) } == 0 {
+        return true;
+    }
+    std::io::Error::last_os_error().raw_os_error() != Some(libc::ESRCH)
+}
+
+#[cfg(not(any(windows, unix)))]
+pub(super) fn process_exists(_pid: u32) -> bool {
+    true
+}
+
 fn spawn_failure(error: &std::io::Error) -> ProviderFailure {
     ProviderFailure {
         code: if error.kind() == std::io::ErrorKind::NotFound {
