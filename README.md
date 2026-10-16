@@ -1,28 +1,100 @@
-# Koru
+<p align="center">
+  <a href="https://koru.do"><img src="assets/logo.png" alt="Koru logo" height="80"></a>
+</p>
+<p align="center"><strong>Your private workspace for thinking, writing and AI.</strong></p>
+<p align="center">
+  <a href="https://koru.do"><img src="https://img.shields.io/badge/%E2%9C%A8-Website-0a0a0a.svg?style=flat&colorA=0a0a0a" alt="Website"></a>
+  <a href="https://koru.do/#download"><img src="https://img.shields.io/badge/%E2%9C%A8-Download-0a0a0a.svg?style=flat&colorA=0a0a0a" alt="Download Koru"></a>
+  <a href="https://koru.do/en/roadmap"><img src="https://img.shields.io/badge/%E2%9C%A8-Roadmap-0a0a0a.svg?style=flat&colorA=0a0a0a" alt="Roadmap"></a>
+  <a href="guide/user/USERGUIDE.md"><img src="https://img.shields.io/badge/%E2%9C%A8-User%20guide-0a0a0a.svg?style=flat&colorA=0a0a0a" alt="User guide"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MPL--2.0-0a0a0a.svg?style=flat&colorA=0a0a0a" alt="License: MPL-2.0"></a>
+  <a href="https://x.com/liechti_dev"><img src="https://img.shields.io/badge/follow-%40liechti__dev-0a0a0a.svg?style=flat&logo=x&logoColor=white&colorA=0a0a0a" alt="Follow @liechti_dev on X"></a>
+</p>
 
-Koru is a private, local-first workspace for thinking, writing and AI.
-Documents, files and terminal sessions — your shells and your coding agents —
-open as tabs in one native window. Your work lives on your own devices, works
-offline, and syncs directly between them without a server in the middle.
+<p align="center">
+  <img src=".github/readme/koru-workspace.webp" alt="Koru on Windows: a travel-planning note with a photo and an itinerary, next to a Claude Code agent tab" width="100%">
+</p>
 
-Under the surface, a workspace is **a tree of typed nodes** — documents, tasks,
-contacts, images — whose attributes are data rather than text, and **views are
-projections over that model**. State is stored as [Loro](https://loro.dev)
-snapshots. Because Loro is a CRDT, two devices editing the same workspace
-converge without a server; a single user never exchanges an op and pays nothing
-for the option.
+# Koru is a private, local-first AI workspace
 
-The desktop app is written in Rust: [parley](https://github.com/linebender/parley)
-for text layout, [vello](https://github.com/linebender/vello) for GPU rendering,
-winit for windowing, and [iroh](https://iroh.computer) for device-to-device
-sync. The phone apps are native Kotlin and Swift over the same contracts.
+Koru is an open-source, local-first workspace for thinking, writing and working
+with AI. Documents, files and terminal sessions, including your shells and AI
+coding agents, open as tabs in one native window. Your work stays on your own
+devices, works offline, and syncs directly between them, with no cloud server
+holding your data.
+
+## What can you do with Koru?
+
+- **Write and organize**: documents with headings, tables, checklists, code,
+  images and attachments, nested in a tree, with full-text search, `#tags` and
+  named versions you can compare.
+- **Work with AI on your terms**: open Claude Code, Codex, Gemini and other
+  coding agents as tabs beside your documents, and let any MCP client, including
+  a local model, read and edit your workspace through Koru's built-in MCP server.
+- **Bring your notes with you**: import from Evernote (`.enex`), Notion,
+  OneNote, Google Docs, Markdown and TextBundle, and export to Markdown or
+  TextBundle at any time.
+- **Speak instead of type**: Koru Voice dictates on your own device; your audio
+  never leaves it.
+- **Keep it yours**: free, no account required, and open source under the
+  [MPL-2.0](LICENSE).
+
+## What is Koru an alternative to?
+
+Koru is a private, local-first alternative to cloud note-taking and document
+apps. Your documents, files and AI agents stay on your own devices, work
+offline, and sync directly between them, with nothing stored on someone else's
+server.
+
+- **[Evernote alternative](https://koru.do/en/alternatives/evernote)**: your
+  notes live on your own devices instead of Evernote's cloud, and they're fully
+  available offline.
+- **[OneNote alternative](https://koru.do/en/alternatives/onenote)**: you don't
+  need a Microsoft account or OneDrive, because devices sync peer-to-peer.
+- **[Notion alternative](https://koru.do/en/alternatives/notion)**: it's built
+  to work offline first, and it syncs device to device instead of through a
+  cloud server.
+- **Google Docs alternative**: your writing stays private on your devices, with
+  no Google account and no cloud storage.
+
+## Does Koru work offline?
+
+Yes. Koru stores every workspace on your own devices, so you can read and write
+without an internet connection (an AI agent still needs whatever connection its
+own model needs). When your devices reconnect, they sync directly with each
+other, peer-to-peer. No cloud server stores your data, and sync traffic is
+end-to-end encrypted, including when a relay has to forward it between networks.
+
+## How does Koru sync without a server?
+
+Koru stores each workspace as a [Loro](https://loro.dev/) snapshot. Loro is a
+CRDT (conflict-free replicated data type), so two devices editing the same
+workspace always end up in the same state without a server to coordinate them.
+If you only use one device, Koru never exchanges an operation, so the sync
+option costs you nothing.
+
+## How is a Koru workspace structured?
+
+A Koru workspace is a tree of typed nodes: documents, tasks, contacts and
+images. Their attributes are stored as structured data rather than plain text,
+and each view, such as a list, a table or a document, is a projection over that
+one model.
+
+## What is Koru built with?
+
+The Koru desktop app is written in Rust. It uses
+[parley](https://github.com/linebender/parley) for text layout,
+[vello](https://github.com/linebender/vello) for GPU rendering, winit for
+windowing, and [iroh](https://iroh.computer/) for device-to-device sync. The iOS
+and Android apps are native Swift and Kotlin, built on the same contracts.
 
 ## Status
 
-Pre-1.0 and moving quickly. The first public release shows **documents, files
-and terminal/shell sessions**. More is built than is shown: tasks, the Koru AI
-chat, canvases, reminders and Koru Cloud sign-in sit behind product flags that
-are off unless a build turns them on
+Pre-1.0 and moving quickly. The first public release shows **documents, files,
+and terminal sessions for your shells and AI coding agents**. More is built than
+is shown: tasks, the Koru AI chat, the Agents and Artifacts views, canvases,
+reminders and Koru Cloud sign-in sit behind product flags that are off unless a
+build turns them on
 ([product feature flags](guide/contributing/FEATURE-FLAGS.md)). The
 [user guide](guide/user/USERGUIDE.md) describes the available behavior and
 experimental features.
@@ -197,6 +269,18 @@ source can talk to any server that implements them — or to none.
 Official builds are this source at a tag, built with configuration only we
 hold: the Cloud origin, the update-signing key and the Google Docs importer's
 registration. A build without them turns those features off and says so.
+
+## Share with the community
+
+If Koru is useful to you, a post about it really helps a small, independent
+project get found. Follow the build on X: [@liechti_dev](https://x.com/liechti_dev).
+
+[![Share on Reddit](https://img.shields.io/badge/share%20on-reddit-FF4500?logo=reddit&logoColor=white)](https://www.reddit.com/submit?url=https%3A%2F%2Fkoru.do&title=Koru%3A%20a%20private%2C%20open-source%2C%20local-first%20AI%20workspace)
+[![Share on Hacker News](https://img.shields.io/badge/share%20on-hacker%20news-F0652F?logo=ycombinator&logoColor=white)](https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fkoru.do&t=Koru%3A%20a%20private%2C%20open-source%2C%20local-first%20AI%20workspace)
+[![Share on X](https://img.shields.io/badge/share%20on-x-000000?logo=x&logoColor=white)](https://x.com/intent/post?url=https%3A%2F%2Fkoru.do&text=Koru%3A%20a%20private%2C%20open-source%2C%20local-first%20AI%20workspace&via=liechti_dev)
+[![Share on Bluesky](https://img.shields.io/badge/share%20on-bluesky-0285FF?logo=bluesky&logoColor=white)](https://bsky.app/intent/compose?text=Koru%3A%20a%20private%2C%20open-source%2C%20local-first%20AI%20workspace%20https%3A%2F%2Fkoru.do)
+[![Share on LinkedIn](https://img.shields.io/badge/share%20on-linkedin-0A66C2?logo=linkedin&logoColor=white)](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fkoru.do)
+[![Share on Facebook](https://img.shields.io/badge/share%20on-facebook-1877F2?logo=facebook&logoColor=white)](https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fkoru.do)
 
 ## License
 
