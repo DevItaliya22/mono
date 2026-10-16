@@ -3,9 +3,12 @@
 **What a build shows.** Decided by the maintainers on 2026-10-08: the next release of
 Koru shows documents, files and terminal/shell session tabs — plus Welcome,
 Settings, Manage, Trash, Feedback, Search, Updates, What's New, Linked devices
-and Voice. Seven larger surfaces are built, tested and **hidden** behind flags
-that can be switched on later — the first five from 2026-10-08, canvases and
-Socials from 2026-10-10. Nothing was deleted, and the flags are **UI only**:
+and Voice. Eight larger surfaces are built and tested behind flags — the
+first five from 2026-10-08, canvases and Socials from 2026-10-10, agent views
+from 2026-10-16. **Agent sessions ship on by default** (maintainers,
+2026-10-15), so the `+` menu offers agent runtimes beside shells; the other
+seven, including Explore's Agents and Artifacts views, are **hidden** until
+they are switched on. Nothing was deleted, and the flags are **UI only**:
 every background worker (reminders, sync, the delegate runner, the session
 host) starts exactly as it does with the flag on. **The one exception is the
 Socials publisher**, which Koru Agent starts only while `ENABLE_SOCIALS` is on
@@ -15,7 +18,8 @@ decision record is ADR-450.
 | Flag (Rust) | Env var | Default | Shows |
 | --- | --- | --- | --- |
 | `ENABLE_CLOUD_SYNC` | `KORU_ENABLE_CLOUD_SYNC` | off | Koru Cloud: account sign-in (email, Google, Apple), the Cloud page, every Cloud pointer |
-| `ENABLE_AGENTS` | `KORU_ENABLE_AGENTS` | off | Agent sessions and artifacts. **Shell sessions are always shown** |
+| `ENABLE_AGENTS` | `KORU_ENABLE_AGENTS` | **on** | Agent sessions as tabs: the `+` menu's *Agents ▸*, agent tabs and their restore, the tray's Agents submenu. **Shell sessions are always shown** |
+| `ENABLE_AGENT_VIEWS` | `KORU_ENABLE_AGENT_VIEWS` | off | Explore's *Agents* and *Artifacts* views and every way into them. Needs `ENABLE_AGENTS` on as well |
 | `ENABLE_TASKS` | `KORU_ENABLE_TASKS` | off | The Tasks view and every way into it. **`/due` stays** and still creates a task |
 | `ENABLE_AI` | `KORU_ENABLE_AI` | off | Koru AI chat **and Delegate** (runs, results, schedules) — grouped by the maintainers |
 | `ENABLE_REMINDERS` | `KORU_ENABLE_REMINDERS` | off | The reminders UI. The reminder worker still runs, so an existing reminder can still notify |
@@ -31,8 +35,9 @@ one accessor per flag — `cloud_sync()`, `agents()`, `tasks()`, `ai()`,
 
 1. **Baked in.** Each `ENABLE_*` constant is `option_env!("KORU_ENABLE_*")`
    read through koru-env's truthiness rule when `koru-features` is compiled.
-   Unset is **off**, so a release built with nothing set ships the simplified
-   product.
+   Unset is **off** for every surface except agents, which are **on** when
+   unset, so a release built with nothing set ships documents, files, shells
+   and agents.
 2. **Overridden at run time.** A `KORU_ENABLE_*` variable that is **set** in the
    process environment wins in both directions: `KORU_ENABLE_AI=1` shows Koru
    AI in a build that baked it off; `KORU_ENABLE_AI=0` hides it in one that
@@ -47,15 +52,20 @@ could be compiled under a different environment and disagree.
 
 ## Baking a surface into a release
 
-`koru-release` forwards the seven variables to its `cargo build` invocations,
-normalised by koru-env's rule (on becomes `1`, anything else is removed). Set
+`koru-release` forwards each of the eight variables that is set to its
+`cargo build` invocations, normalised by koru-env's rule (on becomes `1`,
+off becomes `0`); an unset one is removed and takes the default above. Set
 them in the packager's environment or in `.env.production`, which the release
 tool loads before building:
 
 ```
 KORU_ENABLE_TASKS=1
 KORU_ENABLE_REMINDERS=1
+KORU_ENABLE_AGENTS=0
 ```
+
+The last line ships a build without agents. Forwarding the `0` matters: a
+removed variable would leave agents at their default, on.
 
 For a dev run, set the variable in the shell — `set KORU_ENABLE_AI=1` before
 `koru.bat run` on Windows, `KORU_ENABLE_AI=1 ./koru.sh run` on a Mac — or put
@@ -63,7 +73,7 @@ the line in `.env.production` / `.env.local`, which both launchers load.
 **It does rebuild:** the flags are read with `option_env!`, so cargo recompiles
 everything that links `koru-features` (most of the UI) when one flips; keep the
 same flags in both env files to avoid paying that on every switch.
-`koru.bat envs` / `./koru.sh envs` list all seven.
+`koru.bat envs` / `./koru.sh envs` list all eight.
 
 An **installed** build reads the run-time override from its own environment,
 and an app started from the Start menu, Finder or a login item has no shell's.
@@ -99,11 +109,8 @@ inspector does not see it (it is not drawn), and session restore drops it.
 
 ### `ENABLE_AGENTS` off
 
-- **Explore**: no *Agents* or *Artifacts* mode icons. The icons close up; the
-  `Alt+digit` chords **skip rather than renumber** — `Alt+5` and `Alt+6` do
-  nothing, `Alt+1`/`Alt+2` are unchanged — so a digit never means a different
-  view in a different build. A restored or requested hidden mode opens
-  Documents.
+- **Explore**: the *Agents* and *Artifacts* views are hidden as well, whatever
+  `ENABLE_AGENT_VIEWS` says: they are views of agent sessions.
 - **`+` menu**: no *Agents ▸*; the *Shell ▸* flyout and shell session tabs are
   unchanged. `open_session_tab_for_profile` refuses an agent profile from any
   menu.
@@ -112,6 +119,22 @@ inspector does not see it (it is not drawn), and session restore drops it.
 - **Koru Agent's tray**: no *Agents* submenu.
 - Welcome's *Terminal agent* and *MCP* rows stay as they were — drawn and
   inert.
+
+### `ENABLE_AGENT_VIEWS` off
+
+The default, also when agents are on (maintainers, 2026-10-16): agent tabs
+ship, the views over their runs and results do not.
+
+- **Explore**: no *Agents* or *Artifacts* mode icons. The icons close up; the
+  `Alt+digit` chords **skip rather than renumber** — `Alt+5` and `Alt+6` do
+  nothing, `Alt+1`/`Alt+2` are unchanged — so a digit never means a different
+  view in a different build. A restored or requested hidden mode opens
+  Documents.
+- **Ways in**: revealing a run or a schedule in the Agents view does nothing,
+  the Agents tree's *Delete project* row is not offered, and a result opens
+  from Delegate only (with `ENABLE_AI`), not from the Artifacts column.
+- The `+` menu's *Agents ▸*, agent tabs and the tray are `ENABLE_AGENTS` and
+  unaffected.
 
 ### `ENABLE_TASKS` off
 

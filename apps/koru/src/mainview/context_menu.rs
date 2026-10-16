@@ -734,7 +734,9 @@ impl MenuAction {
         use koru_features as f;
         match self {
             // Agents (shell sessions stay).
-            Self::NewAgent | Self::ActiveAgents | Self::DeleteProject => f::agents(),
+            Self::NewAgent | Self::ActiveAgents => f::agents(),
+            // A project is a row of the Agents view's tree.
+            Self::DeleteProject => f::agent_views(),
             Self::TerminalProfile(index) => {
                 f::agents()
                     || built_in_profiles()

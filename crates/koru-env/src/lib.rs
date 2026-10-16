@@ -570,8 +570,13 @@ pub const VARS: &[EnvVar] = &[
     ),
     switch_var(
         name::KORU_ENABLE_AGENTS,
-        "Shows agent sessions and artifacts (shell sessions are always shown). Off by default; a release bakes it on by setting it for koru-release, and a set value overrides the baked one at run time.",
+        "Shows agent sessions as tabs (shell sessions are always shown). On by default; a release bakes it off by setting it to 0 for koru-release, and a set value overrides the baked one at run time.",
         "koru.exe, koru-agent (product surfaces)",
+    ),
+    switch_var(
+        name::KORU_ENABLE_AGENT_VIEWS,
+        "Shows Explore's Agents and Artifacts views, which also need KORU_ENABLE_AGENTS on. Off by default; a release bakes it on by setting it for koru-release, and a set value overrides the baked one at run time.",
+        "koru.exe (product surfaces)",
     ),
     switch_var(
         name::KORU_ENABLE_TASKS,
@@ -981,6 +986,7 @@ pub const VARS: &[EnvVar] = &[
 pub mod name {
     pub const KORU_ENABLE_CLOUD_SYNC: &str = "KORU_ENABLE_CLOUD_SYNC";
     pub const KORU_ENABLE_AGENTS: &str = "KORU_ENABLE_AGENTS";
+    pub const KORU_ENABLE_AGENT_VIEWS: &str = "KORU_ENABLE_AGENT_VIEWS";
     pub const KORU_ENABLE_TASKS: &str = "KORU_ENABLE_TASKS";
     pub const KORU_ENABLE_AI: &str = "KORU_ENABLE_AI";
     pub const KORU_ENABLE_REMINDERS: &str = "KORU_ENABLE_REMINDERS";

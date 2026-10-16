@@ -1438,7 +1438,7 @@ impl MainView {
     pub(super) fn reveal_schedule(&mut self, schedule: koru_delegate_core::ScheduleId) -> bool {
         // Schedules live in the Agents navigator and are made by Delegate:
         // both must be shown for there to be anywhere to reveal one.
-        if !(koru_features::ai() && koru_features::agents()) {
+        if !(koru_features::ai() && koru_features::agent_views()) {
             return false;
         }
         if !self.sidebar.is_open() {
