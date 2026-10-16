@@ -63,7 +63,7 @@ pub struct WindowFacts {
     pub window_width: Option<u64>,
     pub window_height: Option<u64>,
     pub dark: bool,
-    /// From [`keyboard_layout`], which has to run on the main thread.
+    /// From `keyboard_layout`, which has to run on the main thread.
     pub keyboard_layout: Option<&'static str>,
 }
 
@@ -475,6 +475,11 @@ mod platform {
     /// it, and walking onboarding on a fresh root reproduces it reliably. It
     /// is asked from `App::window_facts` now; the other readers in this module
     /// were run from the worker across a launch on 26.5 and still answer there.
+    ///
+    /// **Off the main thread it answers `None` without making the call.** The
+    /// TIS functions are plain `extern "C"`, so nothing in their types stops
+    /// a worker from calling them; the check here is what does, and absence
+    /// is what this module already means by "not determined".
     pub fn keyboard_layout() -> Option<&'static str> {
         #[link(name = "Carbon", kind = "framework")]
         unsafe extern "C" {
@@ -487,6 +492,7 @@ mod platform {
             fn CFRelease(cf: *const c_void);
         }
 
+        objc2_foundation::MainThreadMarker::new()?;
         // SAFETY: the Copy call returns a +1 reference or null, and the Get
         // call borrows from it — so the string is read before the release
         // below, and nothing escapes.
@@ -768,10 +774,10 @@ fn disk_free_gb() -> Option<u64> {
 /// read by [`collect`].** On macOS 26 Text Input Services asserts it is on
 /// the main queue and traps the process otherwise — the events worker's call
 /// took the app down as onboarding opened the first workspace; the macOS
-/// reader says when.
+/// reader says when, and answers `None` off the main thread instead.
 /// On Windows `GetKeyboardLayout(0)` answers for the calling thread, so the
 /// event loop is the right thread to ask there too.
-pub fn keyboard_layout() -> Option<&'static str> {
+pub(crate) fn keyboard_layout() -> Option<&'static str> {
     platform::keyboard_layout()
 }
 fn touch() -> Option<bool> {
@@ -863,6 +869,19 @@ mod tests {
             "collected: {}",
             serde_json::to_string_pretty(&envelope.attrs).unwrap()
         );
+    }
+
+    /// Off the main thread the macOS reader is absence, not a trap. The
+    /// trap itself cannot be reproduced here (see the reader), so what is
+    /// pinned is the check that makes it unreachable: without it this call
+    /// answers the machine's layout and the assertion fails. Spawned rather
+    /// than run on the test's own thread, so the thread is not the main one
+    /// however the harness is configured.
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn the_keyboard_layout_is_absent_off_the_main_thread() {
+        let answer = std::thread::spawn(keyboard_layout).join().unwrap();
+        assert_eq!(answer, None);
     }
 
     /// The keyboard table, without a keyboard: the reader itself answers
