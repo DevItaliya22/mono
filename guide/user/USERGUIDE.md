@@ -5240,8 +5240,10 @@ Everything saves continuously; there is no save command.
 Koru opens on a device — and once after updating from a build that sent usage
 data by default — it asks whether to share anonymous usage data: which features
 are used, how well the app runs, and basic facts about the computer such as its
-operating system and screen size. It never includes your documents, their names
-or anything you type. *Don't share*, or closing the question, is an answer too;
+operating system and screen size, much like what most websites collect when you
+visit them. It never includes your documents, their names or anything you type.
+Nothing is sent unless you say yes; if you like Koru, saying yes tells us what
+matters most to you. *Don't share*, or closing the question, is an answer too;
 you are not asked again.
 
 To change your answer, open **Settings → System → Privacy** and use **Share

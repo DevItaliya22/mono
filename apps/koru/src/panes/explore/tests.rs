@@ -6325,6 +6325,37 @@ fn socials_mode_requests_its_shared_tab_and_has_no_library_footer() {
     assert!(std::rc::Rc::ptr_eq(&shared, &view.ensure_socials(None)));
 }
 
+/// **Agent tabs ship without the views over them** (maintainers,
+/// 2026-10-16): agents on alone keeps Agents and Artifacts hidden, and a
+/// request for either lands on Documents; agent views bring both back.
+#[test]
+fn agents_on_alone_keeps_the_agents_and_artifacts_views_hidden() {
+    use koru_features::Features;
+    let tabs_only = Features {
+        agents: true,
+        ..Features::ALL_OFF
+    };
+    koru_features::testing::with(tabs_only, || {
+        assert!(!NavigatorMode::Agents.shown_in_product());
+        assert!(!NavigatorMode::Artifacts.shown_in_product());
+        let mut view = ExploreView::new();
+        view.show_agents();
+        assert_eq!(view.navigator_mode(), NavigatorMode::Documents);
+    });
+    let with_views = Features {
+        agents: true,
+        agent_views: true,
+        ..Features::ALL_OFF
+    };
+    koru_features::testing::with(with_views, || {
+        assert!(NavigatorMode::Agents.shown_in_product());
+        assert!(NavigatorMode::Artifacts.shown_in_product());
+        let mut view = ExploreView::new();
+        view.show_agents();
+        assert_eq!(view.navigator_mode(), NavigatorMode::Agents);
+    });
+}
+
 /// **Sized from the modes the build shows** (QUESTIONS #5, maintainer 2026-10-10):
 /// a build that shows four modes or fewer gets full 24 px icons at the
 /// default column; only the full eight shrink there.
