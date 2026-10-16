@@ -250,14 +250,14 @@ impl NavigatorMode {
 
     /// Whether this build shows the mode (`koru_features`,
     /// guide/contributing/FEATURE-FLAGS.md): Tasks with tasks, Chats with Koru AI,
-    /// Agents and Artifacts with agents, Canvases with canvas, Socials with
+    /// Agents and Artifacts with agent views, Canvases with canvas, Socials with
     /// socials. Documents and Files always.
     pub fn shown_in_product(self) -> bool {
         match self {
             Self::Documents | Self::Files => true,
             Self::Tasks => koru_features::tasks(),
             Self::Chats => koru_features::ai(),
-            Self::Agents | Self::Artifacts => koru_features::agents(),
+            Self::Agents | Self::Artifacts => koru_features::agent_views(),
             Self::Canvases => koru_features::canvas(),
             Self::Socials => koru_features::socials(),
         }

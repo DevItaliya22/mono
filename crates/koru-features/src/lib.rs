@@ -2,13 +2,15 @@
 
 //! **Which product surfaces this build shows.**
 //!
-//! Koru's next release shows documents, files and terminal/shell sessions; seven
-//! larger surfaces are built, tested and *hidden* until they are switched on:
+//! Koru's next release shows documents, files, terminal/shell sessions and
+//! agent sessions; seven larger surfaces are built, tested and *hidden* until
+//! they are switched on, and agents can be switched off:
 //!
 //! | Flag | Env var | Hides |
 //! | --- | --- | --- |
 //! | [`ENABLE_CLOUD_SYNC`] | `KORU_ENABLE_CLOUD_SYNC` | Koru Cloud: sign-in, OAuth, the Cloud page, subscribe pointers |
-//! | [`ENABLE_AGENTS`] | `KORU_ENABLE_AGENTS` | agent sessions and artifacts (shell sessions stay) |
+//! | [`ENABLE_AGENTS`] | `KORU_ENABLE_AGENTS` | agent sessions as tabs (shell sessions stay); **on unless set off** |
+//! | [`ENABLE_AGENT_VIEWS`] | `KORU_ENABLE_AGENT_VIEWS` | Explore's Agents and Artifacts views (need agents on as well) |
 //! | [`ENABLE_TASKS`] | `KORU_ENABLE_TASKS` | the Tasks view and its entry points (`/due` stays) |
 //! | [`ENABLE_AI`] | `KORU_ENABLE_AI` | Koru AI chat and Delegate (runs and results) |
 //! | [`ENABLE_REMINDERS`] | `KORU_ENABLE_REMINDERS` | the reminders UI (the worker still runs) |
@@ -20,10 +22,12 @@
 //! ## Baked in, with an environment override
 //!
 //! A flag's default is decided when *this crate* is compiled, from
-//! `option_env!` on each `KORU_ENABLE_*` name: unset is **off**, so a release built with
-//! nothing set ships the simplified product. The release tool forwards the seven
-//! variables to `cargo build` (`koru-release::package::run_cargo`), so a
-//! release bakes a surface on by setting it in its environment or in
+//! `option_env!` on each `KORU_ENABLE_*` name: unset is **off** — except
+//! agents, which are **on** when unset (maintainers, 2026-10-15) — so a release
+//! built with nothing set ships documents, files, shells and agents. The release
+//! tool forwards each of the eight that is set, as `1` or `0`, to
+//! `cargo build` (`koru-release::package::run_cargo`), so a release bakes a
+//! surface on, or agents off, by setting it in its environment or in
 //! `.env.production`.
 //!
 //! At run time a variable that is **set** wins over the baked default in both
@@ -56,14 +60,21 @@
 
 use std::sync::OnceLock;
 
-/// The seven surfaces, as one value.
+/// The eight surfaces, as one value.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Features {
     /// Koru Cloud: account sign-in (email, Google, Apple), the Cloud page,
     /// "Subscribe to Koru Cloud", the Cloud sync column section.
     pub cloud_sync: bool,
-    /// Agent sessions and artifacts. Shell sessions are not an agent.
+    /// Agent sessions as tabs: the `+` menu's *Agents ▸*, agent tabs and
+    /// their restore, the tray's Agents submenu. Shell sessions are not an
+    /// agent.
     pub agents: bool,
+    /// Explore's Agents and Artifacts views (`Alt+5`, `Alt+6`), and every
+    /// way into them: revealing a run or a schedule, opening a result from
+    /// the Artifacts column. Shown only with [`Self::agents`] on as well —
+    /// see [`agent_views`].
+    pub agent_views: bool,
     /// The Tasks view and every way into it.
     pub tasks: bool,
     /// Koru AI chat and Delegate.
@@ -81,6 +92,7 @@ impl Features {
     pub const ALL_ON: Features = Features {
         cloud_sync: true,
         agents: true,
+        agent_views: true,
         tasks: true,
         ai: true,
         reminders: true,
@@ -91,6 +103,7 @@ impl Features {
     pub const ALL_OFF: Features = Features {
         cloud_sync: false,
         agents: false,
+        agent_views: false,
         tasks: false,
         ai: false,
         reminders: false,
@@ -101,6 +114,7 @@ impl Features {
     pub const BAKED: Features = Features {
         cloud_sync: ENABLE_CLOUD_SYNC,
         agents: ENABLE_AGENTS,
+        agent_views: ENABLE_AGENT_VIEWS,
         tasks: ENABLE_TASKS,
         ai: ENABLE_AI,
         reminders: ENABLE_REMINDERS,
@@ -119,6 +133,7 @@ impl Features {
         Features {
             cloud_sync: flag(env::KORU_ENABLE_CLOUD_SYNC, baked.cloud_sync),
             agents: flag(env::KORU_ENABLE_AGENTS, baked.agents),
+            agent_views: flag(env::KORU_ENABLE_AGENT_VIEWS, baked.agent_views),
             tasks: flag(env::KORU_ENABLE_TASKS, baked.tasks),
             ai: flag(env::KORU_ENABLE_AI, baked.ai),
             reminders: flag(env::KORU_ENABLE_REMINDERS, baked.reminders),
@@ -135,9 +150,10 @@ impl std::fmt::Display for Features {
         let word = |on: bool| if on { "on" } else { "off" };
         write!(
             f,
-            "cloud_sync={} agents={} tasks={} ai={} reminders={} canvas={} socials={}",
+            "cloud_sync={} agents={} agent_views={} tasks={} ai={} reminders={} canvas={} socials={}",
             word(self.cloud_sync),
             word(self.agents),
+            word(self.agent_views),
             word(self.tasks),
             word(self.ai),
             word(self.reminders),
@@ -151,16 +167,18 @@ impl std::fmt::Display for Features {
 pub mod env {
     pub const KORU_ENABLE_CLOUD_SYNC: &str = "KORU_ENABLE_CLOUD_SYNC";
     pub const KORU_ENABLE_AGENTS: &str = "KORU_ENABLE_AGENTS";
+    pub const KORU_ENABLE_AGENT_VIEWS: &str = "KORU_ENABLE_AGENT_VIEWS";
     pub const KORU_ENABLE_TASKS: &str = "KORU_ENABLE_TASKS";
     pub const KORU_ENABLE_AI: &str = "KORU_ENABLE_AI";
     pub const KORU_ENABLE_REMINDERS: &str = "KORU_ENABLE_REMINDERS";
     pub const KORU_ENABLE_CANVAS: &str = "KORU_ENABLE_CANVAS";
     pub const KORU_ENABLE_SOCIALS: &str = "KORU_ENABLE_SOCIALS";
-    /// All seven, in [`super::Features`] field order — what the release tool
+    /// All eight, in [`super::Features`] field order — what the release tool
     /// forwards to `cargo build`.
-    pub const ALL: [&str; 7] = [
+    pub const ALL: [&str; 8] = [
         KORU_ENABLE_CLOUD_SYNC,
         KORU_ENABLE_AGENTS,
+        KORU_ENABLE_AGENT_VIEWS,
         KORU_ENABLE_TASKS,
         KORU_ENABLE_AI,
         KORU_ENABLE_REMINDERS,
@@ -171,8 +189,14 @@ pub mod env {
 
 /// Koru Cloud / OAuth sign-in, as baked into this build.
 pub const ENABLE_CLOUD_SYNC: bool = switch_value(option_env!("KORU_ENABLE_CLOUD_SYNC"));
-/// Agent sessions and artifacts, as baked into this build.
-pub const ENABLE_AGENTS: bool = switch_value(option_env!("KORU_ENABLE_AGENTS"));
+/// Agent sessions and artifacts, as baked into this build. **On when unset**
+/// — the one flag whose surface ships by default (ADR-450's 2026-10-15
+/// amendment); `KORU_ENABLE_AGENTS=0` bakes it off.
+pub const ENABLE_AGENTS: bool = switch_value_or(option_env!("KORU_ENABLE_AGENTS"), true);
+/// Explore's Agents and Artifacts views, as baked into this build. Off when
+/// unset: agent *tabs* ship, the views over their runs and results do not
+/// (maintainers, 2026-10-16).
+pub const ENABLE_AGENT_VIEWS: bool = switch_value(option_env!("KORU_ENABLE_AGENT_VIEWS"));
 /// The Tasks view and its entry points, as baked into this build.
 pub const ENABLE_TASKS: bool = switch_value(option_env!("KORU_ENABLE_TASKS"));
 /// Koru AI chat and Delegate, as baked into this build.
@@ -210,9 +234,15 @@ fn process_features() -> Features {
 pub fn cloud_sync() -> bool {
     features().cloud_sync
 }
-/// Agent sessions and artifacts are shown.
+/// Agent sessions are shown as tabs.
 pub fn agents() -> bool {
     features().agents
+}
+/// Explore's Agents and Artifacts views are shown. They are views *of* agent
+/// sessions, so they need agents on as well: setting this alone shows nothing.
+pub fn agent_views() -> bool {
+    let features = features();
+    features.agents && features.agent_views
 }
 /// The Tasks view and its entry points are shown.
 pub fn tasks() -> bool {
@@ -257,6 +287,15 @@ pub const fn switch_value(value: Option<&str>) -> bool {
         || eq_ignore_case(bytes, start, len, b"false")
         || eq_ignore_case(bytes, start, len, b"no")
         || eq_ignore_case(bytes, start, len, b"off"))
+}
+
+/// [`switch_value`] with the answer for an unset variable chosen by the
+/// caller: a set value follows the truthiness rule, unset is `unset`.
+pub const fn switch_value_or(value: Option<&str>, unset: bool) -> bool {
+    match value {
+        Some(_) => switch_value(value),
+        None => unset,
+    }
 }
 
 const fn eq_ignore_case(bytes: &[u8], start: usize, len: usize, word: &[u8]) -> bool {

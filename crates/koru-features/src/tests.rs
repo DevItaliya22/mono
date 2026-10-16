@@ -83,6 +83,45 @@ fn a_set_variable_wins_in_both_directions_and_an_unset_one_keeps_the_baked_defau
 }
 
 #[test]
+fn agent_views_need_agents_and_are_off_by_default() {
+    // Off when unset, unlike agents: the tabs ship, the views do not.
+    assert!(!switch_value(None));
+    let tabs_only = Features {
+        agents: true,
+        ..Features::ALL_OFF
+    };
+    testing::with(tabs_only, || assert!(agents() && !agent_views()));
+    let views_alone = Features {
+        agent_views: true,
+        ..Features::ALL_OFF
+    };
+    testing::with(views_alone, || {
+        assert!(!agent_views(), "views of agents need agents on")
+    });
+    let both = Features {
+        agents: true,
+        agent_views: true,
+        ..Features::ALL_OFF
+    };
+    testing::with(both, || assert!(agent_views()));
+}
+
+#[test]
+fn an_unset_agents_flag_is_on_and_a_set_one_follows_the_rule() {
+    assert!(switch_value_or(None, true), "unset: agents ship");
+    assert!(!switch_value_or(None, false));
+    for off in ["", "0", "false", "no", " OFF "] {
+        assert!(
+            !switch_value_or(Some(off), true),
+            "{off:?} turns agents off"
+        );
+    }
+    for on in ["1", "true", "yes", "on"] {
+        assert!(switch_value_or(Some(on), false), "{on:?}");
+    }
+}
+
+#[test]
 fn the_names_are_the_ones_the_registry_declares() {
     for name in env::ALL {
         let var = koru_env::get(name).unwrap_or_else(|| panic!("{name} is not in koru-env VARS"));
@@ -122,6 +161,6 @@ fn a_test_build_shows_everything_and_an_override_is_per_thread() {
 fn the_summary_names_every_flag() {
     assert_eq!(
         Features::ALL_OFF.to_string(),
-        "cloud_sync=off agents=off tasks=off ai=off reminders=off canvas=off socials=off"
+        "cloud_sync=off agents=off agent_views=off tasks=off ai=off reminders=off canvas=off socials=off"
     );
 }
