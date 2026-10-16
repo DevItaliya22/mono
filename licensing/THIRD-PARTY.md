@@ -137,7 +137,7 @@ and to no customers, which is worth noting rather than acting on.
 | --- | --- | --- |
 | `third-party/patches/onenote_parser.patch` | MPL-2.0, © Markus Siemens | Patches `onenote_parser` 2.0.0, fetched from crates.io. Its package carries no license file, so its notice is a record holding the repository's `LICENSE` (2026-10-14); Koru's changes in `onenote_parser.md` ✅ |
 | `crates/koru-blocks/assets/TypeScript.sublime-syntax` | **Apache-2.0, © Microsoft** (TypeScript-Sublime-Plugin, machine-converted by `bat`) | Its README said "MIT, Sublime HQ". That was wrong, and bat's history shows the source. Corrected; it is in every package's notices, and the file itself is now fetched from bat v0.24.0 rather than committed ✅ |
-| `apps/android/gradlew*`, `gradle/wrapper/gradle-wrapper.jar` | Apache-2.0, Gradle authors | Build tooling, not shipped; fetched (Gradle 8.11.1), not committed ✅ |
+| `apps/android/gradlew*`, `gradle/wrapper/gradle-wrapper.jar` | Apache-2.0, Gradle authors | Build tooling, not shipped; fetched (Gradle 9.8.1), not committed ✅ |
 | `contracts/gen/` | Ours, generated from our `.proto` | ✅ |
 
 ## Fonts (fetched at build time, shipped in every package)
