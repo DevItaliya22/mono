@@ -466,12 +466,15 @@ mod platform {
     /// validates the source through `islGetInputSourceListWithAdditions`,
     /// which `dispatch_assert_queue`s the main queue — anywhere else that is
     /// a `SIGTRAP`, not an error return. From the events worker it took the
-    /// app down one frame after every launch, while the main thread was in
-    /// `-[NSWindow becomeKeyWindow]` activating the text input context; the
-    /// same two calls from a worker in a bare process do *not* trap, so no
-    /// unit test or probe reproduces it and only a launch does. It is asked
-    /// from `App::window_facts` now; the other readers in this module were
-    /// run from the worker across a launch on 26.5 and still answer there.
+    /// app down at the end of every first run: onboarding's last Enter opens
+    /// the workspace, its first frame starts `collect`, and the worker's call
+    /// landed while the main thread was in `-[NSWindow becomeKeyWindow]` for
+    /// that new window. **Not every launch.** A relaunch straight into a
+    /// workspace survived the same worker call, even brought to the front at
+    /// launch, and so did a worker in a bare process — no unit test catches
+    /// it, and walking onboarding on a fresh root reproduces it reliably. It
+    /// is asked from `App::window_facts` now; the other readers in this module
+    /// were run from the worker across a launch on 26.5 and still answer there.
     pub fn keyboard_layout() -> Option<&'static str> {
         #[link(name = "Carbon", kind = "framework")]
         unsafe extern "C" {
@@ -764,7 +767,8 @@ fn disk_free_gb() -> Option<u64> {
 /// **Main thread only, so it travels in [`WindowFacts`] rather than being
 /// read by [`collect`].** On macOS 26 Text Input Services asserts it is on
 /// the main queue and traps the process otherwise — the events worker's call
-/// took the app down one frame after launch; the macOS reader says where.
+/// took the app down as onboarding opened the first workspace; the macOS
+/// reader says when.
 /// On Windows `GetKeyboardLayout(0)` answers for the calling thread, so the
 /// event loop is the right thread to ask there too.
 pub fn keyboard_layout() -> Option<&'static str> {
