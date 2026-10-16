@@ -1004,7 +1004,7 @@ impl ShortcutId {
         match self {
             Self::ShowTasks => koru_features::tasks(),
             Self::ShowChats | Self::ToggleAiPane | Self::Delegate => koru_features::ai(),
-            Self::ShowAgents | Self::ShowArtifacts => koru_features::agents(),
+            Self::ShowAgents | Self::ShowArtifacts => koru_features::agent_views(),
             Self::CopyCloudDetails => koru_features::cloud_sync(),
             Self::Reminders => koru_features::reminders(),
             Self::ShowCanvases => koru_features::canvas(),

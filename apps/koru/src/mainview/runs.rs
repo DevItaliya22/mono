@@ -112,8 +112,9 @@ impl MainView {
     /// attention to say nothing new.
     pub(super) fn open_artifact_tab(&mut self, opened: OpenedArtifact) -> bool {
         // A result is reached from a run (Delegate) or the Artifacts column
-        // (agents); with both hidden there is no Result tab (koru-features).
-        if !(koru_features::ai() || koru_features::agents()) {
+        // (agent views); with both hidden there is no Result tab
+        // (koru-features).
+        if !(koru_features::ai() || koru_features::agent_views()) {
             return false;
         }
         if let Some((path, index)) = self.result_tab_for(opened.version) {

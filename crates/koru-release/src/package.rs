@@ -824,15 +824,21 @@ fn run_cargo(
     // **The product feature flags are baked here or nowhere.** Each is read by
     // `option_env!` inside `koru-features` alone — the same per-crate-compile
     // trap as the channel above — so this one invocation decides what every
-    // binary in it shows. Normalised to `1` or absent with koru-env's rule, so
-    // `KORU_ENABLE_AI=0` in `.env.production` bakes the surface off rather than
-    // leaving the compiler to see a value. Unset is off: a release with nothing
-    // set ships the simplified product (guide/contributing/FEATURE-FLAGS.md).
+    // binary in it shows. A set variable is normalised to `1` or `0` with
+    // koru-env's rule, so `KORU_ENABLE_AGENTS=off` in `.env.production` reaches
+    // the compiler as an explicit off; an unset one is removed and
+    // `koru-features` decides — off for every surface except agents
+    // (guide/contributing/FEATURE-FLAGS.md). Removing a set `0` instead would
+    // turn agents *on*.
     for name in koru_features::env::ALL {
-        if koru_env::switch(name) {
-            command.env(name, "1");
-        } else {
-            command.env_remove(name);
+        match std::env::var(name) {
+            Ok(value) => {
+                let on = koru_env::switch_value(Some(&value));
+                command.env(name, if on { "1" } else { "0" });
+            }
+            Err(_) => {
+                command.env_remove(name);
+            }
         }
     }
     let status = command.status().map_err(|error| error.to_string())?;
