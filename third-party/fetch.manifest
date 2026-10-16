@@ -19,10 +19,12 @@ crate sherpa-onnx-sys 1.13.6 4d627abc4624c845e628ad87cca4ff9ac265fc643021d155f27
 # Apache-2.0; crates/koru-blocks/assets/README.md says why it is needed.
 file crates/koru-blocks/assets/TypeScript.sublime-syntax 28ee3a665973468be16e44c89fdae5cf1f865680132c086b6973c2b3900dfb5e https://raw.githubusercontent.com/sharkdp/bat/v0.24.0/assets/syntaxes/02_Extra/TypeScript.sublime-syntax
 
-# The Android build's Gradle wrapper, Gradle 8.11.1 (the version
+# The Android build's Gradle wrapper, Gradle 9.8.1 (the version
 # gradle-wrapper.properties names). The jar's sha256 is the one Gradle
-# publishes for 8.11.1 (services.gradle.org/distributions/gradle-8.11.1-wrapper.jar.sha256).
+# publishes for 9.8.1 (services.gradle.org/distributions/gradle-9.8.1-wrapper.jar.sha256).
+# The files come from gradle/gradle's "Update to Gradle 9.8.1" commit, not the
+# v9.8.1 tag: the tag still carries the release candidate's wrapper jar.
 # Apache-2.0.
-file apps/android/gradle/wrapper/gradle-wrapper.jar 2db75c40782f5e8ba1fc278a5574bab070adccb2d21ca5a6e5ed840888448046 https://raw.githubusercontent.com/gradle/gradle/v8.11.1/gradle/wrapper/gradle-wrapper.jar
-file apps/android/gradlew 9cbbb4d68ff7fb5211c4d58f598ac9d8664c05fdcd1e5f59b7f2c3ac1ee00af0 https://raw.githubusercontent.com/gradle/gradle/v8.11.1/gradlew exec
-file apps/android/gradlew.bat 0f3ed8f03b50934cb8c48b15a470d5c20a30a5385825e48b55bcc8ea3d8f8e18 https://raw.githubusercontent.com/gradle/gradle/v8.11.1/gradlew.bat crlf
+file apps/android/gradle/wrapper/gradle-wrapper.jar 3b8a25775a69158b5ad2b1d17a80a88dc7b40a352a73eb27d06c612a7ce68e98 https://raw.githubusercontent.com/gradle/gradle/dcc5ee0ec88270575344e6afd490f96d96f84ab3/gradle/wrapper/gradle-wrapper.jar
+file apps/android/gradlew e01b5c97892572c82405c02b96a3382379100e7d825ce7c48883d95c26928750 https://raw.githubusercontent.com/gradle/gradle/dcc5ee0ec88270575344e6afd490f96d96f84ab3/gradlew exec
+file apps/android/gradlew.bat ad2fac6060c5b929bed15d428e09483e52747d0120874346861ad4ec324af64c https://raw.githubusercontent.com/gradle/gradle/dcc5ee0ec88270575344e6afd490f96d96f84ab3/gradlew.bat crlf
