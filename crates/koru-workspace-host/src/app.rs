@@ -14963,7 +14963,9 @@ Nothing was written. The store starts on demand, so this usually means it could 
     }
 
     /// What only this loop can say about the machine's displays and this
-    /// window — the half of the environment snapshot that needs a `Window`.
+    /// window — the half of the environment snapshot that needs a `Window`,
+    /// plus the keyboard layout, which macOS 26 only answers on the main
+    /// thread (`environment::keyboard_layout` says what it does elsewhere).
     ///
     /// **Once per run, on the frame that has just been presented.** Every
     /// call here is one of the "cheap-looking getters" that are a round trip
@@ -14990,6 +14992,7 @@ Nothing was written. The store starts on demand, so this usually means it could 
             window_width: Some((f64::from(inner.width) / scale.max(0.01)).round() as u64),
             window_height: Some((f64::from(inner.height) / scale.max(0.01)).round() as u64),
             dark: koru_draw::theme::is_dark(),
+            keyboard_layout: crate::environment::keyboard_layout(),
         }
     }
 

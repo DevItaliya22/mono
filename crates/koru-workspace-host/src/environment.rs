@@ -3,12 +3,13 @@
 //! What machine is this, and how is it set up — collected once per run.
 //!
 //! **Split by who can answer.** The window facts ([`WindowFacts`]) come from
-//! the event loop, because only it holds a `Window` and its monitors; the
-//! rest is platform state read on a worker thread, because several of these
-//! calls touch the registry, the filesystem and the network stack, and *a
-//! thread that answers a person never waits on the world*. The split is the
-//! whole reason [`collect`] takes the first half as an argument rather than
-//! finding it itself.
+//! the event loop, because only it holds a `Window` and its monitors — and
+//! because one platform call, the keyboard layout, may only be made from the
+//! main thread, which the event loop is. The rest is platform state read on
+//! a worker thread, because several of these calls touch the registry, the
+//! filesystem and the network stack, and *a thread that answers a person
+//! never waits on the world*. The split is the whole reason [`collect`]
+//! takes the first half as an argument rather than finding it itself.
 //!
 //! **Once, after the first frame** — never on a timer, and never during
 //! startup's critical path: what it measures is a machine, and a machine
@@ -62,9 +63,13 @@ pub struct WindowFacts {
     pub window_width: Option<u64>,
     pub window_height: Option<u64>,
     pub dark: bool,
+    /// From [`keyboard_layout`], which has to run on the main thread.
+    pub keyboard_layout: Option<&'static str>,
 }
 
-/// The machine, as one event's worth of dimensions. Runs on a worker.
+/// The machine, as one event's worth of dimensions. Runs on a worker, so
+/// nothing it reads may need the main thread: a reader that does travels in
+/// [`WindowFacts`] instead.
 pub fn collect(window: WindowFacts) -> AppEnvironment {
     let system_tag = koru_window::system_locale::system_locale();
     AppEnvironment {
@@ -84,7 +89,7 @@ pub fn collect(window: WindowFacts) -> AppEnvironment {
         window_height: window.window_height,
         ram_gb_bucket: ram_gb().map(koru_events::bucket),
         disk_free_gb_bucket: disk_free_gb().map(koru_events::bucket),
-        keyboard_layout: keyboard_layout(),
+        keyboard_layout: window.keyboard_layout,
         cpu_arch: cpu_arch_token(),
         cpu_count: std::thread::available_parallelism()
             .ok()
@@ -235,6 +240,11 @@ mod platform {
 
     /// The layout *family*, from the active layout's primary language — what
     /// a shortcut decision needs. The identifier itself is not carried.
+    ///
+    /// `GetKeyboardLayout(0)` answers for the *calling* thread, and an input
+    /// locale is per thread: the UI thread's follows what the person switches
+    /// to, and a worker never sees that switch. So this is asked from the
+    /// event loop (`App::window_facts`), the thread the window types on.
     pub fn keyboard_layout() -> Option<&'static str> {
         let layout = unsafe { GetKeyboardLayout(0) } as usize as u32;
         let primary = (layout & 0x3ff) as u16;
@@ -451,6 +461,17 @@ mod platform {
     /// A name the table does not know is `other`. That is deliberate and is
     /// not a gap to be filled by guessing: `Dvorak`, `Colemak` and every
     /// non-Latin layout are genuinely none of these three families.
+    ///
+    /// **Main thread only.** On macOS 26, `TISGetInputSourceProperty`
+    /// validates the source through `islGetInputSourceListWithAdditions`,
+    /// which `dispatch_assert_queue`s the main queue — anywhere else that is
+    /// a `SIGTRAP`, not an error return. From the events worker it took the
+    /// app down one frame after every launch, while the main thread was in
+    /// `-[NSWindow becomeKeyWindow]` activating the text input context; the
+    /// same two calls from a worker in a bare process do *not* trap, so no
+    /// unit test or probe reproduces it and only a launch does. It is asked
+    /// from `App::window_facts` now; the other readers in this module were
+    /// run from the worker across a launch on 26.5 and still answer there.
     pub fn keyboard_layout() -> Option<&'static str> {
         #[link(name = "Carbon", kind = "framework")]
         unsafe extern "C" {
@@ -740,7 +761,13 @@ fn disk_free_gb() -> Option<u64> {
     let existing = root.ancestors().find(|path| path.exists())?;
     platform::disk_free_gb(existing)
 }
-fn keyboard_layout() -> Option<&'static str> {
+/// **Main thread only, so it travels in [`WindowFacts`] rather than being
+/// read by [`collect`].** On macOS 26 Text Input Services asserts it is on
+/// the main queue and traps the process otherwise — the events worker's call
+/// took the app down one frame after launch; the macOS reader says where.
+/// On Windows `GetKeyboardLayout(0)` answers for the calling thread, so the
+/// event loop is the right thread to ask there too.
+pub fn keyboard_layout() -> Option<&'static str> {
     platform::keyboard_layout()
 }
 fn touch() -> Option<bool> {
@@ -789,10 +816,21 @@ mod tests {
             window_width: Some(1280),
             window_height: Some(800),
             dark: true,
+            // Read on the main thread, which a test is not: see
+            // `keyboard_layout`.
+            keyboard_layout: Some("qwerty"),
         });
-        // Ten of the eleven, on any Mac. The one absence is named as an
-        // equality rather than left out, so writing a reader for it means
-        // changing this line on purpose.
+        // Carried from the window facts and never re-read, on every platform.
+        assert_eq!(
+            environment.keyboard_layout,
+            Some("qwerty"),
+            "keyboard_layout"
+        );
+        // Nine of the ten the worker reads, on any Mac. The one absence is
+        // named as an equality rather than left out, so writing a reader for
+        // it means changing this line on purpose. The eleventh reader, the
+        // keyboard layout, is the one asserted above: it is not this thread's
+        // to call.
         #[cfg(target_os = "macos")]
         {
             assert!(environment.os_version.is_some(), "os_version");
@@ -801,7 +839,6 @@ mod tests {
                 environment.disk_free_gb_bucket.is_some(),
                 "disk_free_gb_bucket"
             );
-            assert!(environment.keyboard_layout.is_some(), "keyboard_layout");
             assert_eq!(environment.touch, Some(false), "no Mac has a digitizer");
             assert!(environment.reduced_motion.is_some(), "reduced_motion");
             assert!(environment.high_contrast.is_some(), "high_contrast");
