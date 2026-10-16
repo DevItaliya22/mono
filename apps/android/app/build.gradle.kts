@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import java.util.zip.ZipFile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
@@ -86,8 +87,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions.jvmTarget = "17"
-
     sourceSets.named("main") {
         java.srcDir("../../../contracts/gen/kotlin")
         // The three fonts Theme.kt loads, at the root of the APK's assets by
@@ -104,6 +103,8 @@ android {
 
     packaging.resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
 }
+
+kotlin.compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
 
 data class KoruNativeTarget(
     val taskSuffix: String,
@@ -408,7 +409,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
     implementation("androidx.credentials:credentials:1.6.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.2.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.2.1")
     implementation("com.google.zxing:core:3.5.4")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
