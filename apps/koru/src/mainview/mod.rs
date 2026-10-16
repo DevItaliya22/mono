@@ -7980,8 +7980,8 @@ impl MainView {
             return false;
         }
         let lang = crate::format::lang();
-        // The title and body are placeholders awaiting the maintainers' copy
-        // (ADR-176-consenton's 2026-10-11 amendment).
+        // The maintainers' copy (2026-10-15): what is sent, then why to say
+        // yes, as two paragraphs the wrapped body keeps apart.
         self.confirm = Some((
             koru_ui::Confirm::asking(
                 koru_i18n::t(lang, koru_i18n::Key::TelemetryConsentTitle),
