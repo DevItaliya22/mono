@@ -14,4 +14,7 @@ if "%~1"=="--version" if "%~2"=="" (
     echo codex-cli 0.150.1
     exit /b 0
 )
+rem The clock lines say where a slow start went: this one is written before
+rem PowerShell is asked to start, the script's own once it is running.
+if defined CODEX_FIXTURE_TRACE (echo clock:shim %TIME%)>>"%CODEX_FIXTURE_TRACE%"
 %SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0codex-fixture.ps1" %*
