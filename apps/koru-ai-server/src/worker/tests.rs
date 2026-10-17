@@ -1700,10 +1700,8 @@ fn shutdown_cancels_active_attempt_before_database_close() {
     assert_eq!(worker.join(), WorkerExit::Clean);
 
     let repository = Repository::open(&directory.path().join("ai.db")).unwrap();
-    assert_eq!(
-        repository.attempt(attempt_id).unwrap().unwrap().status,
-        AttemptStatus::Cancelled
-    );
+    let attempt = repository.attempt(attempt_id).unwrap().unwrap();
+    assert_eq!(attempt.status, AttemptStatus::Cancelled, "{attempt:?}");
 }
 
 #[test]
