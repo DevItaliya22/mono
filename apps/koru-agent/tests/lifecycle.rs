@@ -1151,7 +1151,10 @@ fn an_unrequested_shutdown_is_an_unexpected_exit_the_supervisor_recovers_from() 
 /// not own; what is being asserted is that the answer arrived at all, and fast.
 #[test]
 fn the_agent_answers_while_its_gateway_is_still_starting() {
+    let started = Instant::now();
     let agent = Agent::start();
+    let accepting = started.elapsed();
+    let mut asks = 0u32;
     let mut shell = agent.shell();
     koru_ipc::set_timeouts(&shell.stream, Some(Duration::from_secs(30)));
 
@@ -1160,10 +1163,12 @@ fn the_agent_answers_while_its_gateway_is_still_starting() {
     while Instant::now() < deadline {
         let published = koru_api_discovery::probe_at(segment(), agent.root()).is_ok();
         let asked = Instant::now();
+        asks += 1;
         assert!(matches!(
             shell.ask(Request::Status),
             Response::Status { .. }
         ));
+        let status_took = asked.elapsed();
         let dictation = shell.ask(Request::DictationState {
             route: u64::MAX,
             state: koru_agent_wire::DictationState::Refused,
@@ -1175,7 +1180,10 @@ fn the_agent_answers_while_its_gateway_is_still_starting() {
         let round_trip = asked.elapsed();
         assert!(
             round_trip < Duration::from_secs(2),
-            "the Agent took {round_trip:?} to answer while its gateway was starting"
+            "the Agent took {round_trip:?} to answer while its gateway was starting \
+             (Status {status_took:?}, published {published}, ask {asks} at {:?}, \
+             connectable after {accepting:?})",
+            asked - started
         );
         if !published {
             answered_before_the_gateway += 1;
