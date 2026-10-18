@@ -50,7 +50,7 @@ try {
 }
 if ($LASTEXITCODE -ne 0) { throw "cargo test --no-run failed ($LASTEXITCODE); run it directly to see why" }
 
-$binaries = foreach ($line in $artifacts) {
+$binaries = @(foreach ($line in $artifacts) {
     if (-not $line.StartsWith('{')) { continue }
     $message = $line | ConvertFrom-Json
     if ($message.reason -ne 'compiler-artifact' -or -not $message.profile.test -or -not $message.executable) { continue }
@@ -60,7 +60,7 @@ $binaries = foreach ($line in $artifacts) {
         Dir   = Split-Path -Parent $message.manifest_path
         Label = '{0} {1} {2}' -f (Split-Path -Leaf (Split-Path -Parent $message.manifest_path)), $message.target.kind[0], $message.target.name
     }
-}
+})
 if (-not $binaries) { throw 'no test binaries matched' }
 
 Remove-Item -Recurse -Force $Out -ErrorAction SilentlyContinue
