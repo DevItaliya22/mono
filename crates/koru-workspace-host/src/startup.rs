@@ -259,17 +259,80 @@ pub fn is_disk_image_launch(exe: &Path, exe_dir_writable: bool) -> bool {
     path.contains("/AppTranslocation/") || (path.starts_with("/Volumes/") && !exe_dir_writable)
 }
 
+/// What the copy in `/Applications/Koru.app` says about itself, read from its
+/// `Info.plist`: the build number `koru-release` stamps as `CFBundleVersion`
+/// and the display version it writes as `CFBundleGetInfoString` ("Koru 0.1.2",
+/// "Koru 0.0.2-beta.8"). Either may be missing from a bundle somebody else
+/// assembled; a missing build number is "unknown", never zero.
+#[derive(Debug, PartialEq, Eq)]
+pub struct InstalledCopy {
+    pub label: String,
+    pub build_number: Option<u64>,
+}
+
+/// Parse the two values out of an `Info.plist` without a plist parser: the
+/// packager writes `<key>…</key><string>…</string>` on one line, and a
+/// re-serialized plist puts whitespace between them, so the match tolerates
+/// any whitespace and nothing else between the key and its string.
+pub fn parse_installed_copy(info_plist: &str) -> InstalledCopy {
+    fn string_after(plist: &str, key: &str) -> Option<String> {
+        let marker = format!("<key>{key}</key>");
+        let rest = &plist[plist.find(&marker)? + marker.len()..];
+        let rest = rest.trim_start().strip_prefix("<string>")?;
+        let end = rest.find("</string>")?;
+        Some(rest[..end].trim().to_owned())
+    }
+    let label = string_after(info_plist, "CFBundleGetInfoString")
+        .or_else(|| {
+            string_after(info_plist, "CFBundleShortVersionString")
+                .map(|core| format!("Koru {core}"))
+        })
+        .unwrap_or_else(|| "an unknown version of Koru".to_owned());
+    let build_number = string_after(info_plist, "CFBundleVersion").and_then(|s| s.parse().ok());
+    InstalledCopy {
+        label,
+        build_number,
+    }
+}
+
+/// What the disk-image dialog offers when `/Applications/Koru.app` exists.
+#[derive(Debug, PartialEq, Eq)]
+pub enum InstalledOffer {
+    /// The installed copy is this build or a newer one: open it instead.
+    Open,
+    /// The installed copy is older than the one on the image. Opening it
+    /// would start the old version — seen 2026-10-18, when the dialog sent a
+    /// person from the 0.1.2 image straight into a 0.0.2 beta still sitting
+    /// in Applications, whose failure then read as the release being broken.
+    /// The image's copy must replace it, not defer to it.
+    Replace,
+}
+
+/// Build numbers are monotonic across every channel of the product (the
+/// publisher's shared counter), so one comparison answers for stable, beta
+/// and nightly alike. A copy that states no build number, or a build of ours
+/// that has none (a local `dist-local` bundle), cannot be ranked and keeps
+/// the original offer rather than accusing an installation it cannot read.
+pub fn installed_offer(ours: u64, installed: Option<u64>) -> InstalledOffer {
+    match installed {
+        Some(theirs) if ours > 0 && theirs < ours => InstalledOffer::Replace,
+        _ => InstalledOffer::Open,
+    }
+}
+
 /// The disk-image escape hatch, macOS only. Answers whether launch should
-/// continue: `false` means the person chose the installed copy — which has
-/// been asked to open — and this process must exit before it competes with
-/// it for the channel's agent, gateway and store.
+/// continue: `false` means this process must exit — either the person chose
+/// the installed copy, which has been asked to open, or they chose to quit
+/// and replace an older installed copy by hand — before it competes with
+/// that copy for the channel's agent, gateway and store.
 ///
 /// Running from the image *works*; that is the trap. Every such launch is an
 /// anonymous extra installation sharing the channel's state with the real
 /// one, which is exactly how "multiple versions competing with each other"
 /// feels from the outside (docs/architecture/api/MAC.md, 2026-08-24). With an
-/// installed copy present the dialog offers it; without one it explains the
-/// drag and lets the person continue deliberately.
+/// installed copy present the dialog offers it — unless that copy is older
+/// than this one, when it says so and asks for the drag instead; without one
+/// it explains the drag and lets the person continue deliberately.
 pub fn continue_past_disk_image_check() -> bool {
     if !cfg!(target_os = "macos") {
         return true;
@@ -283,24 +346,64 @@ pub fn continue_past_disk_image_check() -> bool {
     }
     let installed = Path::new("/Applications/Koru.app");
     if installed.exists() {
-        let open_label = "Open the installed Koru".to_string();
-        let result = rfd::MessageDialog::new()
-            .set_title("Koru")
-            .set_level(rfd::MessageLevel::Warning)
-            .set_description(
-                "Koru is running from the disk image, not from Applications.\n\n\
-                 Two copies of the same channel compete for one set of data. Use \
-                 the installed Koru instead — or drag this one to Applications \
-                 first and eject the image.",
-            )
-            .set_buttons(rfd::MessageButtons::OkCancelCustom(
-                open_label.clone(),
-                "Continue here".into(),
-            ))
-            .show();
-        if matches!(result, rfd::MessageDialogResult::Custom(label) if label == open_label) {
-            let _ = std::process::Command::new("open").arg(installed).spawn();
-            return false;
+        let ours = koru_channel::build_info();
+        let copy = std::fs::read_to_string(installed.join("Contents/Info.plist"))
+            .map(|plist| parse_installed_copy(&plist))
+            .unwrap_or_else(|_| parse_installed_copy(""));
+        match installed_offer(ours.build_number, copy.build_number) {
+            InstalledOffer::Replace => {
+                tracing::warn!(
+                    target: "koru::startup",
+                    installed = %copy.label,
+                    installed_build = ?copy.build_number,
+                    ours = ours.version,
+                    ours_build = ours.build_number,
+                    "launched from the disk image beside an older installed Koru"
+                );
+                let quit_label = "Quit".to_string();
+                let result = rfd::MessageDialog::new()
+                    .set_title("Koru")
+                    .set_level(rfd::MessageLevel::Warning)
+                    .set_description(format!(
+                        "Koru is running from the disk image, and the copy in \
+                         Applications is older: it is {}, this is Koru {}.\n\n\
+                         Drag this Koru to Applications, choose Replace, eject the \
+                         image and open it from there. Opening the installed copy \
+                         would start the old version.",
+                        copy.label, ours.version
+                    ))
+                    .set_buttons(rfd::MessageButtons::OkCancelCustom(
+                        quit_label.clone(),
+                        "Continue here".into(),
+                    ))
+                    .show();
+                if matches!(result, rfd::MessageDialogResult::Custom(label) if label == quit_label)
+                {
+                    return false;
+                }
+            }
+            InstalledOffer::Open => {
+                let open_label = "Open the installed Koru".to_string();
+                let result = rfd::MessageDialog::new()
+                    .set_title("Koru")
+                    .set_level(rfd::MessageLevel::Warning)
+                    .set_description(
+                        "Koru is running from the disk image, not from Applications.\n\n\
+                         Two copies of the same channel compete for one set of data. Use \
+                         the installed Koru instead — or drag this one to Applications \
+                         first and eject the image.",
+                    )
+                    .set_buttons(rfd::MessageButtons::OkCancelCustom(
+                        open_label.clone(),
+                        "Continue here".into(),
+                    ))
+                    .show();
+                if matches!(result, rfd::MessageDialogResult::Custom(label) if label == open_label)
+                {
+                    let _ = std::process::Command::new("open").arg(installed).spawn();
+                    return false;
+                }
+            }
         }
     } else {
         rfd::MessageDialog::new()
@@ -355,6 +458,51 @@ pub fn warn(message: &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The packager's one-line `<key>…</key><string>…</string>` and a
+    /// re-serialized plist with whitespace between them both parse; a bundle
+    /// without the stamps is "unknown", never a build of zero.
+    #[test]
+    fn an_installed_copy_is_read_from_its_info_plist() {
+        let packaged = "<dict>\n    <key>CFBundleShortVersionString</key><string>0.0.2</string>\n    \
+                        <key>CFBundleVersion</key><string>35</string>\n    \
+                        <key>CFBundleGetInfoString</key><string>Koru 0.0.2-beta.8</string>\n</dict>";
+        assert_eq!(
+            parse_installed_copy(packaged),
+            InstalledCopy {
+                label: "Koru 0.0.2-beta.8".into(),
+                build_number: Some(35)
+            }
+        );
+        let reserialized = "<key>CFBundleVersion</key>\n\t<string>106</string>\n\
+                            <key>CFBundleShortVersionString</key>\n\t<string>0.1.2</string>";
+        assert_eq!(
+            parse_installed_copy(reserialized),
+            InstalledCopy {
+                label: "Koru 0.1.2".into(),
+                build_number: Some(106)
+            }
+        );
+        assert_eq!(
+            parse_installed_copy("<key>CFBundleName</key><string>Koru</string>"),
+            InstalledCopy {
+                label: "an unknown version of Koru".into(),
+                build_number: None
+            }
+        );
+    }
+
+    /// Only an installed copy that is provably older is refused; equal, newer
+    /// and unrankable ones keep the offer to open them.
+    #[test]
+    fn an_older_installed_copy_is_replaced_rather_than_opened() {
+        assert_eq!(installed_offer(106, Some(35)), InstalledOffer::Replace);
+        assert_eq!(installed_offer(106, Some(106)), InstalledOffer::Open);
+        assert_eq!(installed_offer(106, Some(120)), InstalledOffer::Open);
+        assert_eq!(installed_offer(106, None), InstalledOffer::Open);
+        // A local bundle has no build number of its own to rank against.
+        assert_eq!(installed_offer(0, Some(35)), InstalledOffer::Open);
+    }
 
     /// The translocated mirror and the mounted image are launch locations, not
     /// installations; an app on a writable external drive is an installation.
