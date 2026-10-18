@@ -59,8 +59,12 @@ function Send-Frame([object]$value) {
     [Console]::Out.Flush()
 }
 
+Trace-Clock 'reading'
+$first = $true
 while (($line = [Console]::In.ReadLine()) -ne $null) {
+    if ($first) { Trace-Clock 'read' }
     $message = $line | ConvertFrom-Json
+    if ($first) { Trace-Clock 'parsed'; $first = $false }
     Trace-Fixture ("method:" + $message.method)
     switch ($message.method) {
         'initialize' {
