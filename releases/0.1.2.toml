@@ -1,0 +1,52 @@
+title = "Coding agents as tabs, and Koru's first stable Mac release"
+
+summary = [
+  "Coding agents are back: the + menu offers them beside shells, and each session opens as a tab.",
+  "This is Koru's first stable release for the Mac.",
+  "On macOS 26, Koru no longer quits abruptly at the end of first-run setup.",
+  "The question about sharing anonymous usage data now says what is sent and why saying yes helps.",
+]
+
+body = """
+## Coding agents
+
+Agent sessions are switched on again. The `+` menu offers coding agents
+beside shells, each agent runs in its own tab, those tabs come back when a
+workspace reopens, and the tray's Agents submenu is available. In 0.1.0 and
+0.1.1 these were switched off while the app was narrowed to documents,
+files and shells.
+
+Explore's *Agents* and *Artifacts* views, which list agent runs and their
+results, stay hidden for now. The `Alt+5` and `Alt+6` chords that would open
+them do nothing rather than moving another view onto those keys.
+
+## macOS
+
+Koru 0.1.2 is the first release on the stable channel for the Mac. Until
+now Macs had only beta and nightly builds, the last of them from
+15 September. Moving to stable brings everything in Koru 0.1.0 and 0.1.1
+(https://updates.koru.do/releases/) along with the changes below. Channels
+install side by side and share nothing you have written, so a Mac on beta
+or nightly loses no content by switching.
+
+On macOS 26, Koru could quit abruptly at the end of first-run setup, just
+as the last Enter opened the workspace. Koru read the keyboard layout
+from a background thread, which macOS 26 no longer allows. The layout is
+now read on the main thread, once the first frame is on screen, and the
+app stays up. Relaunching into an existing workspace was not affected.
+
+## Usage data
+
+When Koru first asks whether to share anonymous usage data, the question
+now has two paragraphs: what is sent (which features are used, how well the
+app runs and basic facts about the computer, never your documents or
+anything you type) and why saying yes helps Koru's maintainers. Nothing is
+sent unless you say yes, and the answer can be changed at any time under
+Settings → System → Privacy. The copy is updated in all eight languages,
+and the user guide matches.
+
+## Everything else
+
+Nothing else changes in the desktop app. The Android app's build tools and
+libraries were updated, with no change in what it does.
+"""
