@@ -1774,8 +1774,14 @@ fn public_sessions_client_streams_raw_output_and_delivers_an_image_path() {
             )
             .unwrap();
 
-        let deadline = Instant::now() + Duration::from_secs(5);
+        // The echo is typed into a PowerShell that may not have started yet:
+        // a cold powershell.exe on a loaded four-core runner took longer than
+        // the 5 s this used to allow. The input waits in the PTY, so a long
+        // limit costs nothing when the shell is quick.
+        let wait = Duration::from_secs(30);
+        let deadline = Instant::now() + wait;
         let mut retry_after_gap = false;
+        let mut stream_ended = false;
         while Instant::now() < deadline {
             match receiver.recv_timeout(Duration::from_millis(250)) {
                 Ok(Ok(SessionStreamItem::Output { chunk }))
@@ -1793,7 +1799,10 @@ fn public_sessions_client_streams_raw_output_and_delivers_an_image_path() {
                 }
                 Ok(Err(error)) => panic!("public session stream failed: {error}"),
                 Ok(_) | Err(mpsc::RecvTimeoutError::Timeout) => {}
-                Err(mpsc::RecvTimeoutError::Disconnected) => break,
+                Err(mpsc::RecvTimeoutError::Disconnected) => {
+                    stream_ended = true;
+                    break;
+                }
             }
         }
         if saw_marker {
@@ -1803,7 +1812,12 @@ fn public_sessions_client_streams_raw_output_and_delivers_an_image_path() {
         subscription.close();
         assert!(
             retry_after_gap,
-            "stream ended without output or explicit gap"
+            "{}",
+            if stream_ended {
+                "stream ended without output or explicit gap".to_owned()
+            } else {
+                format!("no output and no gap within {wait:?} of typing the echo")
+            }
         );
     }
     assert!(saw_marker, "client stream never delivered process output");
