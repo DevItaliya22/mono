@@ -2855,6 +2855,24 @@ impl MainView {
         true
     }
 
+    /// The `+` menu's *Agents* flyout on its own, at the pointer — what
+    /// Welcome's *Run an agent in a terminal* opens. The same rows, dimmed off
+    /// the same probe, and a pick opens the same session tab as it does from
+    /// `+`. Nothing opens when this build shows no agents.
+    fn open_agents_menu(&mut self) -> bool {
+        self.profile_probe.refresh(self.agent.wake_proxy());
+        self.snapshot_plus_menu();
+        let items = context_menu::shown(context_menu::agent_plus_items());
+        if items.is_empty() {
+            return false;
+        }
+        let mut menu = ContextMenu::new(&mut self.engine, MenuSubject::NewTab, self.pointer, items);
+        let enabled = self.enabled_items(&menu);
+        menu.step(&enabled, 1);
+        self.menu = Some(menu);
+        true
+    }
+
     /// A right-click in the Agents tree, as the pane reported it: a project
     /// row's menu, or the launch-only menu for the bucket and empty space.
     /// The probe refresh is the `+` menu's own, so the profile rows dim off
@@ -7888,6 +7906,9 @@ impl MainView {
                 WelcomeWant::Email => {
                     self.ask_pane(PaneRequest::OpenUri(koru_ui::welcome::SUPPORT_MAILTO));
                 }
+                WelcomeWant::CopyMcpCommand => {
+                    koru_editor::clipboard::put_system_text(&crate::welcome::mcp_command());
+                }
                 WelcomeWant::LinkDevice => {
                     self.open_link_device();
                 }
@@ -7897,6 +7918,9 @@ impl MainView {
                 // The tab Settings → AI's *Providers and models* row opens.
                 WelcomeWant::AiSetup => {
                     self.perform_settings_request(koru_settings_ui::Request::OpenAiSetup);
+                }
+                WelcomeWant::Agents => {
+                    self.open_agents_menu();
                 }
             }
         }

@@ -1605,13 +1605,17 @@ even when creation began in the Manage tab. It offers:
   button per import format; *Bring your files in* with **Choose files…**;
   *Learn your way around*, which opens the handful of shortcuts right there;
   *Set up a reminder*, which opens All Reminders; and *Let us know how it
-  went* — **feedback form** opens the Feedback tab, **email** writes to
-  `support@koru.do`, and **chat** is shown but does nothing yet.
-- **Connect your devices** — *Phone* and *Another computer* open **Link another
-  device**, and so does the square beside them; the real pairing code is in
-  that window. *Watch* is not available yet.
+  went* — **feedback form** opens the Feedback tab and **email** writes to
+  `support@koru.do`.
+- **Connect your devices** — *Another computer* opens **Link another device**,
+  and so does the square beside it; the real pairing code is in that window.
 - **When you're ready to go further** — *Set up your AI* opens Providers and
-  models. The other rows there are previews of what is coming.
+  models. *Manage documents over MCP* shows the command an MCP client runs to
+  reach this installation — the `koru-mcp` program beside Koru, with
+  `serve --stdio` — and **Copy** (or clicking the command) puts the whole
+  command on the clipboard, ready to paste into the client's settings. *Run an
+  agent in a terminal* opens the list of agents from the **+** menu; choosing
+  one starts it in a new tab.
 
 Each row you complete gets a check, and the checks are kept **for this
 computer**: every Profile on it sees the same ones. *n of m done* counts the
@@ -1952,11 +1956,8 @@ which fades on its own. There are four it can do something about: the
 microphone is not allowed, no voice model is installed, another window is
 already dictating, and this installation has no voice program to run.
 
-**Three other places tell you dictation is here**, and each of them prints the
+**Two other places tell you dictation is here**, and each of them prints the
 chord rather than replacing it.
-
-The Welcome page's *Learn your way around* row opens a list that carries it, beside the chords for a
-new tab and the two side columns.
 
 **`/dictate`** in a document starts a dictation at the caret — the same thing the
 chord does, for when the chord is the part you cannot remember. The typed
