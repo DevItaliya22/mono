@@ -5237,21 +5237,17 @@ Everything saves continuously; there is no save command.
 
 ## Usage data
 
-**Koru sends no usage data unless you say yes, on each device.** The first time
-Koru opens on a device — and once after updating from a build that sent usage
-data by default — it asks whether to share anonymous usage data: which features
-are used, how well the app runs, and basic facts about the computer such as its
-operating system and screen size, much like what most websites collect when you
-visit them. It never includes your documents, their names or anything you type.
-Nothing is sent unless you say yes; if you like Koru, saying yes tells us what
-matters most to you. *Don't share*, or closing the question, is an answer too;
-you are not asked again.
+**Koru sends no usage data unless you turn it on, on each device.** Koru does
+not ask: **Settings → System → Privacy → Share anonymous usage data** is off
+until you switch it on. What it shares is which features are used, how well the
+app runs, and basic facts about the computer such as its operating system and
+screen size, much like what most websites collect when you visit them. It never
+includes your documents, their names or anything you type. If you like Koru,
+turning it on tells us what matters most to you.
 
-To change your answer, open **Settings → System → Privacy** and use **Share
-anonymous usage data**. Turning it off takes effect at once and deletes anything
-not yet sent. Nothing recorded before you said yes is ever sent, even after you
-say yes later. The choice belongs to this device: another computer of yours
-asks for its own. The phone apps send no usage data.
+Turning it off takes effect at once and deletes anything not yet sent. Nothing
+recorded while it was off is ever sent, even after you turn it on. The choice belongs to this device: another computer of yours has
+its own switch. The phone apps send no usage data.
 
 ## The tasks in this document
 
