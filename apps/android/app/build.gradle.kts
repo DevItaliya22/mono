@@ -38,7 +38,7 @@ fun accountBuildValue(name: String): String {
 
 android {
     namespace = "app.koru.mobile"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "30.0.15729638"
 
     defaultConfig {
