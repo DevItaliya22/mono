@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
@@ -94,7 +93,10 @@ android {
         // assets/fonts/ stays out of the APK. Fetched, not committed:
         // `koru.bat fonts` or `./koru.sh fonts` at the repository root.
         assets.srcDir("../../../assets/fonts/android")
-        jniLibs.srcDir(layout.buildDirectory.dir("generated/jniLibs"))
+        // A File, not a Provider: AGP 9 refuses providers in the source set
+        // API. The native tasks below write here, and mergeDebugNativeLibs
+        // depends on them, so the provider's task wiring is not needed.
+        jniLibs.srcDir(layout.buildDirectory.dir("generated/jniLibs").get().asFile)
     }
     sourceSets.named("test") {
         resources.srcDir("../../../contracts/testdata")
