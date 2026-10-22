@@ -224,7 +224,7 @@ koru.bat test                  REM cargo test --workspace, the whole suite
 koru.bat dist-local beta       REM an unsigned local package under dist\ (needs the voice archive)
 ```
 
-Android needs JDK 17 and Android SDK 36. The Gradle wrapper is fetched, not
+Android needs JDK 17 and Android SDK 37. The Gradle wrapper is fetched, not
 committed, so on a fresh clone run `scripts\setup\fetch-third-party.ps1` (or
 `bash scripts/setup/fetch-third-party.sh`) once, then `cd apps/android` and
 `./gradlew testDebugUnitTest assembleDebug`. See the
