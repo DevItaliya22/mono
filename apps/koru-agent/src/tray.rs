@@ -63,6 +63,14 @@
 //! the workspace window in use, or Search when there is none) stays
 //! Windows-only.
 
+// **Built and tested on Linux, used only where there is a tray.** The menu's
+// pure text and layout helpers below have no platform code, so their tests run
+// on every platform — but only `imp` calls them, and Linux has no `imp`
+// (ADR-118). Silenced here once rather than item by item; Windows and macOS
+// still warn on anything genuinely dead.
+#![cfg_attr(not(any(windows, target_os = "macos")), allow(dead_code))]
+
+#[cfg(any(windows, target_os = "macos", test))]
 use crate::event::TrayAsk;
 
 #[cfg(any(windows, target_os = "macos"))]
