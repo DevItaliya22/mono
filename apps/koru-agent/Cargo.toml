@@ -190,6 +190,16 @@ vello.workspace = true
 [target.'cfg(any(windows, target_os = "macos"))'.dependencies]
 tray-icon = { version = "0.24", default-features = false }
 
+# Linux's notification area is the StatusNotifierItem D-Bus protocol (KDE
+# natively, GNOME through the AppIndicator extension Ubuntu enables). `ksni`
+# speaks it in Rust over `zbus`, with menus over D-Bus too — no gtk, which is
+# what ADR-118 kept `tray-icon` off Linux for. `async-io`, not the default
+# `tokio`, because that is the `zbus` backend already in this tree (via
+# `ashpd`); `blocking` because the Agent has no async runtime to hand it.
+# Proof of concept: the icon and Quit only.
+[target.'cfg(target_os = "linux")'.dependencies]
+ksni = { version = "0.3.7", default-features = false, features = ["async-io", "blocking"] }
+
 # The global search shortcut. Windows has `RegisterHotKey` directly; macOS
 # needs Carbon's `RegisterEventHotKey`, which this wraps — same authors as
 # `tray-icon`, and no Accessibility permission required.
