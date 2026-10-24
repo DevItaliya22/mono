@@ -185,8 +185,8 @@ vello.workspace = true
 # The notification area. The gtk/libxdo weight that kept `tray-icon` off this
 # list is *Linux's* — on macOS it wraps NSStatusItem and pulls neither
 # (ADR-118, confirmed with `cargo tree`) — so Windows and macOS share one
-# implementation and Linux keeps the stub. `default-features = false` is what
-# keeps the Linux-only features from ever arriving by default.
+# implementation and Linux has its own, below. `default-features = false` is
+# what keeps the Linux-only features from ever arriving by default.
 [target.'cfg(any(windows, target_os = "macos"))'.dependencies]
 tray-icon = { version = "0.24", default-features = false }
 
@@ -196,7 +196,7 @@ tray-icon = { version = "0.24", default-features = false }
 # what ADR-118 kept `tray-icon` off Linux for. `async-io`, not the default
 # `tokio`, because that is the `zbus` backend already in this tree (via
 # `ashpd`); `blocking` because the Agent has no async runtime to hand it.
-# Proof of concept: the icon and Quit only.
+# The whole menu, derived from the same helpers `tray-icon`'s is (`tray.rs`).
 [target.'cfg(target_os = "linux")'.dependencies]
 ksni = { version = "0.3.7", default-features = false, features = ["async-io", "blocking"] }
 
