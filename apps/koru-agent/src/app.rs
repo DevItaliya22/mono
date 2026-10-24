@@ -787,7 +787,7 @@ enum VoiceVerb {
 /// storing the report and choosing at the menu: a field that is not held cannot
 /// be drawn by somebody adding a line six months from now.
 fn voice_worker_facts(root: &std::path::Path) -> Option<crate::tray::VoiceWorker> {
-    facts_from(koru_voice_worker::ask::status(root))
+    facts_from(koru_voice_client::ask::status(root))
 }
 
 /// **Which capture devices a running worker can see.**
@@ -797,9 +797,9 @@ fn voice_worker_facts(root: &std::path::Path) -> Option<crate::tray::VoiceWorker
 /// has no microphone*. `VoiceClient::devices` refuses rather than starting a
 /// worker: drawing a menu is not somebody asking to dictate.
 ///
-/// **The agent does not enumerate for itself**, even though it links
-/// `koru-voice-worker` for the bootstrap types: `cpal` is opened in one
-/// process in this workspace and the whole privacy story rests on it. Asking
+/// **The agent does not enumerate for itself**: `cpal` is opened in one
+/// process in this workspace, the voice worker, and the whole privacy story
+/// rests on it. The agent does not even link it. Asking
 /// over the socket is also the *same* answer the window's settings page gets,
 /// which is what keeps the two surfaces from disagreeing.
 fn voice_devices(root: &std::path::Path) -> Vec<koru_voice::InputDevice> {
@@ -810,9 +810,9 @@ fn voice_devices(root: &std::path::Path) -> Vec<koru_voice::InputDevice> {
 }
 
 /// The same narrowing, applied to an answer somebody else asked for.
-fn facts_from(asked: koru_voice_worker::ask::Asked) -> Option<crate::tray::VoiceWorker> {
+fn facts_from(asked: koru_voice_client::ask::Asked) -> Option<crate::tray::VoiceWorker> {
     match asked {
-        koru_voice_worker::ask::Asked::Answered(report) => Some(crate::tray::VoiceWorker {
+        koru_voice_client::ask::Asked::Answered(report) => Some(crate::tray::VoiceWorker {
             state: report.state,
             model_loaded: report.model_loaded,
             // A token on the wire, an `ErrorCode` here: the tray shows a
@@ -824,8 +824,8 @@ fn facts_from(asked: koru_voice_worker::ask::Asked) -> Option<crate::tray::Voice
                 .as_deref()
                 .and_then(koru_voice::ErrorCode::parse),
         }),
-        koru_voice_worker::ask::Asked::NotRunning => None,
-        koru_voice_worker::ask::Asked::Failed(why) => {
+        koru_voice_client::ask::Asked::NotRunning => None,
+        koru_voice_client::ask::Asked::Failed(why) => {
             koru_ipc::ipc_debug!("voice: the worker would not answer: {why}");
             None
         }
@@ -5231,8 +5231,8 @@ impl Agent {
             .name("koru-agent ask voice".into())
             .spawn(move || {
                 let asked = match verb {
-                    VoiceVerb::Release => koru_voice_worker::ask::release(&root),
-                    VoiceVerb::Stop => koru_voice_worker::ask::stop(&root),
+                    VoiceVerb::Release => koru_voice_client::ask::release(&root),
+                    VoiceVerb::Stop => koru_voice_client::ask::stop(&root),
                 };
                 // **Stopping leaves nothing to read.** The worker answers with
                 // a report and then ends, so re-asking would race the process

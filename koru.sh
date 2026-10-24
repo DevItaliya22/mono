@@ -117,6 +117,14 @@ setup_verb() {
   fi
   local profile
   profile="$(setup_profile)"
+  # Every fetch script downloads with curl and has no fallback, and cargo can do
+  # nothing until fetch-third-party.sh has filled third-party/crates/.
+  if command -v curl >/dev/null 2>&1; then
+    ok "curl is on PATH" "$(command -v curl)"
+  else
+    warn "curl is not on PATH" "The fetch scripts download with it, and the first build cannot start without them." \
+      "sudo apt install curl   # Debian/Ubuntu;  macOS ships it"
+  fi
   if command -v sccache >/dev/null 2>&1; then
     ok "sccache is on PATH" "$(command -v sccache)"
   elif [ "$apply" = 1 ] && command -v brew >/dev/null 2>&1 && brew install sccache; then
@@ -259,8 +267,30 @@ needs_app_separator() {
   [ "$found" = 1 ] && [ "$sep" = 0 ]
 }
 
+# **Linux does not build the voice worker yet.** It links both speech engines
+# and cpal unconditionally, and neither engine's native runtime is provisioned
+# on Linux until its voice rung (docs/features/linux/TECHNICAL.final.md, D4a).
+# Agent no longer links it, so leaving it out costs a window nothing; the rung
+# that brings Linux voice deletes this and its callers.
+builds_voice_worker() {
+  [ "$(uname -s)" != Linux ]
+}
+
+# What a workspace-wide cargo command leaves out on this platform.
+WORKSPACE_EXCLUDES=()
+builds_voice_worker || WORKSPACE_EXCLUDES=(--exclude koru-voice-worker)
+
 ensure_voice_runtime() {
-  bash scripts/setup/fetch-voice-runtime.sh
+  # Status 3 is the script saying this platform has no voice runtime
+  # provisioned (Linux until its voice rung). It has said so in one line;
+  # nothing here will build voice, so the CMake and libclang checks below
+  # would only fail a command that does not need them.
+  local fetched=0
+  bash scripts/setup/fetch-voice-runtime.sh || fetched=$?
+  if [ "$fetched" = 3 ]; then
+    return 0
+  fi
+  [ "$fetched" = 0 ] || return "$fetched"
   export SHERPA_ONNX_ARCHIVE_DIR="$PWD/third-party/sherpa-onnx/1.13.6"
   if ! command -v cmake >/dev/null 2>&1; then
     echo "[Koru] voice build needs CMake. Install it, then retry." >&2
@@ -452,7 +482,8 @@ run_all_verb() {
   # builds into the same debug directory.
   # koru-agent hosts the gateway and the session host as roles of its own
   # image, so building it builds them.
-  local -a packages=(-p koru-agent -p koru -p koru-ai-chat -p koru-voice-worker)
+  local -a packages=(-p koru-agent -p koru -p koru-ai-chat)
+  builds_voice_worker && packages+=(-p koru-voice-worker)
   local mcp=0 ai=0
   for arg in "$@"; do
     case "$arg" in
@@ -869,9 +900,9 @@ case "$sub" in
   # behind, so the next build cannot replace them. Unix replaces a running
   # binary happily, so there is nothing to clear before a build; `stop-all` is
   # still here for a stack a test run leaves behind.
-  test)     ensure_voice_runtime; exec cargo test --workspace "$@" ;;
+  test)     ensure_voice_runtime; exec cargo test --workspace ${WORKSPACE_EXCLUDES[@]+"${WORKSPACE_EXCLUDES[@]}"} "$@" ;;
   fmt)      exec cargo fmt --all "$@" ;;
-  check)    ensure_voice_runtime; exec cargo check --workspace "$@" ;;
+  check)    ensure_voice_runtime; exec cargo check --workspace ${WORKSPACE_EXCLUDES[@]+"${WORKSPACE_EXCLUDES[@]}"} "$@" ;;
   fonts)    exec bash scripts/setup/fetch-fonts.sh ;;
   # Swap the logo: regenerate the .ico and rebuild, so the embedded mark
   # (crates/koru-draw/src/brand.rs) and window icon (koru-workspace-host/src/app.rs) pick up

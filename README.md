@@ -121,6 +121,8 @@ You need:
 - **A GPU with DX12, Vulkan or Metal.** vello renders with compute shaders and
   has no software fallback.
 - **Python 3**, for the repository's checks under `scripts/checks/`.
+- **curl**, which every fetch script under `scripts/setup/` downloads with.
+  macOS and Windows 10+ ship it.
 
 Then, on Windows:
 
