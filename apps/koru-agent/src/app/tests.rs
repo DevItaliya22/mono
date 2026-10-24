@@ -438,7 +438,7 @@ fn only_an_installed_voice_setup_warms_the_worker_for_its_input_picker() {
     for row in [
         crate::tray::VoiceRow::NotInstalled { megabytes: None },
         crate::tray::VoiceRow::Downloading { percent: 42 },
-        crate::tray::VoiceRow::Unavailable,
+        crate::tray::VoiceRow::Unavailable(koru_voice::Off::Switch),
     ] {
         voice.row = row;
         assert!(!warms_voice_input_picker(&voice));

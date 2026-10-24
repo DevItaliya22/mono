@@ -115,7 +115,7 @@ fn quit_is_last_and_offered_in_every_state() {
         reminders: false,
         agents: false,
     };
-    bare.voice = voice_state_switched_off();
+    bare.voice = voice_state_switched_off(koru_voice::Off::Platform);
     bare.workspaces.clear();
     bare.agents.clear();
     bare.relay = None;
@@ -305,9 +305,9 @@ fn the_ai_chat_row_says_whether_its_shortcut_is_held() {
 
 /// What a switched-off installation reads — the state Linux is in until its
 /// voice rung (`koru_voice::Off::Platform`).
-fn voice_state_switched_off() -> VoiceMenu {
+fn voice_state_switched_off(off: koru_voice::Off) -> VoiceMenu {
     VoiceMenu {
-        row: VoiceRow::Unavailable,
+        row: VoiceRow::Unavailable(off),
         installed: Vec::new(),
         worker: None,
         devices: Vec::new(),
@@ -321,13 +321,23 @@ fn voice_state_switched_off() -> VoiceMenu {
 #[test]
 fn a_switched_off_voice_submenu_says_so_and_offers_nothing() {
     let mut state = full();
-    state.voice = voice_state_switched_off();
+    state.voice = voice_state_switched_off(koru_voice::Off::Switch);
     let rows = linux_menu(&state);
     assert_eq!(
         submenu(&rows, "Voice input"),
         [MenuRow::reading(
             "Voice input is switched off on this installation"
         )]
+    );
+    // A platform without voice says that instead — Settings' sentence, in
+    // the menu's language — rather than blaming a switch nobody set.
+    state.voice = voice_state_switched_off(koru_voice::Off::Platform);
+    assert_eq!(
+        submenu(&linux_menu(&state), "Voice input"),
+        [MenuRow::reading(koru_i18n::t(
+            state.lang,
+            koru_i18n::Key::VoiceNotOnLinuxYet
+        ))]
     );
 }
 
@@ -337,7 +347,7 @@ fn a_switched_off_voice_submenu_says_so_and_offers_nothing() {
 #[test]
 fn linux_reads_voice_as_switched_off() {
     let state = voice_state(None, koru_voice::InputChoice::SystemDefault);
-    assert_eq!(state, voice_state_switched_off());
+    assert_eq!(state, voice_state_switched_off(koru_voice::Off::Platform));
 }
 
 /// With voice on, each voice line raises the ask `imp`'s handler maps it to,
