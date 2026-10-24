@@ -65,9 +65,9 @@
 
 // **Built and tested on Linux, used only where there is a tray.** The menu's
 // pure text and layout helpers below have no platform code, so their tests run
-// on every platform — but only `imp` calls them, and Linux has no `imp`
-// (ADR-118). Silenced here once rather than item by item; Windows and macOS
-// still warn on anything genuinely dead.
+// on every platform — but only `imp` calls them, and Linux's tray is still a
+// Quit-only proof of concept (ADR-118). Silenced here once rather than item by
+// item; Windows and macOS still warn on anything genuinely dead.
 #![cfg_attr(not(any(windows, target_os = "macos")), allow(dead_code))]
 
 #[cfg(any(windows, target_os = "macos", test))]
@@ -76,7 +76,10 @@ use crate::event::TrayAsk;
 #[cfg(any(windows, target_os = "macos"))]
 pub use imp::Tray;
 
-#[cfg(not(any(windows, target_os = "macos")))]
+#[cfg(target_os = "linux")]
+pub use linux::Tray;
+
+#[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
 pub use stub::Tray;
 
 #[cfg(any(windows, target_os = "macos"))]
@@ -376,9 +379,7 @@ mod imp {
             // icon that depends on a path is an icon that goes missing.
             #[cfg(target_os = "macos")]
             let icon = {
-                let rgba = image::load_from_memory(super::MACOS_ICON_PNG)
-                    .ok()?
-                    .to_rgba8();
+                let rgba = image::load_from_memory(super::ICON_PNG).ok()?.to_rgba8();
                 let (width, height) = rgba.dimensions();
                 Icon::from_rgba(rgba.into_raw(), width, height).ok()?
             };
@@ -1134,12 +1135,117 @@ mod imp {
     }
 }
 
-/// The tray picture on macOS, compiled in — tracked in git, not a fetched
-/// asset, so a fresh clone builds. See the icon note in [`imp::Tray::show`].
-#[cfg(any(target_os = "macos", test))]
-pub(crate) const MACOS_ICON_PNG: &[u8] = include_bytes!("../../../assets/logo.png");
+/// The tray picture on macOS and Linux, compiled in — tracked in git, not a
+/// fetched asset, so a fresh clone builds. See the icon note in
+/// `imp::Tray::show`.
+#[cfg(any(target_os = "macos", target_os = "linux", test))]
+pub(crate) const ICON_PNG: &[u8] = include_bytes!("../../../assets/logo.png");
 
-#[cfg(not(any(windows, target_os = "macos")))]
+/// **Linux: a StatusNotifierItem, proof of concept — the icon and Quit.**
+///
+/// The rule this module exists to keep holds here too: the one row is Quit.
+/// Everything else the Windows/macOS menu offers is still a no-op setter, so
+/// the Agent's loop can call this exactly as it calls `imp`.
+///
+/// `None` when no notification-area host is listening — vanilla GNOME without
+/// the AppIndicator extension. `ksni` asks the StatusNotifierWatcher at spawn
+/// and fails when there is none, so the Agent then runs as it did before, with
+/// the console line telling the person how to stop it.
+#[cfg(target_os = "linux")]
+mod linux {
+    use crate::event::{AgentEvent, TrayAsk, Waker};
+    use crate::registry::OpenWorkspace;
+    use ksni::blocking::TrayMethods;
+
+    struct Item {
+        tooltip: String,
+        icon: Option<ksni::Icon>,
+        waker: Waker,
+    }
+
+    impl ksni::Tray for Item {
+        fn id(&self) -> String {
+            "koru-agent".into()
+        }
+        fn title(&self) -> String {
+            "Koru Agent".into()
+        }
+        fn icon_pixmap(&self) -> Vec<ksni::Icon> {
+            self.icon.iter().cloned().collect()
+        }
+        fn tool_tip(&self) -> ksni::ToolTip {
+            ksni::ToolTip {
+                title: self.tooltip.clone(),
+                ..Default::default()
+            }
+        }
+        fn menu(&self) -> Vec<ksni::MenuItem<Self>> {
+            vec![
+                ksni::menu::StandardItem {
+                    label: "Quit Koru Agent".into(),
+                    activate: Box::new(|item: &mut Self| {
+                        item.waker.wake(AgentEvent::Tray(TrayAsk::Quit));
+                    }),
+                    ..Default::default()
+                }
+                .into(),
+            ]
+        }
+    }
+
+    /// The same compiled-in picture macOS uses, as the ARGB32 big-endian
+    /// pixmap the protocol carries.
+    fn icon() -> Option<ksni::Icon> {
+        let rgba = image::load_from_memory(super::ICON_PNG).ok()?.to_rgba8();
+        let (width, height) = rgba.dimensions();
+        let mut data = rgba.into_raw();
+        for pixel in data.chunks_exact_mut(4) {
+            pixel.rotate_right(1);
+        }
+        Some(ksni::Icon {
+            width: i32::try_from(width).ok()?,
+            height: i32::try_from(height).ok()?,
+            data,
+        })
+    }
+
+    pub struct Tray {
+        // Held, not read: dropping the handle would leave the service running
+        // with nobody able to update it, and shutting it down is a later step.
+        _handle: ksni::blocking::Handle<Item>,
+    }
+
+    impl Tray {
+        pub fn show(segment: &str, root: Option<&std::path::Path>, waker: Waker) -> Option<Self> {
+            let info = koru_update::build_info();
+            let item = Item {
+                tooltip: super::tooltip(info.version, segment, root, super::branch()),
+                icon: icon(),
+                waker,
+            };
+            match item.spawn() {
+                Ok(handle) => Some(Self { _handle: handle }),
+                Err(error) => {
+                    tracing::info!(%error, "no notification-area host; running without an icon");
+                    None
+                }
+            }
+        }
+
+        pub fn set_workspaces(&mut self, _rows: &[OpenWorkspace]) {}
+        pub fn set_agent_sessions(&mut self, _catalog: &crate::agents_menu::AgentsCatalog) {}
+        pub fn set_store_running(&mut self, _running: bool) {}
+        pub fn set_voice(&mut self, _state: &super::VoiceMenu) {}
+        pub fn set_relay(&mut self, _state: Option<bool>) {}
+        pub fn set_relay_status(&mut self, _state: koru_network_iroh::RelayConnectionStatus) {}
+        pub fn set_shortcut(&mut self, _shortcut: &super::Shortcut) {}
+        pub fn set_dictation_shortcut(&mut self, _shortcut: &super::Shortcut) {}
+        pub fn set_ai_shortcut(&mut self, _available: bool) {}
+        pub fn set_url_scheme(&mut self, _state: &koru_url_scheme::Registration) {}
+    }
+}
+
+#[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
 mod stub {
     use crate::event::Waker;
     use crate::registry::OpenWorkspace;
@@ -2304,7 +2410,7 @@ mod tests {
     /// broken PNG would otherwise be found by the first Mac to show an icon.
     #[test]
     fn the_macos_icon_decodes() {
-        let rgba = image::load_from_memory(MACOS_ICON_PNG)
+        let rgba = image::load_from_memory(ICON_PNG)
             .expect("assets/logo.png decodes")
             .to_rgba8();
         assert!(rgba.width() > 0 && rgba.height() > 0);
