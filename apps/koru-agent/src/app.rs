@@ -7610,7 +7610,7 @@ impl WindowApp for Agent {
                     // Unreachable from a greyed row, and answered anyway: the
                     // rule is that nothing about voice is dialled, started or
                     // waited for on an installation with it switched off.
-                    crate::tray::VoiceRow::Unavailable => {
+                    crate::tray::VoiceRow::Unavailable(_) => {
                         koru_ipc::ipc_debug!(
                             "tray: voice is unavailable ({} is set)",
                             koru_voice::DISABLE_VAR

@@ -1784,15 +1784,16 @@ pub(crate) fn relay_connection() -> koru_network_iroh::RelayConnectionStatus {
 /// in and an honest status display, so the state has to be a value rather than
 /// a sentence assembled at the menu.
 ///
-/// Four states and no fifth. `Unavailable` is `KORU_VOICE_DISABLED`, read
-/// through `koru_voice::available()` — the one predicate the worker's
-/// supervisor, the welcome hint and the `/dictate` row also ask, so the four
-/// surfaces cannot answer it four ways (Q-V44).
+/// Four states and no fifth. `Unavailable` is `koru_voice::off()` — the
+/// `KORU_VOICE_DISABLED` switch, or a platform with no voice yet (Linux) — the
+/// one predicate the worker's supervisor, the welcome hint and the `/dictate`
+/// row also ask, so the four surfaces cannot answer it four ways (Q-V44). It
+/// carries which, because the two are different sentences.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum VoiceRow {
     /// This installation offers no dictation. The submenu says so and offers
     /// nothing; nothing is dialled and no worker is started.
-    Unavailable,
+    Unavailable(koru_voice::Off),
     /// Nothing is installed yet.
     ///
     /// `megabytes` is what the download costs, when that is known — it comes
@@ -1885,7 +1886,7 @@ impl VoiceMenu {
     /// carrying a stale one would let the submenu offer *Stop* on a build that
     /// may not start anything.
     pub fn keeping_worker(mut self, worker: Option<VoiceWorker>) -> VoiceMenu {
-        if !matches!(self.row, VoiceRow::Unavailable) {
+        if !matches!(self.row, VoiceRow::Unavailable(_)) {
             self.worker = worker;
         }
         self
@@ -1898,7 +1899,7 @@ impl VoiceMenu {
     /// blanking the list on one would empty the picker every time a model was
     /// installed.
     pub fn keeping_devices(mut self, devices: Vec<koru_voice::InputDevice>) -> VoiceMenu {
-        if !matches!(self.row, VoiceRow::Unavailable) {
+        if !matches!(self.row, VoiceRow::Unavailable(_)) {
             self.devices = devices;
         }
         self
@@ -2101,10 +2102,10 @@ fn voice_menu_localized(
     // **One line, and nothing that could dial or start anything.** A build with
     // `KORU_VOICE_DISABLED` set offers no dictation at all, so a submenu of
     // greyed rows would be four ways of saying the same thing.
-    if matches!(state.row, VoiceRow::Unavailable) {
+    if let VoiceRow::Unavailable(off) = state.row {
         return vec![VoiceLine::Status(
             VoiceStatus::Summary,
-            "Voice input is switched off on this installation".to_owned(),
+            unavailable_line(off, lang),
         )];
     }
 
@@ -2183,12 +2184,24 @@ fn live_line(state: koru_voice::State) -> Option<&'static str> {
     }
 }
 
+/// Why there is no voice, in one line. A platform without it gets the sentence
+/// Settings shows, localized; the switch keeps its own, which names what a
+/// developer set.
+fn unavailable_line(off: koru_voice::Off, lang: koru_i18n::Lang) -> String {
+    match off {
+        koru_voice::Off::Platform => {
+            koru_i18n::t(lang, koru_i18n::Key::VoiceNotOnLinuxYet).to_owned()
+        }
+        koru_voice::Off::Switch => "Voice input is switched off on this installation".to_owned(),
+    }
+}
+
 /// **Does this work, and with what** — one line.
 fn summary_line(state: &VoiceMenu) -> String {
     match &state.row {
         // Answered by the caller, and repeated here so this stays total rather
         // than relying on a `return` several screens up.
-        VoiceRow::Unavailable => "Voice input is switched off on this installation".to_owned(),
+        VoiceRow::Unavailable(off) => unavailable_line(*off, koru_i18n::Lang::En),
         VoiceRow::NotInstalled { megabytes: None } => "Not set up — no model yet".to_owned(),
         VoiceRow::NotInstalled {
             megabytes: Some(mb),
@@ -2250,7 +2263,7 @@ fn tier_label(tier: koru_voice_models::ModelTier) -> &'static str {
 /// channel's process — while the menu sits there. See [`TrayAsk::Voice`].
 fn act_label(row: &VoiceRow) -> &'static str {
     match row {
-        VoiceRow::Unavailable => "Voice input is unavailable",
+        VoiceRow::Unavailable(_) => "Voice input is unavailable",
         VoiceRow::NotInstalled { .. } => "Set voice input up…",
         VoiceRow::Downloading { .. } => "Show the download",
         VoiceRow::Installed => "Start dictation",
@@ -2309,9 +2322,9 @@ pub(crate) fn voice_state(
     root: Option<&std::path::Path>,
     input: koru_voice::InputChoice,
 ) -> VoiceMenu {
-    if !koru_voice::available() {
+    if let Some(off) = koru_voice::off() {
         return VoiceMenu {
-            row: VoiceRow::Unavailable,
+            row: VoiceRow::Unavailable(off),
             installed: Vec::new(),
             worker: None,
             devices: Vec::new(),
@@ -3051,7 +3064,7 @@ mod tests {
     #[test]
     fn the_voice_title_is_stable_in_every_state() {
         for row in [
-            VoiceRow::Unavailable,
+            VoiceRow::Unavailable(koru_voice::Off::Switch),
             VoiceRow::NotInstalled { megabytes: None },
             VoiceRow::NotInstalled {
                 megabytes: Some(650),
@@ -3075,7 +3088,7 @@ mod tests {
             })
         };
         assert_eq!(
-            summary(VoiceRow::Unavailable, Vec::new()),
+            summary(VoiceRow::Unavailable(koru_voice::Off::Switch), Vec::new()),
             "Voice input is switched off on this installation"
         );
         assert_eq!(
@@ -3388,7 +3401,7 @@ mod tests {
     /// nothing here is no use behind a submenu nobody can open.
     #[test]
     fn a_switched_off_installation_says_so_and_offers_nothing() {
-        let off = menu(VoiceRow::Unavailable);
+        let off = menu(VoiceRow::Unavailable(koru_voice::Off::Switch));
         assert_eq!(
             voice_menu(&off, Some("Ctrl+Shift+D")),
             vec![VoiceLine::Status(
@@ -3412,7 +3425,8 @@ mod tests {
     fn a_fresh_disk_reading_keeps_what_the_worker_said() {
         let kept = ready().keeping_worker(Some(idle_worker()));
         assert_eq!(kept.worker, Some(idle_worker()));
-        let off = menu(VoiceRow::Unavailable).keeping_worker(Some(idle_worker()));
+        let off = menu(VoiceRow::Unavailable(koru_voice::Off::Switch))
+            .keeping_worker(Some(idle_worker()));
         assert_eq!(off.worker, None);
     }
 
@@ -3814,7 +3828,7 @@ mod input_tests {
     #[test]
     fn a_switched_off_installation_has_no_input_picker() {
         let state = VoiceMenu {
-            row: VoiceRow::Unavailable,
+            row: VoiceRow::Unavailable(koru_voice::Off::Switch),
             installed: Vec::new(),
             worker: None,
             devices: vec![koru_voice::InputDevice::new("Yeti Nano", true)],
