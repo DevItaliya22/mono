@@ -7210,6 +7210,7 @@ name = "koru-update"
 version = "0.0.3"
 dependencies = [
  "directories",
+ "flate2",
  "fs2",
  "koru-channel",
  "minisign",
@@ -7219,6 +7220,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
+ "tar",
  "tempfile",
  "url",
  "uuid",
@@ -7229,6 +7231,7 @@ dependencies = [
 name = "koru-updater"
 version = "0.0.3"
 dependencies = [
+ "flate2",
  "koru-channel",
  "koru-free-space",
  "koru-update",
@@ -7236,6 +7239,7 @@ dependencies = [
  "libc",
  "serde",
  "serde_json",
+ "tar",
  "tempfile",
  "uuid",
  "windows-sys 0.59.0",

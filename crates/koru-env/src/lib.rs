@@ -928,7 +928,7 @@ pub const VARS: &[EnvVar] = &[
     ),
     compile_var(
         name::KORU_UPDATE_BASE_URL,
-        "Where update manifests are fetched from; defaults to https://updates.koru.do/.",
+        "Where update manifests are fetched from; defaults to https://updates.koru.do/, or the GitHub nightly release directory on Linux.",
     ),
     // ------------------------------------------------------- scripts only
     script_var(
