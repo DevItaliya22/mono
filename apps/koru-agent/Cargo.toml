@@ -199,6 +199,9 @@ tray-icon = { version = "0.24", default-features = false }
 # The whole menu, derived from the same helpers `tray-icon`'s is (`tray.rs`).
 [target.'cfg(target_os = "linux")'.dependencies]
 ksni = { version = "0.3.7", default-features = false, features = ["async-io", "blocking"] }
+# `kill(pid, SIGKILL)` for an MCP bridge still running from this installation
+# when an update hands over (`update::kill_mcp_bridges`), as on macOS.
+libc.workspace = true
 
 # The global search shortcut. Windows has `RegisterHotKey` directly; macOS
 # needs Carbon's `RegisterEventHotKey`, which this wraps — same authors as

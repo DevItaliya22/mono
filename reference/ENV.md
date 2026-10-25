@@ -131,7 +131,7 @@ the runtime switches one by one.
 | `KORU_UPDATER_SHA256` | set by the packager or build script | The expected updater digest; empty disables updates. | release builds |
 | `KORU_BRANCH` | set by the packager or build script | The git branch, stamped by the build script itself — emitted, never set by a person. | release builds |
 | `KORU_WINDOWS_PACKAGE_VERSION` | set by the packager or build script | The four-part sparse-package version derived by the Agent build script from KORU_VERSION and KORU_BUILD_NUMBER; emitted, never set by a person. | release builds |
-| `KORU_UPDATE_BASE_URL` | set by the packager or build script | Where update manifests are fetched from; defaults to https://updates.koru.do/. | release builds |
+| `KORU_UPDATE_BASE_URL` | set by the packager or build script | Where update manifests are fetched from; defaults to https://updates.koru.do/, or the GitHub nightly release directory on Linux. | release builds |
 
 ## Scripts only
 

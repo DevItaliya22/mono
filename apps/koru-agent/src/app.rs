@@ -6067,9 +6067,29 @@ fn reminder_diagnostics(
 /// cannot quietly become a plaintext channel in a release.
 fn update_base_url() -> String {
     option_env!("KORU_UPDATE_BASE_URL")
-        .unwrap_or("https://updates.koru.do/")
+        .unwrap_or(DEFAULT_UPDATE_BASE_URL)
         .to_string()
 }
+
+/// Where a build looks when nothing was baked.
+///
+/// **Linux defaults to the GitHub nightly release, not `updates.koru.do`.** CI
+/// bakes `KORU_UPDATE_BASE_URL` into every Linux build, so this decides only
+/// what a build that lost it does — and `updates.koru.do` has never held a
+/// Linux feed, so pointing there is a nightly that silently never hears of its
+/// next build. The nightly release directory is where the Linux feed is
+/// published (`docs/features/linux/NIGHTLY.rev1.md` §6). Nothing about trust
+/// changes with the host: whatever answers, the manifest must name this
+/// channel, platform and architecture and the package must carry a Minisign
+/// signature from the key baked into this binary, so a wrong default costs a
+/// failed check, never an install. A Linux build of another channel asks this
+/// directory for a manifest it does not hold and fails the same way, which is
+/// right until that channel has a Linux feed of its own.
+const DEFAULT_UPDATE_BASE_URL: &str = if cfg!(target_os = "linux") {
+    "https://github.com/koruworks/mono/releases/download/nightly/"
+} else {
+    "https://updates.koru.do/"
+};
 
 /// Whether the release rehearsal should fail this target launch before its
 /// health marker. Pure so the safety boundary remains pinned without mutating
