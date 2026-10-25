@@ -177,9 +177,15 @@ pub(crate) fn github_asset_name(name: &str) -> String {
 }
 
 /// The feed manifest's asset name: `<channel>-<platform>-<arch>.json`
-/// (NIGHTLY §6.1).
+/// (NIGHTLY §6.1) — asked of `koru_update::FeedLayout`, the function the
+/// installed app uses to find it, so the two cannot spell it differently.
 pub(crate) fn feed_name(channel: ReleaseChannel, target: &str) -> String {
-    format!("{channel}-{target}.json")
+    let (platform, architecture) = split_target(target);
+    koru_update::FeedLayout::GitHubRelease.manifest_path(&koru_update::UpdateTarget {
+        channel,
+        platform,
+        architecture,
+    })
 }
 
 /// The release page on GitHub, which the update banner links to.
