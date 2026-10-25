@@ -768,8 +768,8 @@ pub const VARS: &[EnvVar] = &[
     ),
     value_var(
         name::KORU_NOTES_COMMAND,
-        "`codex`, `kimi`, or a command template with `{channel}`",
-        "The generator dist-cloud offers for a missing release descriptor. Unset, there is no default: the prompt offers codex or kimi, or stops so the descriptor can be written by hand.",
+        "`codex`, `kimi`, or a command template with `{channel}` and `{path}`",
+        "The generator dist-cloud offers for a missing release descriptor, and nightly-notes for a nightly's notes; `{path}` is the exact file to write. Unset, there is no default: the prompt offers codex or kimi, or stops so the file can be written by hand.",
         "koru-release",
     ),
     value_var(

@@ -332,6 +332,7 @@ usage: ./koru.sh <command> [cargo args...]
   dist-local package the whole bundle into dist/cloud/ — local signing, no upload
   dist-cloud publish stable, beta or nightly to the update service (release credentials)
   dist-try   (mac) open the last dist-local artifact, quarantined like a download
+  nightly-notes draft the next GitHub nightly's notes into releases/nightly/ (never commits)
   backup     copy your workspace somewhere safe, right now
   build      compile without running
   test       run the test suite
@@ -865,6 +866,10 @@ case "$sub" in
     echo "[Koru] double-click dist/try/Koru.app for the downloader's dialog;"
     echo "[Koru] xattr -dr com.apple.quarantine dist/try/Koru.app  # then it opens"
     exit 0 ;;
+  # The GitHub nightly's notes, drafted from the commits since the `nightly`
+  # tag for the maintainer to edit and commit. It builds nothing, so no fonts;
+  # CI's `nightly-notes --select` goes through release-tool.
+  nightly-notes) exec cargo run --release -p koru-release -- nightly-notes "$@" ;;
   # Any koru-release subcommand. A dist-* one packages, so it gets the fonts
   # dist-local gets; the others build nothing — they read or write what the
   # release origin serves. The subcommands that publish need release
