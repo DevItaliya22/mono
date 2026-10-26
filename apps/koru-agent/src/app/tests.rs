@@ -3298,3 +3298,48 @@ fn a_shutdown_over_the_socket_tells_the_other_windows_it_is_a_quit() {
     );
     assert!(agent.should_exit());
 }
+
+/// **The windows follow the icon.** A change is told to every window, once; a
+/// window that says `Hello` while there is an icon learns it; and nothing is
+/// sent while there is none, because a window assumes none until told.
+#[test]
+fn the_windows_are_told_whether_there_is_an_icon_to_hide_behind() {
+    let mut agent = agent();
+    let early = ConnectionId(94);
+    let (early_connection, early_queue) = Connection::for_test(early);
+    agent.connections.push(early_connection);
+    workspace_hello(&mut agent, early, &early_queue);
+    assert!(drained(&early_queue).is_empty(), "no icon, nothing said");
+
+    agent.wake(AgentEvent::NotificationArea { present: true });
+    agent.wake(AgentEvent::NotificationArea { present: true });
+    assert_eq!(
+        drained(&early_queue),
+        vec![FromAgent::Push {
+            body: Push::NotificationArea { present: true }
+        }],
+        "told once, on the change"
+    );
+
+    let late = ConnectionId(95);
+    let (late_connection, late_queue) = Connection::for_test(late);
+    agent.connections.push(late_connection);
+    workspace_hello(&mut agent, late, &late_queue);
+    assert!(
+        drained(&late_queue).contains(&FromAgent::Push {
+            body: Push::NotificationArea { present: true }
+        }),
+        "a window that arrives later learns it on Hello"
+    );
+
+    // The StatusNotifierItem host went away under a running Agent.
+    agent.wake(AgentEvent::NotificationArea { present: false });
+    for queue in [&early_queue, &late_queue] {
+        assert_eq!(
+            drained(queue),
+            vec![FromAgent::Push {
+                body: Push::NotificationArea { present: false }
+            }]
+        );
+    }
+}

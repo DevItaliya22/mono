@@ -608,6 +608,10 @@ pub struct Agent {
     /// window loop does.
     shortcut: crate::tray::Shortcut,
     dictation_shortcut: crate::tray::Shortcut,
+    /// Whether the notification-area icon is up, as the windows were last told
+    /// ([`Push::NotificationArea`]). Set by the host once the tray exists and
+    /// by the tray's own service when its host comes or goes.
+    notification_area: bool,
     hotkey_control: Option<crate::hotkey::Control>,
     /// True for ordinary Agents and for a rooted interactive `--tray` launch.
     /// False for headless roots so automated gates claim no OS singleton.
@@ -1008,6 +1012,7 @@ impl Agent {
             startup_gate_retry_at: None,
             shortcut: crate::tray::Shortcut::Unknown,
             dictation_shortcut: crate::tray::Shortcut::Unknown,
+            notification_area: false,
             hotkey_control: None,
             machine_input_enabled: false,
             hotkey_generation: 0,
@@ -3927,6 +3932,9 @@ impl Agent {
                 // learns it, exactly as it learns the update report.
                 self.push_shortcut_to(connection);
                 self.push_reminder_diagnostics_to(connection);
+                // And whether there is an icon to hide behind — the window's
+                // close button keeps it in the background only if there is.
+                self.push_notification_area_to(connection);
                 // **And, once, what the last install produced.**
                 //
                 // Read off disk rather than held in memory because the process
@@ -4609,6 +4617,7 @@ impl Agent {
                 format!("shortcut {}", shortcut.as_deref().unwrap_or("none"))
             }
             Push::Quitting => "quitting".to_string(),
+            Push::NotificationArea { present } => format!("notification_area present={present}"),
         };
         let alive = self
             .connection(connection)
@@ -5163,6 +5172,29 @@ impl Agent {
 
     pub(crate) fn ai_shortcut(&self) -> bool {
         self.ai_shortcut
+    }
+
+    /// **Tell every window whether there is an icon to come back from**, when
+    /// that has changed. A window hides behind the icon only while this says
+    /// so; on Linux the icon's host can come and go under a running Agent.
+    pub(crate) fn set_notification_area(&mut self, present: bool) {
+        if self.notification_area == present {
+            return;
+        }
+        self.notification_area = present;
+        koru_ipc::ipc_debug!("tray: notification area present={present}");
+        let ids: Vec<ConnectionId> = self.connections.iter().map(Connection::id).collect();
+        for id in ids {
+            self.push(id, Push::NotificationArea { present });
+        }
+    }
+
+    /// The window that just said `Hello` learns there is an icon. Nothing is
+    /// sent when there is none: a window assumes none until told.
+    fn push_notification_area_to(&mut self, connection: ConnectionId) {
+        if self.notification_area {
+            self.push(connection, Push::NotificationArea { present: true });
+        }
     }
 
     /// What the tray's dictation submenu should say.
@@ -7201,6 +7233,10 @@ impl WindowApp for Agent {
             }
             AgentEvent::AiHotkeyRegistered { available } => {
                 self.ai_shortcut = available;
+                false
+            }
+            AgentEvent::NotificationArea { present } => {
+                self.set_notification_area(present);
                 false
             }
             AgentEvent::StoreAvailability { warning, running } => {
