@@ -212,7 +212,10 @@ use serde::{Deserialize, Serialize};
 /// or off for Koru Cloud and reads every Profile's Cloud sync state.
 /// 41 adds `ResetIdentity`: a device whose keys no longer match its identity
 /// sets the old identity aside and starts over as a new device.
-pub const PROTOCOL_VERSION: u32 = 41;
+/// 42 adds [`Push::Quitting`]: the Agent is stopping because a person asked it
+/// to, so a window must not start another one when the link ends. A 41 window
+/// would restart the Agent its person had just quit; the handshake refuses it.
+pub const PROTOCOL_VERSION: u32 = 42;
 
 /// The frame version the agent's stream stamps, handed to `koru_ipc::frame`.
 ///
@@ -1129,6 +1132,21 @@ pub enum Push {
     Shortcut {
         shortcut: Option<String>,
     },
+    /// **The Agent is stopping because a person asked it to** — the tray's
+    /// *Quit*, or `koru-agent stop`. Sent to every window just before the
+    /// stop begins, so it reaches them ahead of the end of the stream.
+    ///
+    /// A window that reads it does not start a replacement Agent when the link
+    /// ends. Without it a window cannot tell a quit from a crash, and it treats
+    /// every ended link as a crash: it dials, finds nothing listening, and
+    /// starts a new Agent — so *Quit* brought back the very process it had
+    /// just stopped. A crash still sends nothing, and a window still restarts
+    /// an Agent that died.
+    ///
+    /// Not sent when the Agent stops for an identity reset, after which a
+    /// window relaunches onto the new identity, nor by an install handoff,
+    /// which closes the windows itself before the Agent goes.
+    Quitting,
 }
 
 /// Commands accepted by the account worker. String ids remain strings on this

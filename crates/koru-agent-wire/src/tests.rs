@@ -100,6 +100,7 @@ fn the_tag_names_are_stable_snake_case() {
         })
         .contains(r#""kind":"shortcut""#)
     );
+    assert!(json(&Push::Quitting).contains(r#""kind":"quitting""#));
     assert!(
         json(&Request::UpdateChoice {
             choice: UpdateChoice::Download,
@@ -584,7 +585,7 @@ fn the_two_version_numbers_are_not_the_same_declaration() {
     // Literal numbers rather than an inequality, so that bumping one is a
     // deliberate edit here as well as there -- which is what caught the
     // `OpenLink` bump that took the protocol to 8 and left the frame alone.
-    assert_eq!(PROTOCOL_VERSION, 41);
+    assert_eq!(PROTOCOL_VERSION, 42);
     assert_eq!(FRAME_VERSION, 1);
 }
 
