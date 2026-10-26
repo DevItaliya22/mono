@@ -1462,3 +1462,28 @@ fn a_new_connection_forgets_the_last_agents_quit() {
 fn a_quit_notice_is_not_an_ask_for_the_window() {
     assert!(translate(Push::Quitting).is_none());
 }
+
+/// The icon is the Agent's to report, and it goes with the link: a window
+/// whose Agent has gone must not hide behind the icon that Agent had.
+#[test]
+fn the_notification_area_needs_a_live_agent_that_said_so() {
+    let (link, _receive) = AgentLink::for_test();
+    link.connection_generation.store(7, Ordering::Release);
+    link.live.store(true, Ordering::Release);
+    assert!(!link.has_notification_area(), "none until the Agent says");
+
+    link.notification_area.store(true, Ordering::Release);
+    assert!(link.has_notification_area());
+
+    link.connection_ended(7);
+    assert!(!link.has_notification_area());
+    assert!(
+        !link.notification_area.load(Ordering::Acquire),
+        "forgotten, so a reconnect starts from none"
+    );
+}
+
+#[test]
+fn a_notification_area_report_is_not_an_ask_for_the_window() {
+    assert!(translate(Push::NotificationArea { present: true }).is_none());
+}
