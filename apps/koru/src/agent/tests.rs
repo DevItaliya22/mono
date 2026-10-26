@@ -1418,3 +1418,47 @@ fn a_chat_link_from_another_app_sends_nothing_when_koru_ai_is_hidden() {
         assert!(receiver.try_recv().is_err(), "no request reached the Agent");
     });
 }
+
+/// **A quit is not a crash.** After `Push::Quitting` the end of the link must
+/// not start a reconnect — the reconnect is what dials, finds nothing and
+/// starts a new Agent, and it made the tray's *Quit* bring the Agent back.
+/// The window still learns the link ended, which is what closes a hidden one.
+#[test]
+fn a_quit_the_agent_announced_is_not_undone_by_starting_another() {
+    let (mut link, _receive) = AgentLink::for_test();
+    link.reconnect_enabled = true;
+    link.connection_generation.store(7, Ordering::Release);
+    link.live.store(true, Ordering::Release);
+    assert!(link.recovers_from_link_end(), "an ordinary end is a crash");
+
+    link.quit_announced.store(true, Ordering::Release);
+    link.connection_ended(7);
+
+    assert!(!link.connected());
+    assert!(
+        !link.reconnecting.load(Ordering::Acquire),
+        "no reconnect, so no new Agent"
+    );
+    assert!(
+        link.drain()
+            .iter()
+            .any(|ask| matches!(ask, FromTheAgent::AgentDisconnected)),
+        "the window is still told, so a hidden one closes"
+    );
+}
+
+/// The notice belongs to the Agent that sent it. A link that connects again —
+/// to an Agent somebody started afterwards — recovers from a crash as usual.
+#[test]
+fn a_new_connection_forgets_the_last_agents_quit() {
+    let (link, _receive) = AgentLink::for_test();
+    link.quit_announced.store(true, Ordering::Release);
+    let (writer, _replacement) = std::sync::mpsc::channel();
+    link.publish_connection(writer, None);
+    assert!(link.recovers_from_link_end());
+}
+
+#[test]
+fn a_quit_notice_is_not_an_ask_for_the_window() {
+    assert!(translate(Push::Quitting).is_none());
+}
