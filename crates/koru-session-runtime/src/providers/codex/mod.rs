@@ -8,7 +8,7 @@ mod normalize;
 mod probe;
 
 pub use config::CodexConfig;
-pub use launch::KORU_MCP_SERVER_NAME;
+pub use launch::{KORU_MCP_SERVER_NAME, mcp_server_overrides};
 pub use probe::{CodexCompatibilityProbe, CodexFactory};
 
 use std::collections::{BTreeMap, VecDeque};
@@ -32,12 +32,13 @@ use super::process::{JsonRpcTransport, StdioJsonRpc, TransportReceive};
 
 pub const CODEX_PROVIDER: &str = koru_session_profiles::CODEX_REGISTRATION.kind;
 pub const CODEX_PROTOCOL_VERSION: &str = "v2";
-/// The reviewed allowlist. 0.156.1 (2026-09-25) and 0.158.0 (2026-09-29)
-/// were admitted on the maintainers' instruction with schema evidence and a
-/// no-prompt handshake, and without a recorded turn — see each version's
-/// `tests/fixtures/codex-app-server/<version>/README.md`.
-pub const SUPPORTED_CODEX_VERSIONS: &[&str] =
-    &["0.150.1", "0.153.4", "0.154.0", "0.156.1", "0.158.0"];
+/// The reviewed allowlist. 0.156.1 (2026-09-25), 0.158.0 (2026-09-29) and
+/// 0.163.0 (2026-10-27) were admitted on the maintainers' instruction with
+/// schema evidence and a no-prompt handshake, and without a recorded turn —
+/// see each version's `tests/fixtures/codex-app-server/<version>/README.md`.
+pub const SUPPORTED_CODEX_VERSIONS: &[&str] = &[
+    "0.150.1", "0.153.4", "0.154.0", "0.156.1", "0.158.0", "0.163.0", "0.165.0",
+];
 
 /// One Codex app-server process, one ephemeral Codex thread, and one Koru
 /// managed session. Provider ids and JSON values never leave this adapter.

@@ -60,6 +60,8 @@ mod harness;
 /// inside this file (§7.10); this file gets four small `impl View` methods
 /// that call into it.
 pub(crate) mod accessibility;
+mod agent_cli_updates;
+mod agent_mcp;
 mod canvas;
 mod canvas_chain;
 mod canvas_runs;
@@ -826,6 +828,9 @@ pub struct MainView {
     /// with a path to reveal. A plain notice (including Move to… undo) carries
     /// [`ToastPayload::None`].
     toast: Option<(koru_ui::Toast, ToastPayload)>,
+    /// The registration of Koru's bridge in an agent's configuration that is
+    /// running (`agent_mcp.rs`), and what it will answer.
+    agent_mcp: agent_mcp::Install,
     /// Reverse of a *Move to…* while its toast is up. **Every root** of a
     /// multi-move, so Undo takes the whole gesture back (not only the first).
     move_undo: Option<Vec<MoveUndo>>,
@@ -1127,6 +1132,11 @@ pub struct MainView {
     /// holds a feed that reports nothing rather than a `None` every call site
     /// has to unwrap.
     updates: crate::agent::UpdateFeed,
+    /// The agent's last word on the coding-agent CLIs, and the way to answer
+    /// a card. Absent in every test, like `updates`.
+    agent_clis: crate::agent::AgentCliFeed,
+    /// The cards' own state: hover, a press in flight, the progress bars.
+    agent_cli_cards: agent_cli_updates::Cards,
     /// Shared control-plane connection used by the device-linking modal.
     agent: crate::agent::AgentLink,
     reminder_preferences: crate::reminder_settings::Controller,
@@ -1758,6 +1768,7 @@ impl MainView {
             trashed_here: std::collections::HashSet::new(),
             confirm: None,
             toast: None,
+            agent_mcp: agent_mcp::Install::default(),
             move_undo: None,
             move_to: None,
             actor: None,
@@ -1821,6 +1832,8 @@ impl MainView {
             tab_pending: None,
             clear_doc_view_prefs: std::cell::Cell::new(false),
             updates,
+            agent_clis: agent.agent_cli_feed(),
+            agent_cli_cards: agent_cli_updates::Cards::default(),
             agent,
             reminder_preferences: crate::reminder_settings::Controller::default(),
             update_was_offered: false,
@@ -3847,6 +3860,9 @@ impl MainView {
                 let show_title = self.tabs().get(tab).is_some_and(|t| t.show_title);
                 match action {
                     MenuAction::PopOut => self.is_poppable(tab),
+                    MenuAction::InstallMcp => {
+                        self.agent_mcp_target(tab).is_some() && !self.agent_mcp_running()
+                    }
                     MenuAction::PinTab => {
                         in_range
                             && (document.is_some()
@@ -4177,6 +4193,7 @@ impl MainView {
                     self.social_post_from_document(document)
                 }
                 MenuAction::PopOut => self.pop_out(tab),
+                MenuAction::InstallMcp => self.install_agent_mcp(tab),
                 MenuAction::Close => {
                     if self.tabs().get(tab).is_some_and(|t| t.is_pinned()) {
                         self.close(tab)
@@ -8373,6 +8390,9 @@ impl MainView {
         if self.update_mouse_down(x, y) {
             return true;
         }
+        if self.agent_cli_mouse_down(x, y) {
+            return true;
+        }
         if let Some((dialog, _)) = self.confirm.as_mut() {
             let out = dialog.mouse_down(&mut self.engine, self.viewport, x, y);
             self.settle_confirm_outcome(out);
@@ -9282,6 +9302,7 @@ impl View for MainView {
                 let pinnable = tab.is_some_and(|tab| tab.view.is_pinnable());
                 let pinned = tab.is_some_and(|tab| tab.is_pinned());
                 let show_title = tab.is_some_and(|tab| tab.show_title);
+                let install_mcp = self.agent_mcp_target(i).is_some();
                 let mut m = ContextMenu::for_tab(
                     &mut self.engine,
                     i,
@@ -9289,6 +9310,7 @@ impl View for MainView {
                     pinnable,
                     pinned,
                     show_title,
+                    install_mcp,
                     (x, y),
                 );
                 // Open with the first item already highlighted, the way a native
@@ -9632,7 +9654,7 @@ impl View for MainView {
         {
             return;
         }
-        if self.update_contains_pointer() {
+        if self.update_contains_pointer() || self.agent_cli_contains_pointer() {
             return;
         }
         if let Some(dialog) = self.import_dialog.as_mut() {
@@ -9811,6 +9833,9 @@ impl View for MainView {
         }
         if let Some((dialog, _)) = &self.confirm {
             return dialog.cursor();
+        }
+        if let Some(icon) = self.agent_cli_cursor() {
+            return icon;
         }
         if let Some(icon) = self.update_newer_cursor() {
             return icon;
@@ -10106,6 +10131,11 @@ impl View for MainView {
         if self.toast_animating(Instant::now()) {
             return true;
         }
+        // An agent CLI card with a moving bar, or one waiting out its
+        // auto-dismiss, needs frames nobody else is asking for.
+        if self.agent_cli_animating() || self.agent_mcp_running() {
+            return true;
+        }
         // **A deletion verb is in flight.** Its answer comes back on the run
         // index's own thread, which cannot ask for a frame; without this the
         // receipt would wait for the pointer to move. It stops the moment the
@@ -10258,6 +10288,8 @@ impl View for MainView {
         }
         self.draw_frame(scene, workspace, images, root, caret_on, pointer);
         self.draw_update_banner(scene, root);
+        self.draw_agent_cli_cards(scene, root);
+        self.poll_agent_mcp();
         if self.search.is_some() {
             let bounds = self.search_bounds();
             draw_scene::fill(
@@ -14844,6 +14876,9 @@ impl MainView {
             return self.update_newer_mouse_move(x, y);
         }
         if self.update_mouse_move(x, y) {
+            return true;
+        }
+        if self.agent_cli_mouse_move(x, y) {
             return true;
         }
         if let Some(dialog) = self.new_document.as_mut() {

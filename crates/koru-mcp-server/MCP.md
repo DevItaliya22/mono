@@ -22,12 +22,122 @@ packager copies it to the installed path (`RELEASE_DOCUMENT_SOURCES` in
 `every_runtime_document_is_explicit_and_present` fails if they disagree.
 
 The running server publishes this exact file as the standard MCP resource
-`koru://docs/model`. Clients without MCP resource support can retrieve the same
-text with `get_documentation({"uri":"koru://docs/model"})`. Some desktop
-bridges and remote-device proxies forward tools but omit `resources/list` and
-`resources/read`; an empty resource list therefore does not mean this contract
-is absent. `get_documentation` is the portable discovery path and must remain
-available even while the standard resource exists.
+`koru://docs/model`, and its [Essentials](#essentials) section alone as
+`koru://docs/essentials` — the short form an agent reads before its first
+mutation, served from this file so it cannot drift from the long one.
+Clients without MCP resource support retrieve the same text with
+`get_documentation({"uri":"koru://docs/essentials"})` or
+`{"uri":"koru://docs/model"}`, which also answers one section at a time:
+`{"uri":"koru://docs/model","section":"creating-a-complete-document"}`, the
+section named by its heading's slug, with its `###` children; an unknown
+section lists the sections it could have named. The tool answers the
+markdown itself as its text block and `{uri, mime_type, section?, text}` as
+structured content. Some desktop bridges and remote-device proxies forward
+tools but omit `resources/list` and `resources/read`; an empty resource list
+therefore does not mean this contract is absent. `get_documentation` is the
+portable discovery path and must remain available even while the standard
+resources exist.
+
+## Essentials
+
+The short form of this contract — enough to find, read, create and edit
+correctly. It is served on its own as `koru://docs/essentials`. Every
+heading named below is a section of this file, and
+`get_documentation({"uri":"koru://docs/model","section":"<slug>"})` answers
+one section: the slug is the heading in lower case with spaces as `-`, so
+*Creating a complete document* is `creating-a-complete-document`.
+
+**Finding things.** `list_workspaces` first; every other call names a
+`workspace_id`. `list_documents` is a workspace's document tree (`id`,
+`parent`, `title`, `kind`); `search_documents` finds **nodes** by words, tags
+and attributes, in one workspace or in all of them; `list_tasks` lists what is
+outstanding. Ids are UUIDs: a workspace id, a document id and a node id are
+different things even when they look alike, and a client mints the new ones.
+
+**Reading.** `read_document` returns the whole document as `nodes` in
+preorder — each with `node_id`, `parent_id`, `kind`, its `content` (`text`,
+`attributes`, `runs`) — and an opaque `revision`. Row 0 is the title node,
+whose id is `root_node_id`. That revision and those node ids are what every
+edit is addressed with; numeric positions are never accepted.
+
+**Creating.** One call makes a complete document:
+
+```jsonc
+{"workspace_id": "…", "title": "Dad jokes",
+ "idempotency_key": "<fresh UUID>",        // a retry replays, for seven days
+ "root_node_id": "<fresh UUID>",           // the title node; required with a seed
+ "initial_operations": [
+   {"op": "insert", "node_id": "<fresh UUID A>", "parent_id": "<root_node_id>",
+    "after_node_id": null, "kind": "paragraph", "text": "Why did the scarecrow win an award?"},
+   {"op": "insert", "node_id": "<fresh UUID B>", "parent_id": "<root_node_id>",
+    "after_node_id": "<A>", "kind": "paragraph", "text": "He was outstanding in his field."},
+   {"op": "set_mark", "node_id": "<B>", "expected": "He was outstanding in his field.",
+    "start_utf8": 7, "end_utf8": 18, "mark": "bold", "on": true}]}
+```
+
+Every `parent_id` is the root or an earlier insert; `after_node_id` is `null`
+for first or an earlier sibling; a seed takes `insert`, `insert_inline`,
+`set_done`, `set_language` and `set_mark` only — tags and attributes come
+afterwards with `edit_document`. Without `initial_operations` the document is
+a title and one empty paragraph. The result is the projection `read_document`
+returns, so its node ids can be used at once. `parent_document_id` nests the
+new document under another; `kind` is `page` or absent. Body kinds: `task`,
+`paragraph`, `quote`, `listblock`, `table`, `code`, `divider`.
+Never Markdown in `text`, and never a node of kind `document` in a body.
+
+**Editing.** Read first, then send that read's `revision` as `base_revision`
+and, on every operation that touches an existing node, its exact current
+text as `expected`:
+
+```jsonc
+{"workspace_id": "…", "document_id": "…", "base_revision": "<from the read>",
+ "operations": [
+   {"op": "replace_text", "node_id": "…", "expected": "Buy milk", "text": "Buy oat milk"},
+   {"op": "insert", "node_id": "<fresh UUID>", "parent_id": "<root_node_id>",
+    "after_node_id": "…", "kind": "task", "text": "Call the plumber"},
+   {"op": "set_done", "node_id": "…", "expected": "Call the plumber", "done": true},
+   {"op": "set_mark", "node_id": "…", "expected": "Buy oat milk",
+    "start_utf8": 4, "end_utf8": 12, "mark": "italic", "on": true},
+   {"op": "move", "node_id": "…", "expected": "…", "parent_id": "…", "after_node_id": null},
+   {"op": "remove", "node_id": "…", "expected": "…"},
+   {"op": "set_attribute", "node_id": "…", "expected": "Call the plumber",
+    "key": "koru.due", "value": {"type": "date", "value": "2026-08-30"}},
+   {"op": "set_attribute", "node_id": "…", "expected": "Call the plumber",
+    "key": "koru.priority", "value": {"type": "text", "value": "high"}},
+   {"op": "add_tag", "node_id": "…", "expected": "Call the plumber", "tag": "home/errands"}]}
+```
+
+The batch applies in order and atomically, or not at all. `remove` takes the
+whole subtree. `set_mark` formats a byte range — `bold`, `italic`,
+`underline`, `strike` or `code`, on or off — and a read reports the result in
+`runs`. `insert_inline` puts a reference to another document or to a file
+into a node's text at a UTF-8 byte offset `at_utf8`: `{"type": "document",
+"document_id": "…"}` or `{"type": "attachment", "file_id": "…"}`.
+`set_language` labels a `code` block. Attribute values are the shapes a read
+reports: `date` `{value: "YYYY-MM-DD"}`, `datetime_zoned` `{instant_ms,
+timezone}`, `datetime_floating` `{wall}`, `text`, `number`, `bool`, `url`.
+`koru.due` takes a `date` or a `datetime_zoned` and makes the node a task;
+`koru.priority` is a `text` token, one of `low`, `medium`, `high`, `urgent`,
+never a number; `koru.color` takes its own tokens. A tag is a name
+(`parent/child`), never an id you invent.
+
+**When it fails.** `stale_node` or `precondition_failed`: the document
+changed under you; read again, find the block by its text, and retry with
+the new revision. `idempotency_conflict`: that key was used for a different
+request. `attribute_rejected` and `unknown_attribute` say which key and why.
+An unknown field is an error, never an ignored no-op.
+
+**Also here.** `extract_to_document` moves blocks into another document and
+leaves a link behind; `save_document_version`, `list_document_versions`,
+`compare_document_versions` and `restore_document_version` are history;
+`list_files`, `search_files`, `get_file`, `read_file` and `ensure_file_note`
+are files; `list_chats`, `search_chats` and `read_chat` read Koru AI chats.
+The sections below have every rule. Before relying on a feature, read its
+section: [Creating a complete document](#creating-a-complete-document),
+[Typed blocks, text, and ordering](#typed-blocks-text-and-ordering),
+[Attributes and tags](#attributes-and-tags), [Tasks](#tasks),
+[Searching](#searching), and
+[Preconditions, history, and durability](#preconditions-history-and-durability).
 
 ## Keeping this contract current
 
@@ -90,7 +200,9 @@ This file is the long form; the reply points here.
   (`"open"`, `"relevance"`). `compaction_keeps_every_parameter_name_and_value`
   compares the published schemas with the generated ones.
 
-The reply was 57,071 bytes before this and is 17,137 bytes now. It cannot get
+The reply was 57,071 bytes before this and 17,137 bytes after it; `set_mark`
+in both operation unions took it to 17,973 under an 18,000-byte budget
+([ADR-470](../../docs/decisions/ADR-470-mcpessentials.md)). It cannot get
 under 8 KiB with 21 typed tools: the names, titles, safety hints and typed
 parameters alone come to about 9.6 KB before a word of description. That
 matters for Grok CLI 1.0.34, which can lose an 8,192-byte chunk of any longer
@@ -133,7 +245,7 @@ and as a test held them against real values. A failure is
 
 | Tool | Result |
 | --- | --- |
-| `get_documentation` | `{ uri, mime_type, text }` |
+| `get_documentation` | `{ uri, mime_type, section?, text }`; the text block is the markdown itself |
 | `list_workspaces` | `{ workspaces: [{ id, owner, name, created_at, last_opened_at?, icon?, color?, pinned, archived, deleted_at?, position }] }` |
 | `list_documents` | `{ documents: [{ id, parent?, ordinal, title, kind, trashed_at?, trashed_by? }] }` |
 | `search_documents` | `{ hits: [{ workspace, workspace_name, document, node?, document_kind, mime?, kind, field, title, breadcrumb, breadcrumb_spans, snippet, spans, lifecycle, trashed_at?, trashed_by?, score, observed_modified_at_ms?, workspace_last_used_at_ms? }], next_offset?, updating_workspaces, corrected_query? }`; a span is `{ start, end }` |
@@ -282,13 +394,27 @@ insertion makes a remembered number unstable while sibling identity remains
 meaningful.
 
 The live-edit operation vocabulary is `replace_text`, `insert`, `insert_inline`,
-`move`, `remove`, `set_done`, `set_language`, `set_attribute`,
+`move`, `remove`, `set_done`, `set_language`, `set_mark`, `set_attribute`,
 `clear_attribute`, `add_tag`, and `remove_tag`. The last four are described
 under [Attributes and tags](#attributes-and-tags), and what `set_done` and a
 `koru.due` write mean on a **task** is under [Tasks](#tasks).
 
+**Inline formatting is `set_mark`.** A read reports a text node's `runs`, each
+a byte range with `bold`, `italic`, `underline`, `strike` and `code` flags;
+`set_mark` turns one of those five on or off over `start_utf8..end_utf8` of
+`expected` — what Ctrl+B does to a selection, through the same `set_mark` the
+editor calls. The range is UTF-8 byte offsets on character boundaries and may
+not be empty: an empty range would write nothing, and a success that wrote
+nothing is how a misspelt offset goes unnoticed. The text is untouched, so a
+`replace_text` and the marks over the new text are two operations, in that
+order and with the new text as the second's `expected`. The value marks a run
+also reports — `script`, `size`, `highlight` — and links are read-only here
+for now.
+
 The `insert` schema enumerates every accepted body kind: `task`, `paragraph`,
-`quote`, `listblock`, `table`, `code`, `contact`, and `divider`. Operation
+`quote`, `listblock`, `table`, `code`, and `divider` — not `contact`, which is
+a root-level reference the `@` pill creates and no supported surface here
+inserts (ADR-470). Operation
 variants are inlined in the published tool schema so an MCP host need not
 resolve a private `$ref` to discover their fields. All request objects deny
 unknown fields; a misspelling is an error, never a successful no-op.
@@ -332,11 +458,12 @@ When `initial_operations` is present:
 - it must be non-empty and `root_node_id` must be a fresh client-minted UUID;
 - Koru does not add the default paragraph;
 - the caller supplies every body `node_id`;
-- only `insert`, `insert_inline`, `set_done`, and `set_language` are legal;
+- only `insert`, `insert_inline`, `set_done`, `set_language` and `set_mark`
+  are legal;
 - `parent_id` names the supplied root or an earlier inserted node;
 - `after_node_id` is `null` for first or names an earlier inserted sibling; and
-- inline, completion, and language operations can target only a node inserted
-  earlier in the same array.
+- inline, completion, language and mark operations can target only a node
+  inserted earlier in the same array.
 
 Forward references, duplicate ids, unknown fields, and edit-only operations
 such as `replace_text`, `move`, or `remove` fail loudly. Operations execute in
@@ -523,7 +650,7 @@ priority.
 
 **Not every kind can carry task state.** A task lives on a paragraph — which is
 what a checklist item is — a `task` node, a document, an image or a file.
-`quote`, `listblock`, `table`, `code`, `canvas`, `contact` and `divider` cannot,
+`quote`, `listblock`, `table`, `code`, `canvas` and `divider` cannot,
 and a deadline aimed at one of them is refused rather than quietly dropped:
 
 | Attempt | Error | `details` |

@@ -1613,9 +1613,11 @@ even when creation began in the Manage tab. It offers:
   models. *Manage documents over MCP* shows the command an MCP client runs to
   reach this installation — the `koru-mcp` program beside Koru, with
   `serve --stdio` — and **Copy** (or clicking the command) puts the whole
-  command on the clipboard, ready to paste into the client's settings. *Run an
-  agent in a terminal* opens the list of agents from the **+** menu; choosing
-  one starts it in a new tab.
+  command on the clipboard, ready to paste into the client's settings — for a
+  client outside Koru, or for Grok, Kimi and Antigravity; an agent tab Koru
+  opens for Claude Code, Codex, Copilot, Qwen Code or OpenCode is given the
+  server already. *Run an agent in a terminal* opens the list of agents from
+  the **+** menu; choosing one starts it in a new tab.
 
 Each row you complete gets a check, and the checks are kept **for this
 computer**: every Profile on it sees the same ones. *n of m done* counts the
@@ -3226,6 +3228,20 @@ start fresh. The Koru Agent's tray menu has the same **Agents** list, so you
 can jump to a session from there too. The composer (for sending a message to a
 managed agent) is hidden until you need it — **Ctrl+Shift+U** shows it.
 
+**An agent in a tab has Koru's tools.** Claude Code, Codex, GitHub Copilot,
+Qwen Code and OpenCode are started with Koru's own MCP server, the same
+`koru-mcp` a chat's agent uses, so you can ask them to search, read and write
+your documents and tasks straight away — no `mcp add`, nothing written into
+the agent's own configuration. It is given to that one launch only: the same
+agent started from another terminal is exactly as you set it up, and there is
+nothing to remove later. Grok and Antigravity have no way to take a server
+for a single launch, so right-click their tab and choose **Install Koru MCP**:
+Koru runs the agent's own `mcp add` once, tells you when it is done, and the
+next session you start there has Koru's tools. Choose it again after Koru
+moves and it points at the new copy. Kimi has no such command, so its tab is
+unchanged; for Kimi, *Manage documents over MCP* on the Welcome page shows the
+command to add by hand.
+
 ### Handing a piece of work over
 
 Delegating is asking an agent to go and do something while you get on with
@@ -4815,6 +4831,29 @@ Escape closes it, and so does clicking anywhere outside the panel.
 A build somebody compiled themselves also says which branch it came from, beside
 the name at the top: **Koru (dev)**. Two windows from two working trees are
 otherwise identical on screen.
+
+### Your coding agents' own updates
+
+Koru also keeps an eye on the agent CLIs it launches for you — Claude Code,
+Codex, Grok, GitHub Copilot, Kimi Code, OpenCode and Qwen Code. Twenty seconds
+after the agent starts, and once a day after that, it asks each one that is
+installed for its version and asks the tool's own channel what it offers.
+Each one that is behind gets a card at the top right of the window: *"Codex
+update available · v0.163.0 → v0.165.0"*, with **Dismiss**, **Update** and ✕.
+
+**Update** runs the tool's own updater — `codex update`, `claude update`,
+`grok update`, and `npm install` for the ones that are only an npm package.
+The card shows the updater's last line and a moving bar while it runs, then
+says *"Codex updated · v0.165.0"* and goes away by itself, or *"Codex update
+failed"* with the updater's last words and **Try again**. **Dismiss** or ✕ on
+an offer puts it away until a newer release exists.
+
+Two things to know. The check only sees tools on the agent's own `PATH`, which
+on a Mac started from the Dock can be shorter than your shell's. And a chat
+that runs an agent in managed mode accepts only the versions Koru has checked
+([Chatting with a local agent](#chatting-with-a-local-agent)); updating to the
+newest release can leave that chat saying *Needs a supported version* until
+the next Koru admits it, while the agent's terminal tab keeps working.
 
 ### You are asked twice
 
