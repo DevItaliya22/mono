@@ -35,6 +35,7 @@ pub mod cli;
 mod clipboard_html;
 mod clipboard_markdown;
 mod clipboard_rtf;
+pub mod diagram;
 pub mod dialogs;
 pub mod environment;
 pub mod events_host;
@@ -177,6 +178,9 @@ pub use app::{run, run_with_args};
 /// Exposed for the *What's new* tab, which is a document built from a release's
 /// own notes. See the note on the function.
 pub use clipboard_markdown::parse as parse_markdown;
+/// What a view hands the shell when *Save as…* or *Copy image* is asked on
+/// a drawn diagram.
+pub use diagram::{CopyDiagram, SaveDiagram};
 pub use settings::{
     DocViewPrefs, MAX_RECENTS, PinnedTabRef, PopoutClose, Settings, TabRef, TasksTabRef,
 };
@@ -1566,6 +1570,21 @@ pub trait View {
         None
     }
 
+    /// *Save as…* asked on a drawn diagram, if it was: the drawing the view
+    /// shows and the page's title, for the shell to take through the dialog,
+    /// the raster and the write. `ws` is where the title is read; the view
+    /// does not keep one unless it draws its own caption.
+    fn take_wants_save_diagram_as(&mut self, _ws: &WorkspaceDoc) -> Option<SaveDiagram> {
+        None
+    }
+
+    /// *Copy image* asked on a drawn diagram, if it was: the drawing the
+    /// view shows, for the shell to rasterise and put on the clipboard — the
+    /// shell owns both, as it does for an image block's copy.
+    fn take_wants_copy_diagram(&mut self) -> Option<CopyDiagram> {
+        None
+    }
+
     /// Blob hash of an image the user copied or cut. The shell owns the decoded
     /// bytes and the system clipboard, so it performs the copy.
     fn take_wants_copy_image(&mut self) -> Option<String> {
@@ -2472,6 +2491,12 @@ pub enum PaneRequest {
     SaveFile(koru_core::DocumentId),
     /// Save several workspace files into a user-selected folder.
     SaveFiles(Vec<koru_core::DocumentId>),
+    /// Save a drawn diagram as a PNG or an SVG at a user-selected path. Served
+    /// against the window that asked: its device rasterises the PNG.
+    SaveDiagram(SaveDiagram),
+    /// Put a picture of a drawn diagram on the clipboard. Served against the
+    /// window that asked, like a save: its device rasterises the bitmap.
+    CopyDiagram(CopyDiagram),
     /// Materialize one workspace file in Koru's temporary open cache and hand
     /// it to the operating system's associated application.
     OpenFile(koru_core::DocumentId),
@@ -2643,6 +2668,8 @@ impl PaneRequest {
             Self::ReminderSnooze(..) => "request.reminder_snooze",
             Self::SaveFile(..) => "request.save_file",
             Self::SaveFiles(..) => "request.save_files",
+            Self::SaveDiagram(..) => "request.save_diagram",
+            Self::CopyDiagram(..) => "request.copy_diagram",
             Self::OpenFile(..) => "request.open_file",
             Self::OpenFiles(..) => "request.open_files",
             Self::OpenFileNote(..) => "request.open_file_note",

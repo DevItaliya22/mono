@@ -14,6 +14,7 @@ pub mod canvas;
 pub mod change;
 pub mod explore;
 pub mod ids;
+pub mod markdown;
 pub mod node;
 pub mod profile;
 pub mod query;

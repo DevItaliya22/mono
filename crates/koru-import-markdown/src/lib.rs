@@ -1195,9 +1195,20 @@ fn table_candidate_ranges(text: &str) -> Vec<std::ops::Range<usize>> {
     if start < text.len() || text.is_empty() {
         lines.push((start, text.len(), &text[start..]));
     }
+    // A line inside a fenced code block is code, whatever it holds. This
+    // scan runs on the raw text, ahead of the Markdown parser that knows
+    // about fences, and it took two consecutive lines with two pipes each
+    // for a table: a Mermaid flowchart's `A -->|yes| B` under `A -->|no| C`
+    // qualified, and the fence was cut into paragraphs and a broken table
+    // around them.
+    let fenced = fenced_lines(lines.iter().map(|(_, _, line)| *line));
     let mut ranges = Vec::new();
     let mut index = 0usize;
     while index + 1 < lines.len() {
+        if fenced[index] || fenced[index + 1] {
+            index += 1;
+            continue;
+        }
         let header = lines[index].2.trim();
         let delimiter = lines[index + 1].2.trim();
         let header_pipes = header.bytes().filter(|byte| *byte == b'|').count();
@@ -1210,7 +1221,10 @@ fn table_candidate_ranges(text: &str) -> Vec<std::ops::Range<usize>> {
         let mut end_index = index + 2;
         while end_index < lines.len() {
             let line = lines[end_index].2.trim();
-            if line.is_empty() || line.bytes().filter(|byte| *byte == b'|').count() < 2 {
+            if fenced[end_index]
+                || line.is_empty()
+                || line.bytes().filter(|byte| *byte == b'|').count() < 2
+            {
                 break;
             }
             end_index += 1;
@@ -1219,6 +1233,47 @@ fn table_candidate_ranges(text: &str) -> Vec<std::ops::Range<usize>> {
         index = end_index;
     }
     ranges
+}
+
+/// For each line, whether it lies in a fenced code block — the fence lines
+/// themselves included. A fence opens with three or more backticks or
+/// tildes after at most three spaces, and closes with at least as many of
+/// the same character and nothing else on the line, as CommonMark has it;
+/// a fence left open runs to the end.
+fn fenced_lines<'a>(lines: impl Iterator<Item = &'a str>) -> Vec<bool> {
+    let mut open: Option<(u8, usize)> = None;
+    lines
+        .map(|line| {
+            let body = line.trim_start_matches(' ');
+            let indent = line.len() - body.len();
+            let fence = |byte: u8| {
+                let run = body.bytes().take_while(|b| *b == byte).count();
+                (indent <= 3 && run >= 3).then_some(run)
+            };
+            match open {
+                Some((byte, len)) => {
+                    let closes = fence(byte).is_some_and(|run| run >= len)
+                        && body.trim_start_matches(byte as char).trim().is_empty();
+                    if closes {
+                        open = None;
+                    }
+                    true
+                }
+                None => match fence(b'`')
+                    .map(|run| (b'`', run))
+                    .or_else(|| fence(b'~').map(|run| (b'~', run)))
+                {
+                    // A backtick fence's info string may not hold a backtick.
+                    Some((b'`', run)) if body[run..].contains('`') => false,
+                    Some(opened) => {
+                        open = Some(opened);
+                        true
+                    }
+                    None => false,
+                },
+            }
+        })
+        .collect()
 }
 
 fn append_table_references(
@@ -1764,6 +1819,43 @@ mod tests {
         );
     }
 
+    /// A fenced block whose lines carry pipes is code, not a table. The
+    /// table pre-scan, which runs on the raw text, took a Mermaid flowchart's
+    /// labelled edges — `A -->|yes| B` over `A -->|no| C` — for a header and
+    /// its delimiter, and a document pasted from Notion arrived with two of
+    /// its five diagrams cut into paragraphs around a broken table.
+    #[test]
+    fn a_fenced_block_with_pipes_is_code_not_a_table() {
+        let text = "Before\n\n```mermaid\nflowchart TD\n  Online -->|yes| Push[Push delta]\n  Online -->|no| Queue[[Queue locally]]\n  Push --> Done\n```\n\nAfter\n\n| A | B |\n| - | - |\n";
+        let blocks = parse(text);
+        assert!(
+            !blocks.iter().take(3).any(|b| matches!(b, Block::Table(_))),
+            "no table inside the fence: {blocks:?}"
+        );
+        let code = blocks
+            .iter()
+            .find_map(|b| match b {
+                Block::Text(text) if matches!(text.kind, TextKind::Code { .. }) => Some(text),
+                _ => None,
+            })
+            .expect("one code block");
+        assert!(matches!(&code.kind, TextKind::Code { language: Some(l) } if l == "mermaid"));
+        assert!(code.text.contains("Online -->|yes| Push[Push delta]"));
+        assert!(code.text.contains("Push --> Done"));
+        // The table after the fence is still a table.
+        assert!(blocks.iter().any(|b| matches!(b, Block::Table(_))));
+        // A tilde fence, and one left open, are fences too.
+        assert_eq!(
+            fenced_lines(["~~~", "| a | b |", "| - | - |", "~~~", "| c | d |"].into_iter()),
+            vec![true, true, true, true, false]
+        );
+        assert_eq!(
+            fenced_lines(["```", "| a | b |"].into_iter()),
+            vec![true, true]
+        );
+        assert!(table_candidate_ranges("```\n| a | b |\n| - | - |\n```\n").is_empty());
+    }
+
     /// The stream's shape, for the callout tests: a text block as its kind,
     /// text and whether it is inside a box; a box's start with its look; a
     /// box's end; anything else.
@@ -2098,6 +2190,29 @@ mod tests {
         assert!(
             matches!(&parsed.blocks[0], Block::Text(TextBlock { kind: TextKind::Code { language: Some(language) }, text, .. }) if language == "yaml" && text == "tags: [one]")
         );
+    }
+
+    /// The other half of a round trip through another application: a code
+    /// block leaves Koru as the fence `koru_core::markdown::fenced_code`
+    /// writes (the editor's clipboard test pins that), and that fence parses
+    /// back into one code block with the same language and the same body —
+    /// including a body that itself quotes a fence, which is what the
+    /// lengthened fence is for.
+    #[test]
+    fn a_fenced_block_as_the_clipboard_writes_it_parses_back_whole() {
+        for (language, body) in [
+            ("rust", "fn main() {\n    println!(\"hi\");\n}"),
+            ("md", "a\n```\nb"),
+            ("", "x = 1"),
+        ] {
+            let blocks = parse(&koru_core::markdown::fenced_code(language, body));
+            assert_eq!(blocks.len(), 1, "{language:?} {body:?}: {blocks:?}");
+            let expected = (!language.is_empty()).then(|| language.to_owned());
+            assert!(
+                matches!(&blocks[0], Block::Text(TextBlock { kind: TextKind::Code { language }, text, .. }) if *language == expected && text == body),
+                "{language:?} {body:?}: {blocks:?}"
+            );
+        }
     }
 
     #[test]

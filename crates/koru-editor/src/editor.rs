@@ -37,8 +37,8 @@ use crate::paragraph::Paragraph;
 use crate::rowlayout;
 use crate::trigger::{self, Anchor, PillSpec, Trigger, TriggerKind};
 use crate::view_state::{
-    DragRow, Hover, ImageResize, LinkChipHit, OpenWhere, ScrollAnim, SearchFlash, ViewState,
-    image_handle_at,
+    DragRow, Hover, ImageResize, LinkChipHit, OpenWhere, SaveDiagramAs, ScrollAnim, SearchFlash,
+    ViewState, image_handle_at,
 };
 
 const SEARCH_FLASH_DURATION: Duration = Duration::from_millis(1200);
@@ -1449,9 +1449,12 @@ pub trait Editing {
         self.view().scroll_anim.is_some() || self.drag_autoscroll_velocity() != 0.0
     }
 
-    /// Signed scroll velocity for a live selection drag at a viewport edge.
+    /// Signed scroll velocity for a live selection drag, or a row drag, at a
+    /// viewport edge. A block dragged to the bottom of the window used to
+    /// stop there: the page did not scroll, so it could not be moved below
+    /// what was in view.
     fn drag_autoscroll_velocity(&self) -> f32 {
-        if !self.view().dragging {
+        if !self.view().dragging && self.view().drag_row.is_none() {
             return 0.0;
         }
         let view = self.view();
@@ -1504,6 +1507,18 @@ pub trait Editing {
         let (x, y) = self.view().pointer;
         let cx = x - self.view().content_x;
         let doc_y = y + self.view().scroll;
+        // A row drag: the drop target follows the pointer into the newly
+        // exposed rows, the same way `mouse_move` tracks it.
+        if self.view().drag_row.is_some() {
+            let to = self
+                .body_mut()
+                .row_near_y(doc_y)
+                .max(self.body().first_body_row());
+            let drag = self.view_mut().drag_row.as_mut().expect("checked above");
+            let changed = drag.to != to;
+            drag.to = to;
+            return true || changed;
+        }
         self.drag_selection_to(cx, doc_y)
     }
 
@@ -1535,6 +1550,10 @@ pub trait Editing {
                 && (view.table_source == Some(row.id)
                     || row.table.as_ref().is_some_and(|table| table.grid.is_none()));
         }
+        // The same mirror for diagram rows — what each shows this frame — and
+        // the requests for any text the view has no answer for yet. One hash
+        // and one lookup per diagram row; nothing is laid out here.
+        crate::diagram::sync(body, view);
         // Rows wrap to the page width in Page/Narrow, not the raw viewport —
         // see `set_viewport` for why this is the effective width.
         let layout_w = view.view_mode.effective_w(view.viewport.0);
@@ -2393,6 +2412,11 @@ pub trait Editing {
         self.body_mut().clear_selection();
         self.view_mut().overlay = Overlay::None;
         self.view_mut().desired_x = None;
+        // Leaving a diagram's text closes it: the block goes back to being a
+        // picture (or its text and reason) as the caret lands below.
+        if self.view().diagram_text_open == Some(code) {
+            self.view_mut().diagram_text_open = None;
+        }
         // Move into an existing following row if there is one; otherwise make
         // one. Creating only when needed keeps the document from accumulating
         // empty paragraphs every time you leave a block.
@@ -2418,7 +2442,9 @@ pub trait Editing {
     /// If the focused prose line is a markdown fence, convert it to a code
     /// block — clearing the fence text and pinning the captured language — and
     /// return true. Only when the whole line is the fence and the caret is at
-    /// its end, so a backtick typed mid-sentence is left alone.
+    /// its end, so a backtick typed mid-sentence is left alone. Enter and a
+    /// space both come here: the fence waits for one of them, so its language
+    /// can be typed first.
     fn try_fence(&mut self, ws: &mut WorkspaceDoc) -> bool {
         let Some(row) = self.body().focused() else {
             return false;
@@ -2455,6 +2481,17 @@ pub trait Editing {
     /// and the caller should split it. The mirror, for *above*, is
     /// [`enter_block_above`](Self::enter_block_above) (Shift+Enter).
     fn enter_on_block(&mut self, ws: &mut WorkspaceDoc) -> bool {
+        // A drawn diagram is the one block Enter opens rather than steps past:
+        // its text is what a person wants next, and it is one Enter away.
+        // Shift+Enter above it stays the structural insert every block has.
+        if let Some(diagram) = self
+            .body()
+            .focused()
+            .filter(|row| row.diagram_shows_picture())
+            .map(|row| row.id)
+        {
+            return self.open_diagram_text(diagram);
+        }
         let Some(block_id) = self.focused_block_id() else {
             return false;
         };
@@ -2547,8 +2584,224 @@ pub trait Editing {
         let row = self.body().focused()?;
         let is_block = row.image.is_some()
             || row.kind == koru_core::node::Kind::Divider
-            || (row.kind == Kind::Table && !row.table_source_visible);
+            || (row.kind == Kind::Table && !row.table_source_visible)
+            || row.diagram_shows_picture();
         is_block.then_some(row.id)
+    }
+
+    // ------------------------------------------------------------- diagrams
+    //
+    // A `mermaid` code block drawn in place (`crate::diagram`). The editor
+    // keeps the state per view and asks the host for every layout; these are
+    // the seam the host calls and the two gestures a person has.
+
+    /// The layouts the editor is waiting for, in the order it asked, taken
+    /// off the queue. The host lays each text out on a worker of its own and
+    /// answers through [`diagram_result`](Self::diagram_result). Empty on
+    /// almost every call: a request is pushed once per distinct text.
+    fn take_diagram_requests(&mut self) -> Vec<crate::diagram::DiagramRequest> {
+        std::mem::take(&mut self.view_mut().diagram_requests)
+    }
+
+    /// The host's answer for `node`'s text `text_hash`: the prepared drawing,
+    /// or the status that says why there is none (every failure mapped to a
+    /// `Status` by the host — a timeout as too large, an internal error as a
+    /// line that could not be read).
+    ///
+    /// Ignored unless that hash is the one in flight for the node, so a stale
+    /// answer never puts a drawing of other text on screen. `true` means the
+    /// view changed and a redraw is owed: the host returns it from its
+    /// `maintain`, and the next frame's reflow takes the new height from the
+    /// entry without reshaping any text.
+    fn diagram_result(
+        &mut self,
+        node: NodeId,
+        text_hash: u64,
+        result: Result<std::sync::Arc<koru_draw::diagram::PreparedDiagram>, koru_diagram::Status>,
+    ) -> bool {
+        crate::diagram::land(self.view_mut(), node, text_hash, result)
+    }
+
+    /// Open a diagram's text for editing in this view, with the caret on the
+    /// line its status names — the unreadable line of a `NotParsed`, line 1
+    /// otherwise. Enter on the selected drawing, the *Edit text* control and
+    /// the menu row all come here. `false` when `node` is not a diagram row.
+    ///
+    /// On a block whose text is already showing (closed and not drawing) this
+    /// is a caret placement: the text was never hidden, so there is nothing
+    /// to reveal, and marking it open means the drawing returns *below* the
+    /// text once the line is fixed rather than replacing it mid-edit.
+    fn open_diagram_text(&mut self, node: NodeId) -> bool {
+        let Some(row) = self
+            .body()
+            .row(node)
+            .filter(|row| crate::diagram::is_diagram_row(row))
+        else {
+            return false;
+        };
+        let line = match self.view().diagrams.get(&node).map(|entry| &entry.state) {
+            Some(crate::diagram::DiagramState::Failed(koru_diagram::Status::NotParsed {
+                line,
+                ..
+            })) => *line,
+            _ => 1,
+        };
+        let at = crate::diagram::line_start(&row.text, line);
+        self.body_mut().clear_selection();
+        self.body_mut().focus_on(node);
+        let view = self.view_mut();
+        view.diagram_text_open = Some(node);
+        view.active = true;
+        view.overlay = Overlay::None;
+        view.drag_row = None;
+        view.desired_x = None;
+        // The control's job is done; the text under the pointer is the
+        // answer now.
+        if view.table_controls_node == Some(node) {
+            view.table_controls.clear();
+            view.table_controls_node = None;
+        }
+        self.place_caret(at);
+        self.reflow();
+        self.scroll_to_caret();
+        true
+    }
+
+    /// Ask the document app to show `node`'s drawing in its viewer — the
+    /// magnifier control, a double click on the drawing and the menu's
+    /// *Open* row all come here. The block is selected first, the way a
+    /// click on the drawing selects it, so what the viewer closes back onto
+    /// is the block it opened from. `false` when `node` is not a diagram
+    /// row showing its picture: there is nothing to open, and the gesture
+    /// falls through unclaimed. The editor owns no modal, so this only sets
+    /// `wants_open_diagram`; the app drains it after the press.
+    fn ask_open_diagram(&mut self, node: NodeId) -> bool {
+        if !self.select_drawing(node) {
+            return false;
+        }
+        self.view_mut().wants_open_diagram = Some(node);
+        true
+    }
+
+    /// Ask the document app to put `node`'s drawing on the clipboard — the
+    /// *Copy image* control. The block is selected the way *Open* selects
+    /// it, the shared copy glyph confirms at once (the shell writes the
+    /// clipboard on its next pass, and a person is owed the check now, not
+    /// then), and the toast every copy raises is asked for. `false` when
+    /// `node` is not a diagram row showing its picture.
+    fn ask_copy_diagram(&mut self, node: NodeId) -> bool {
+        if !self.select_drawing(node) {
+            return false;
+        }
+        let view = self.view_mut();
+        view.copy.confirm(Instant::now());
+        view.wants_copy_diagram = Some(node);
+        view.wants_toast = Some(koru_ui::CopyAffordance::TOAST.to_string());
+        true
+    }
+
+    /// Ask the document app to raise *Save as…* on `node`'s drawing — the
+    /// control beside *Copy image*, on the route the menu row and the chord
+    /// already take. `false` when `node` is not a diagram row showing its
+    /// picture.
+    fn ask_save_diagram(&mut self, node: NodeId) -> bool {
+        if !self.select_drawing(node) {
+            return false;
+        }
+        self.view_mut().wants_save_diagram_as = Some(SaveDiagramAs { node });
+        true
+    }
+
+    /// Select the drawing a control was pressed on, the way a click on the
+    /// drawing selects it: focus on the block, no selection, no overlay, no
+    /// drag. `false` when `node` is not a diagram row showing its picture,
+    /// so the gesture falls through unclaimed.
+    fn select_drawing(&mut self, node: NodeId) -> bool {
+        if !self
+            .body()
+            .row(node)
+            .is_some_and(Paragraph::diagram_shows_picture)
+        {
+            return false;
+        }
+        self.body_mut().clear_selection();
+        self.body_mut().focus_on(node);
+        let view = self.view_mut();
+        view.active = true;
+        view.overlay = Overlay::None;
+        view.drag_row = None;
+        true
+    }
+
+    /// Close the open diagram text, if any, so the block shows its picture
+    /// again (or its text and reason, when the text does not draw). The
+    /// drawing of the last text that worked stays in the entry for the next
+    /// time the text is opened. `true` when something was open.
+    fn close_diagram_text(&mut self) -> bool {
+        if self.view_mut().diagram_text_open.take().is_none() {
+            return false;
+        }
+        self.reflow();
+        true
+    }
+
+    /// Show a selected drawing's *Edit text* control the moment the keyboard
+    /// lands on it, through the clock hover uses — `set_focus` neither waits
+    /// nor fades in, because arrowing onto a block has already said what the
+    /// person wants to know. Leaving the drawing by keyboard lets it fade; a
+    /// control the pointer revealed on some other block is left alone.
+    fn sync_diagram_controls_focus(&mut self, now: Instant) {
+        let focused = self
+            .body()
+            .focused()
+            .filter(|row| row.diagram_shows_picture() && self.view().active)
+            .map(|row| (row.id, self.diagram_control_content(row)));
+        let shown = self.view().table_controls_node;
+        match focused {
+            Some((id, content)) => {
+                if shown != Some(id) || !self.view().table_controls.is_present() {
+                    let view = self.view_mut();
+                    view.table_controls_node = Some(id);
+                    view.table_controls.set_focus(Some(content), now);
+                }
+            }
+            None => {
+                let on_diagram = shown.is_some_and(|id| {
+                    self.body()
+                        .row(id)
+                        .is_some_and(Paragraph::diagram_shows_picture)
+                });
+                // The pointer resting on that very row still wants it.
+                let pointer_on_it = self
+                    .view()
+                    .hover
+                    .and_then(Hover::row)
+                    .and_then(|index| self.body().rows.get(index))
+                    .map(|row| row.id)
+                    == shown;
+                if on_diagram && !pointer_on_it {
+                    let view = self.view_mut();
+                    if view.table_controls.set_focus(None, now) && !view.table_controls.is_present()
+                    {
+                        view.table_controls_node = None;
+                    }
+                }
+            }
+        }
+    }
+
+    /// What the controls clock carries for a drawn diagram: its one control's
+    /// name, anchored on the row. The key is the node, so moving between two
+    /// drawings restarts the reveal rather than sliding one.
+    fn diagram_control_content(&self, row: &Paragraph) -> koru_ui::TooltipContent {
+        let raw = row.id.as_uuid().as_u128();
+        let key = raw as u64 ^ (raw >> 64) as u64;
+        let anchor = Rect::new(row.text_x(), row.y, self.view().viewport.0, row.height);
+        koru_ui::TooltipContent::new(
+            key,
+            anchor,
+            koru_i18n::t(koru_i18n::current(), koru_i18n::Key::DiagramEditText),
+        )
     }
 
     /// Follow a step through history, offering the caret offset the edit took
@@ -2917,16 +3170,15 @@ pub trait Editing {
         // An image row has no text to delete within and no neighbour to merge
         // with, so Backspace/Delete remove the block itself — delegating to the
         // whole-row path, which already handles a focused image and repositions
-        // the caret. A divider is the same: no text, no merge.
-        if self
-            .body()
-            .focused()
-            .is_some_and(|r| r.kind == koru_core::node::Kind::Image)
-            || self
-                .body()
-                .focused()
-                .is_some_and(|r| r.kind == koru_core::node::Kind::Divider)
-        {
+        // the caret. A divider is the same: no text, no merge. A diagram
+        // showing its picture is selected like an image and goes like one —
+        // the whole block, in one undoable step — rather than losing a
+        // character of text nobody can see.
+        if self.body().focused().is_some_and(|r| {
+            r.kind == koru_core::node::Kind::Image
+                || r.kind == koru_core::node::Kind::Divider
+                || r.diagram_shows_picture()
+        }) {
             self.delete_rows(ws, true);
             return;
         }
@@ -4396,6 +4648,13 @@ pub trait Editing {
                 }
             }
             Action::CollapseSelection => {
+                // Escape in an open diagram text closes it first: the block
+                // is a picture again (or its text and reason), still focused.
+                if self.view().diagram_text_open.is_some()
+                    && self.view().diagram_text_open == self.body().focused_id()
+                {
+                    self.close_diagram_text();
+                }
                 if let Some(row) = self.body_mut().focused_mut() {
                     row.selection = row.selection.collapse();
                 }
@@ -4667,6 +4926,32 @@ pub trait Editing {
                 };
                 self.body_mut().set_done(ws, id, !done);
             }
+            // **Only a drawn diagram has a picture to save**, and only while
+            // it is showing it: a paragraph, a block whose text is open, a
+            // placeholder or a block that does not draw all answer `false`,
+            // the `TickCheckbox` rule, so the chord is left unhandled rather
+            // than claimed for nothing. The same test the menu applies before
+            // it offers the row; the shell performs the save.
+            Action::SaveDiagramAs => {
+                let Some(node) = self
+                    .body()
+                    .focused()
+                    .filter(|row| crate::diagram::is_diagram_row(row))
+                    .map(|row| row.id)
+                else {
+                    return false;
+                };
+                let view = self.view();
+                let drawn = view.diagram_text_open != Some(node)
+                    && matches!(
+                        view.diagrams.get(&node).map(|entry| &entry.state),
+                        Some(crate::diagram::DiagramState::Drawn(_))
+                    );
+                if !drawn {
+                    return false;
+                }
+                self.view_mut().wants_save_diagram_as = Some(SaveDiagramAs { node });
+            }
             Action::ToggleHideCompleted | Action::Reorder(_) | Action::Indent(_) => {
                 debug_assert_eq!(action.scope(), Scope::Structural);
                 return false;
@@ -4689,15 +4974,16 @@ pub trait Editing {
         self.reflow();
         let (body, view) = self.parts();
         view.overlay.refresh(body);
-        if self
-            .body()
-            .focused()
-            .is_some_and(|row| row.image.is_some() || row.kind == koru_core::node::Kind::Divider)
-        {
+        if self.body().focused().is_some_and(|row| {
+            row.image.is_some()
+                || row.kind == koru_core::node::Kind::Divider
+                || row.diagram_shows_picture()
+        }) {
             self.scroll_row_into_view(self.body().focus);
         } else {
             self.scroll_to_caret();
         }
+        self.sync_diagram_controls_focus(Instant::now());
     }
 
     /// Refresh a live typed trigger's CRDT endpoints after a local edit. The
@@ -4957,33 +5243,6 @@ pub trait Editing {
         if text == "\t" && self.title_focused() {
             return;
         }
-        // The markdown fence: a third backtick at the start of a line opens a
-        // code block immediately, no Enter needed. The line is "``" and this
-        // keystroke is the third backtick; with no selection it is the fence
-        // rather than the inline-code gesture below.
-        if text == "`"
-            && self.view().code_enabled
-            && !self.title_focused()
-            && self.body().focused().is_some_and(|r| {
-                r.kind != Kind::Code
-                    && r.image.is_none()
-                    && r.range().is_empty()
-                    && r.caret() == r.text.len()
-                    && r.text == "``"
-            })
-        {
-            let id = self.body().focused().unwrap().id;
-            ws.checkpoint();
-            ws.begin_group();
-            let _ = ws.set_text(id, "");
-            let _ = ws.set_kind(id, Kind::Code);
-            ws.checkpoint();
-            self.body_mut().rebuild(ws);
-            self.body_mut().focus_on(id);
-            self.place_caret(0);
-            self.reflow();
-            return;
-        }
         // Selecting text and pressing `` ` `` wraps it in inline code — the
         // praised gesture from GitHub/Obsidian/Slack — rather than replacing the
         // selection with a backtick. Toggling: press it again on an all-code
@@ -5002,11 +5261,27 @@ pub trait Editing {
             }
         }
         // A divider carries no text: keystrokes that reach it do nothing rather
-        // than silently logging a `NonEmptyText` rejection from the model.
+        // than silently logging a `NonEmptyText` rejection from the model. A
+        // diagram showing its picture has text, but none a person can see:
+        // typing into it blind would change a drawing's source without
+        // showing a letter, so it does nothing too — Enter opens the text.
         if self
             .body()
             .focused()
-            .is_some_and(|r| r.kind == koru_core::node::Kind::Divider)
+            .is_some_and(|r| r.kind == koru_core::node::Kind::Divider || r.diagram_shows_picture())
+        {
+            return;
+        }
+        // The markdown fence waits for its language. A third backtick stays
+        // text, so ```` ```mermaid ```` can be typed whole; a space at the end
+        // of a line that is exactly a fence opens the code block, the same
+        // moment `## ` makes a heading. Enter does the same through the split
+        // path. With a selection the space replaces it instead, as anywhere.
+        if text == " "
+            && self.view().code_enabled
+            && !self.title_focused()
+            && self.body().focused().is_some_and(|r| r.range().is_empty())
+            && self.try_fence(ws)
         {
             return;
         }
@@ -5492,6 +5767,13 @@ pub trait Editing {
             self.view_mut().overlay = Overlay::None;
             if let Some(t) = trigger {
                 self.commit_code(ws, t);
+            }
+            return;
+        }
+        if cmd == command_menu::Command::Diagram {
+            self.view_mut().overlay = Overlay::None;
+            if let Some(t) = trigger {
+                self.commit_diagram(ws, t);
             }
             return;
         }
@@ -6601,6 +6883,58 @@ pub trait Editing {
         self.place_caret(trigger.start);
     }
 
+    /// Take `/diagram` back out and start a diagram: a `mermaid` code block
+    /// holding [`diagram::example`](crate::diagram::example), its text open
+    /// with the whole example selected and the drawing below it — so typing
+    /// or pasting replaces the example at once, and an arrow keeps it.
+    ///
+    /// **A line that has words keeps them.** Unlike `/code`, which makes the
+    /// line itself code, the diagram goes in a new block below: a sentence is
+    /// never Mermaid, and turning it into a block that cannot draw would only
+    /// move the person's words somewhere they have to fetch them back from.
+    /// An empty line — and the margin `+`'s fresh paragraph — becomes the
+    /// diagram in place. One undo group either way.
+    fn commit_diagram(&mut self, ws: &mut WorkspaceDoc, trigger: Trigger) {
+        if !self.view().code_enabled {
+            return;
+        }
+        let Some(row) = self.body_mut().row(trigger.node) else {
+            return;
+        };
+        let (len, caret) = (row.text.len(), row.caret());
+        let end = caret.clamp(trigger.start, len);
+        let id = trigger.node;
+        let example = crate::diagram::example(koru_i18n::current());
+        self.body_mut().focus_on(id);
+        ws.checkpoint();
+        ws.begin_group();
+        if end > trigger.start {
+            let _ = ws.delete_text(id, trigger.start..end);
+        }
+        let block = if ws.text_len(id).unwrap_or(0) == 0 {
+            let _ = ws.set_heading(id, None);
+            let _ = ws.set_kind(id, Kind::Code);
+            let _ = ws.set_text(id, &example);
+            id
+        } else {
+            let Some(below) = Node::code(example.as_str())
+                .ok()
+                .and_then(|node| ws.insert_after(id, node).ok())
+            else {
+                ws.checkpoint();
+                return;
+            };
+            below
+        };
+        let _ = ws.set_language(block, Some(crate::diagram::LANGUAGE));
+        ws.checkpoint();
+        self.body_mut().rebuild(ws);
+        if self.open_diagram_text(block) {
+            self.place_selection_pair((0, example.len()));
+            self.reflow();
+        }
+    }
+
     /// Take the typed `/command` back out and leave the caret where it was.
     ///
     /// [`commit_code`](Self::commit_code) and its neighbours all begin with
@@ -7681,6 +8015,11 @@ pub trait Editing {
     fn update_table_controls_hover(&mut self, hover: Option<Hover>, now: Instant) -> bool {
         let target = hover.and_then(Hover::row).and_then(|index| {
             let row = self.body().rows.get(index)?;
+            if row.diagram_shows_picture() {
+                // A drawn diagram's one control rides the same clock, so the
+                // reveal feels the same on every block.
+                return Some((row.id, self.diagram_control_content(row)));
+            }
             (row.kind == Kind::Table).then(|| {
                 let raw = row.id.as_uuid().as_u128();
                 let key = raw as u64 ^ (raw >> 64) as u64;
@@ -7991,6 +8330,20 @@ pub trait Editing {
             // wears the grab hand rather than an I-beam (reuses `Hover::Image`).
             return Some(Hover::Image(i));
         }
+        // A drawn diagram is a picture too — except for its controls at the
+        // panel's corner, once the clock has revealed them. Asked before the
+        // code block's chips, which a picture does not wear.
+        if row.diagram_shows_picture() {
+            let layout_w = self.view().view_mode.effective_w(self.view().viewport.0);
+            if self.table_controls_alpha(row.id, Instant::now()) > 0.0
+                && let Some(control) = crate::diagram::Control::ALL.into_iter().find(|&control| {
+                    rowlayout::diagram_control_rect(row, layout_w, control).contains(x, doc_y)
+                })
+            {
+                return Some(Hover::DiagramControl { row: i, control });
+            }
+            return Some(Hover::Image(i));
+        }
         if row.kind == Kind::Table
             && let Some(table) = row.table.as_ref()
         {
@@ -8020,6 +8373,13 @@ pub trait Editing {
         let layout_w = self.view().view_mode.effective_w(self.view().viewport.0);
         if row.kind == Kind::Code && rowlayout::copy_chip_rect(row, layout_w).contains(x, doc_y) {
             return Some(Hover::Copy(i));
+        }
+        // The *Done* check, left of the copy icon, only while a diagram's text
+        // is open: it is the way back to the picture for a hand on the mouse.
+        if row.diagram.as_ref().is_some_and(|state| state.open)
+            && rowlayout::diagram_done_rect(row, layout_w).contains(x, doc_y)
+        {
+            return Some(Hover::DiagramDone(i));
         }
         if row.kind == Kind::Code && rowlayout::lang_chip_rect(row, layout_w).contains(x, doc_y) {
             return Some(Hover::Lang(i));
@@ -8320,6 +8680,51 @@ pub trait Editing {
         // x — so the hit-test matches what `draw_document` draws and `hover_at`
         // reports, rather than disagreeing by `content_x` in Page/Narrow.
         let layout_w = self.view().view_mode.effective_w(self.view().viewport.0);
+        // A diagram showing its picture is selected, not edited — the image
+        // pattern: focus it, arm a drag from the drawing, place no caret. Its
+        // controls open the viewer, copy and save the picture, and open the
+        // text; its chips are not drawn, so they are not asked. The caret
+        // the picture hid is collapsed, so a Copy takes the whole block
+        // rather than a range nobody can see.
+        if self.body().rows[i].diagram_shows_picture() {
+            let row = &self.body().rows[i];
+            let id = row.id;
+            if self.table_controls_alpha(id, Instant::now()) > 0.0
+                && let Some(control) = crate::diagram::Control::ALL.into_iter().find(|&control| {
+                    rowlayout::diagram_control_rect(row, layout_w, control).contains(cx, doc_y)
+                })
+            {
+                return match control {
+                    crate::diagram::Control::Open => self.ask_open_diagram(id),
+                    crate::diagram::Control::Copy => self.ask_copy_diagram(id),
+                    crate::diagram::Control::Save => self.ask_save_diagram(id),
+                    crate::diagram::Control::Edit => self.open_diagram_text(id),
+                };
+            }
+            if self.grip_rect(i).is_some_and(|r| r.contains(cx, doc_y)) {
+                self.view_mut().drag_row = Some(DragRow { from: i, to: i });
+                return true;
+            }
+            let on_block = match row.diagram.as_ref().and_then(|state| {
+                rowlayout::diagram_layout(row, state, row.height, layout_w).drawing
+            }) {
+                Some(drawing) => Rect::new(drawing.x, row.y + drawing.y, drawing.w, drawing.h)
+                    .contains(cx, doc_y),
+                // The placeholder is the whole block, like a divider.
+                None => true,
+            };
+            self.body_mut().clear_selection();
+            {
+                let row = &mut self.body_mut().rows[i];
+                row.selection = row.selection.collapse();
+            }
+            self.view_mut().active = true;
+            if on_block {
+                self.view_mut().drag_row = Some(DragRow { from: i, to: i });
+            }
+            self.reflow();
+            return true;
+        }
         if self.body().rows[i].kind == Kind::Code
             && rowlayout::copy_chip_rect(&self.body().rows[i], layout_w).contains(cx, doc_y)
         {
@@ -8327,6 +8732,22 @@ pub trait Editing {
             let now = Instant::now();
             self.view_mut().copy.click(&text, now);
             self.view_mut().wants_toast = Some(koru_ui::CopyAffordance::TOAST.to_string());
+            return true;
+        }
+        // *Done* closes the open diagram text, as Escape does: the block is
+        // its picture again, still the selected row.
+        if self.body().rows[i]
+            .diagram
+            .as_ref()
+            .is_some_and(|state| state.open)
+            && rowlayout::diagram_done_rect(&self.body().rows[i], layout_w).contains(cx, doc_y)
+        {
+            let node = self.body().rows[i].id;
+            self.close_diagram_text();
+            self.body_mut().clear_selection();
+            self.body_mut().focus_on(node);
+            self.view_mut().active = true;
+            self.reflow();
             return true;
         }
         if self.body().rows[i].kind == Kind::Code
@@ -8770,6 +9191,34 @@ pub trait Editing {
             if Rect::new(ix, row.y - self.view().scroll, iw, ih).contains(cx, y) {
                 let id = row.id;
                 return self.start_image_rename(ws, id);
+            }
+            return false;
+        }
+        // A double click on a drawing opens it in the viewer — the picture's
+        // counterpart to an image's rename, and the same gesture every
+        // image viewer answers. On the panel beside the drawing it is two
+        // selecting clicks, which the first already was.
+        if self.body().rows[i].diagram_shows_picture() {
+            let row = &self.body().rows[i];
+            let on_drawing = row
+                .diagram
+                .as_ref()
+                .and_then(|state| {
+                    rowlayout::diagram_layout(
+                        row,
+                        state,
+                        row.height,
+                        self.view().view_mode.effective_w(self.view().viewport.0),
+                    )
+                    .drawing
+                })
+                .is_some_and(|drawing| {
+                    Rect::new(drawing.x, row.y + drawing.y, drawing.w, drawing.h)
+                        .contains(cx, doc_y)
+                });
+            if on_drawing {
+                let id = row.id;
+                return self.ask_open_diagram(id);
             }
             return false;
         }
@@ -11279,6 +11728,44 @@ mod tests {
         assert_eq!(selected(&e), vec![2], "a second Ctrl+click toggles off");
     }
 
+    /// A row dragged by its grip to the bottom edge scrolls the page and the
+    /// drop target follows the pointer into the rows that come into view.
+    /// It stopped at the edge, so a block could not be moved below what was
+    /// on screen.
+    #[test]
+    fn dragging_a_row_at_the_document_edge_scrolls_and_moves_the_drop_target() {
+        let (mut ws, mut e) = overflowing_editor();
+        let grip = e.grip_rect(1).expect("a body row has a grip");
+        e.mouse_down(
+            &mut ws,
+            e.view.content_x + grip.x + grip.w * 0.5,
+            grip.y + grip.h * 0.5 - e.view.scroll,
+            false,
+        );
+        assert_eq!(
+            e.view.drag_row.map(|d| d.from),
+            Some(1),
+            "the grip starts a drag"
+        );
+        let floor = e.view.chrome_h + e.view.content_viewport_h() - 1.0;
+        e.mouse_move(200.0, floor);
+        let to_before = e.view.drag_row.unwrap().to;
+        assert!(e.is_scroll_animating(), "the edge keeps requesting frames");
+
+        let now = Instant::now();
+        e.advance_drag_autoscroll(now);
+        e.advance_drag_autoscroll(now + Duration::from_millis(200));
+
+        assert!(e.view.scroll > 0.0, "the page scrolled under the pointer");
+        assert!(
+            e.view.drag_row.unwrap().to > to_before,
+            "the drop target moved down with the page"
+        );
+        e.mouse_up(&mut ws);
+        assert!(e.view.drag_row.is_none());
+        assert!(!e.is_scroll_animating(), "release stops the edge wakeups");
+    }
+
     #[test]
     fn dragging_at_the_document_edge_scrolls_and_grows_the_selection() {
         let (mut ws, mut e) = overflowing_editor();
@@ -12284,11 +12771,10 @@ mod tests {
         assert_eq!(ws.read(id).unwrap().content.as_text(), Some("\n"));
     }
 
-    /// Typing the third backtick at the start of a line opens a code block
-    /// immediately — the markdown fence, no Enter needed. The "``" is cleared
-    /// and the block starts empty (the language is set with the chip).
+    /// The markdown fence waits for its language: three typed backticks stay
+    /// text, so the line can go on to name one. Nothing is a code block yet.
     #[test]
-    fn typing_three_backticks_opens_a_code_block() {
+    fn three_typed_backticks_stay_text_until_enter_or_space() {
         let (mut ws, mut e) = doc_editor(&[""]);
         e.view.active = true;
         type_str(&mut e, &mut ws, "```");
@@ -12296,23 +12782,155 @@ mod tests {
         let node = ws.read(id).unwrap();
         assert_eq!(
             node.kind,
-            Kind::Code,
-            "the third backtick opened a code block"
+            Kind::Paragraph,
+            "the third backtick converts nothing"
         );
         assert_eq!(
             node.content.as_text(),
+            Some("```"),
+            "the fence is still text"
+        );
+    }
+
+    /// A space after a bare fence opens a plain code block, the moment `## `
+    /// makes a heading: the backticks are cleared and no language is pinned.
+    #[test]
+    fn a_fence_and_a_space_open_a_plain_code_block() {
+        let (mut ws, mut e) = doc_editor(&[""]);
+        e.view.active = true;
+        type_str(&mut e, &mut ws, "``` ");
+        let id = e.body.focused().unwrap().id;
+        let node = ws.read(id).unwrap();
+        assert_eq!(node.kind, Kind::Code);
+        assert_eq!(
+            node.content.as_text(),
             Some(""),
-            "the fence backticks were cleared"
+            "neither the fence nor the space is kept"
         );
         assert_eq!(
             node.meta.language, None,
             "no language until the chip picks one"
         );
+        type_str(&mut e, &mut ws, "x");
+        assert_eq!(
+            ws.read(id).unwrap().content.as_text(),
+            Some("x"),
+            "the caret is in the block"
+        );
     }
 
-    /// A pasted fence with a language still converts on Enter — the instant
-    /// fence only fires on the typed third backtick, so pasted "```rust" goes
-    /// through the Enter path and keeps its language.
+    /// A typed fence keeps the language it names, through a space or Enter.
+    #[test]
+    fn a_typed_fence_keeps_its_language_through_a_space_or_enter() {
+        let (mut ws, mut e) = doc_editor(&[""]);
+        e.view.active = true;
+        type_str(&mut e, &mut ws, "```rust ");
+        let id = e.body.focused().unwrap().id;
+        let node = ws.read(id).unwrap();
+        assert_eq!(node.kind, Kind::Code);
+        assert_eq!(node.content.as_text(), Some(""));
+        assert_eq!(node.meta.language.as_deref(), Some("rust"));
+
+        let (mut ws, mut e) = doc_editor(&[""]);
+        e.view.active = true;
+        type_str(&mut e, &mut ws, "```python");
+        e.act(&mut ws, Action::SplitLine);
+        let id = e.body.focused().unwrap().id;
+        let node = ws.read(id).unwrap();
+        assert_eq!(node.kind, Kind::Code);
+        assert_eq!(node.meta.language.as_deref(), Some("python"));
+        assert_eq!(
+            e.body.rows.len(),
+            1,
+            "Enter converted the line rather than splitting it"
+        );
+    }
+
+    /// ```` ```mermaid ```` and Enter is how a diagram is started by hand: an
+    /// empty `mermaid` code block, the caret in its text and no picture yet,
+    /// so the hint is what the block shows.
+    #[test]
+    fn a_typed_mermaid_fence_starts_an_empty_diagram() {
+        let (mut ws, mut e) = doc_editor(&[""]);
+        e.view.active = true;
+        type_str(&mut e, &mut ws, "```mermaid");
+        e.act(&mut ws, Action::SplitLine);
+        let row = e.body.focused().unwrap();
+        let id = row.id;
+        assert!(
+            !row.diagram_shows_picture(),
+            "an empty diagram is its text, not a picture"
+        );
+        let node = ws.read(id).unwrap();
+        assert_eq!(node.kind, Kind::Code);
+        assert_eq!(node.meta.language.as_deref(), Some("mermaid"));
+        assert_eq!(node.content.as_text(), Some(""));
+        type_str(&mut e, &mut ws, "flowchart LR");
+        assert_eq!(ws.read(id).unwrap().content.as_text(), Some("flowchart LR"));
+    }
+
+    /// Only a line that is the whole fence converts: backticks mid-sentence,
+    /// a space with the fence selected, and a view without code blocks all
+    /// type as text.
+    #[test]
+    fn a_fence_converts_only_as_a_whole_line_where_code_is_offered() {
+        let (mut ws, mut e) = doc_editor(&[""]);
+        e.view.active = true;
+        type_str(&mut e, &mut ws, "see ``` ");
+        let id = e.body.focused().unwrap().id;
+        assert_eq!(ws.read(id).unwrap().kind, Kind::Paragraph);
+        assert_eq!(ws.read(id).unwrap().content.as_text(), Some("see ``` "));
+
+        let (mut ws, mut e) = doc_editor(&[""]);
+        e.view.active = true;
+        type_str(&mut e, &mut ws, "```");
+        let id = e.body.focused().unwrap().id;
+        e.place_selection_pair((0, 3));
+        e.reflow();
+        assert!(
+            !e.body.focused().unwrap().range().is_empty(),
+            "the fence is selected"
+        );
+        type_str(&mut e, &mut ws, " ");
+        assert_eq!(
+            ws.read(id).unwrap().kind,
+            Kind::Paragraph,
+            "a selection is replaced, not fenced"
+        );
+
+        let (mut ws, mut e) = doc_editor(&[""]);
+        e.view.active = true;
+        e.view.code_enabled = false;
+        type_str(&mut e, &mut ws, "```rust ");
+        let id = e.body.focused().unwrap().id;
+        assert_eq!(
+            ws.read(id).unwrap().kind,
+            Kind::Paragraph,
+            "no code blocks here"
+        );
+    }
+
+    /// One Ctrl+Z takes the code block away and gives the typed fence back.
+    #[test]
+    fn one_undo_brings_the_typed_fence_back() {
+        let (mut ws, mut e) = doc_editor(&[""]);
+        e.view.active = true;
+        type_str(&mut e, &mut ws, "```rust ");
+        let id = e.body.focused().unwrap().id;
+        assert_eq!(ws.read(id).unwrap().kind, Kind::Code);
+        e.key(
+            &mut ws,
+            &Key::Character("z".into()),
+            None,
+            koru_keys::PRIMARY,
+        );
+        let node = ws.read(id).unwrap();
+        assert_eq!(node.kind, Kind::Paragraph);
+        assert_eq!(node.content.as_text(), Some("```rust"));
+        assert_eq!(node.meta.language, None);
+    }
+
+    /// A pasted fence with a language converts on Enter and keeps it.
     #[test]
     fn a_pasted_fence_with_language_converts_on_enter() {
         let (mut ws, mut e) = doc_editor(&[""]);
