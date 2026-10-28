@@ -287,6 +287,9 @@ pub enum MenuAction {
     SessionAssignProject(Option<ProjectId>),
     /// The explicit kill, behind Koru Terminal's confirm.
     SessionTerminate,
+    /// *Install Koru MCP*, on the tab of an agent that has no per-launch form
+    /// for it (ADR-471): registers the bridge in the agent's own configuration.
+    InstallMcp,
 
     Open,
     OpenInNewWindow,
@@ -926,6 +929,7 @@ impl MenuAction {
                     .unwrap_or(id)
             }
             MenuAction::PopOut => "Move to New Window",
+            MenuAction::InstallMcp => "Install Koru MCP",
             MenuAction::Close => "Close",
             MenuAction::CloseOthers => "Close Other Tabs",
             MenuAction::CloseLeft => "Close Tabs to the Left",
@@ -1419,6 +1423,18 @@ pub fn tab_items(
     pinned: bool,
     show_title: bool,
 ) -> Vec<MenuAction> {
+    tab_items_for(document, pinnable, pinned, show_title, false)
+}
+
+/// [`tab_items`], with *Install Koru MCP* above the window verb when the tab
+/// is an agent that can be given the bridge only by registering it.
+pub fn tab_items_for(
+    document: bool,
+    pinnable: bool,
+    pinned: bool,
+    show_title: bool,
+    install_mcp: bool,
+) -> Vec<MenuAction> {
     let mut items = Vec::new();
     if (document || pinnable) && !pinned {
         items.push(MenuAction::PinTab);
@@ -1434,6 +1450,12 @@ pub fn tab_items(
         items.push(MenuAction::Divider);
     }
     items.extend_from_slice(&TAB_ITEMS);
+    if install_mcp {
+        let pop = items.pop();
+        items.push(MenuAction::InstallMcp);
+        items.push(MenuAction::Divider);
+        items.extend(pop);
+    }
     if document {
         let pop = items.pop();
         items.push(MenuAction::RevealInExplore);
@@ -2332,13 +2354,14 @@ impl ContextMenu {
         pinnable: bool,
         pinned: bool,
         show_title: bool,
+        install_mcp: bool,
         anchor: (f32, f32),
     ) -> Self {
         Self::new(
             engine,
             MenuSubject::Tab(tab),
             anchor,
-            tab_items(document, pinnable, pinned, show_title),
+            tab_items_for(document, pinnable, pinned, show_title, install_mcp),
         )
     }
 

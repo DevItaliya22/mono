@@ -1131,6 +1131,22 @@ fn checked_in_schema_evidence_matches_the_adapter_boundary() {
             )),
             "5742a9a7dd41a8b44dca3138f506e013620d4a93573c792b1e5881c053f169a7",
         ),
+        (
+            "0.163.0",
+            include_str!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../../tests/fixtures/codex-app-server/0.163.0/schema-evidence.json"
+            )),
+            "d204b96d8560d56600127423b89df9db471b3e22338e8809bb91d5a952998978",
+        ),
+        (
+            "0.165.0",
+            include_str!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../../tests/fixtures/codex-app-server/0.165.0/schema-evidence.json"
+            )),
+            "38027ec8a6fffc2422b674cab13dc1a05c26e13a48349c46a274609d52090e35",
+        ),
     ] {
         let evidence: Value = serde_json::from_str(evidence).unwrap();
         assert!(SUPPORTED_CODEX_VERSIONS.contains(&version), "{version}");
@@ -1140,7 +1156,7 @@ fn checked_in_schema_evidence_matches_the_adapter_boundary() {
     }
     assert_eq!(
         SUPPORTED_CODEX_VERSIONS.len(),
-        5,
+        7,
         "every supported version has evidence"
     );
 

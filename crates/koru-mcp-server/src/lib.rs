@@ -59,6 +59,12 @@ pub mod tasks;
 mod tool_pages;
 
 pub const MODEL_RESOURCE_URI: &str = "koru://docs/model";
+/// The short form: the contract's *Essentials* section on its own, what an
+/// agent reads before its first mutation. The same file, one section, so it
+/// cannot drift from the long form.
+pub const ESSENTIALS_RESOURCE_URI: &str = "koru://docs/essentials";
+/// The heading slug of that section in the contract.
+const ESSENTIALS_SECTION: &str = "essentials";
 /// Where a release installs the model contract, under its data directory.
 /// `koru_update::RELEASE_DOCUMENTS` names the same path; it is append-only,
 /// so this never moves.
@@ -126,9 +132,153 @@ fn read_model_document() -> Result<String, ToolError> {
     })
 }
 
-/// Fail a host startup early when a release omitted its public MCP contract.
+/// Fail a host startup early when a release omitted its public MCP contract,
+/// or when its *Essentials* section is gone — the short form is served from
+/// it, so a contract without it would answer `koru://docs/essentials` with an
+/// error at the first mutation.
 pub fn verify_model_documentation() -> Result<(), ToolError> {
-    read_model_document().map(|_| ())
+    let guide = read_model_document()?;
+    section_of(&guide, ESSENTIALS_SECTION)
+        .map(|_| ())
+        .ok_or_else(|| ToolError {
+            code: "documentation_missing".into(),
+            message: format!("{MODEL_DOCUMENT_SOURCE} has no `## Essentials` section"),
+            details: Some(json!({ "uri": ESSENTIALS_RESOURCE_URI })),
+        })
+}
+
+/// GitHub's slug for a heading: lower case, punctuation dropped, each run of
+/// whitespace one `-`. `## Preconditions, history, and durability` is
+/// `preconditions-history-and-durability`; a slug a reader typed is folded
+/// the same way, so either spelling of a heading finds it.
+fn heading_slug(heading: &str) -> String {
+    let mut slug = String::new();
+    for character in heading.trim().chars() {
+        if character.is_alphanumeric() {
+            slug.extend(character.to_lowercase());
+        } else if character == '-' || character == '_' {
+            slug.push(character);
+        } else if character.is_whitespace() && !slug.ends_with('-') && !slug.is_empty() {
+            slug.push('-');
+        }
+    }
+    slug.trim_end_matches('-').to_owned()
+}
+
+/// A `##` or `###` heading outside a fenced block, as `(level, title)`.
+fn heading<'a>(line: &'a str, in_fence: &mut bool) -> Option<(usize, &'a str)> {
+    if line.trim_start().starts_with("```") {
+        *in_fence = !*in_fence;
+        return None;
+    }
+    if *in_fence {
+        return None;
+    }
+    let level = line.bytes().take_while(|byte| *byte == b'#').count();
+    (2..=3)
+        .contains(&level)
+        .then(|| line[level..].strip_prefix(' '))
+        .flatten()
+        .map(|title| (level, title))
+}
+
+/// One section of the contract by heading slug: its heading line through the
+/// line before the next heading of the same or a higher level, so a `##`
+/// section carries its `###` children. `None` when no heading has that slug.
+fn section_of(markdown: &str, slug: &str) -> Option<String> {
+    let wanted = heading_slug(slug);
+    let mut in_fence = false;
+    let mut section: Option<(usize, String)> = None;
+    for line in markdown.lines() {
+        match (heading(line, &mut in_fence), &mut section) {
+            (Some((level, _)), Some((open, text))) if level <= *open => {
+                return Some(text.trim_end().to_owned());
+            }
+            (Some((level, title)), None) if heading_slug(title) == wanted => {
+                section = Some((level, format!("{line}\n")));
+            }
+            (_, Some((_, text))) => {
+                text.push_str(line);
+                text.push('\n');
+            }
+            (_, None) => {}
+        }
+    }
+    section.map(|(_, text)| text.trim_end().to_owned())
+}
+
+/// The `##` sections a reader can ask for, by slug, in the contract's order.
+fn section_slugs(markdown: &str) -> Vec<String> {
+    let mut in_fence = false;
+    markdown
+        .lines()
+        .filter_map(|line| heading(line, &mut in_fence))
+        .filter(|(level, _)| *level == 2)
+        .map(|(_, title)| heading_slug(title))
+        .collect()
+}
+
+/// What `get_documentation` and `resources/read` answer: `{uri, mime_type,
+/// section?, text}`, the text being the whole contract, one section of it
+/// by slug, or the Essentials.
+fn documentation(uri: &str, section: Option<&str>) -> Result<Value, ToolError> {
+    let guide = read_model_document()?;
+    let (section, text) = match (uri, section) {
+        (ESSENTIALS_RESOURCE_URI, None) => (
+            None,
+            section_of(&guide, ESSENTIALS_SECTION).ok_or_else(|| ToolError {
+                code: "documentation_missing".into(),
+                message: format!("{MODEL_DOCUMENT_SOURCE} has no `## Essentials` section"),
+                details: Some(json!({ "uri": ESSENTIALS_RESOURCE_URI })),
+            })?,
+        ),
+        (ESSENTIALS_RESOURCE_URI, Some(_)) => {
+            return Err(ToolError::invalid(
+                "koru://docs/essentials is one section already; section applies to koru://docs/model",
+            ));
+        }
+        (MODEL_RESOURCE_URI, None) => (None, guide),
+        (MODEL_RESOURCE_URI, Some(wanted)) => {
+            let slug = heading_slug(wanted);
+            let text = section_of(&guide, &slug).ok_or_else(|| ToolError {
+                code: "documentation_section_not_found".into(),
+                message: format!("koru://docs/model has no section {wanted:?}"),
+                details: Some(json!({
+                    "uri": MODEL_RESOURCE_URI,
+                    "section": wanted,
+                    "sections": section_slugs(&guide),
+                })),
+            })?;
+            (Some(slug), text)
+        }
+        (other, _) => {
+            return Err(ToolError {
+                code: "documentation_not_found".into(),
+                message: format!("unknown Koru documentation URI: {other}"),
+                details: Some(json!({ "uri": other })),
+            });
+        }
+    };
+    Ok(json!({
+        "uri": uri,
+        "mime_type": MODEL_DOCUMENT_MIME,
+        "section": section,
+        "text": text,
+    }))
+}
+
+fn essentials_resource() -> Resource {
+    Resource::new(ESSENTIALS_RESOURCE_URI, "koru-essentials")
+        .with_title("Koru in brief: read, create and edit documents correctly")
+        .with_description(
+            "The short form of the contract. Read before the first mutation; koru://docs/model has every rule.",
+        )
+        .with_mime_type(MODEL_DOCUMENT_MIME)
+        .with_annotations(
+            Annotations::default()
+                .with_audience(vec![Role::Assistant])
+                .with_priority(1.0),
+        )
 }
 
 fn model_resource() -> Resource {
@@ -540,18 +690,7 @@ impl WorkspaceToolExecutor {
 
         let result = if tool == "get_documentation" {
             let request: DocumentationRequest = from(arguments)?;
-            if request.uri != MODEL_RESOURCE_URI {
-                return Err(ToolError {
-                    code: "documentation_not_found".into(),
-                    message: format!("unknown Koru documentation URI: {}", request.uri),
-                    details: Some(json!({ "uri": request.uri })),
-                });
-            }
-            json!({
-                "uri": MODEL_RESOURCE_URI,
-                "mime_type": MODEL_DOCUMENT_MIME,
-                "text": read_model_document()?,
-            })
+            documentation(&request.uri, request.section.as_deref())?
         } else {
             self.backend.invoke(context, tool, arguments)?
         };
@@ -2182,8 +2321,12 @@ struct WorkspaceRequest {
 #[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct DocumentationRequest {
-    /// Koru documentation URI. Currently only `koru://docs/model` is available.
+    /// `koru://docs/essentials`, the short form, or `koru://docs/model`, the
+    /// whole contract.
     uri: String,
+    /// With `koru://docs/model`: one `##` section by its heading's slug
+    /// (`creating-a-complete-document`), with its `###` children.
+    section: Option<String>,
 }
 #[derive(Debug, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -2670,6 +2813,19 @@ enum EditOperation {
         expected: String,
         language: Option<String>,
     },
+    /// Turn one inline formatting mark on or off over a byte range of an
+    /// existing node's text — what Ctrl+B does to a selection. The range is
+    /// UTF-8 byte offsets into `expected`, on character boundaries, and must
+    /// not be empty. A read reports the result in the node's `runs`.
+    SetMark {
+        node_id: String,
+        /// Exact current text returned by `read_document`.
+        expected: String,
+        start_utf8: usize,
+        end_utf8: usize,
+        mark: MarkName,
+        on: bool,
+    },
     /// Set one typed attribute on an existing node — a due date, a priority,
     /// an accent color, or a custom key this workspace defines.
     ///
@@ -2811,6 +2967,66 @@ enum InitialOperation {
         expected: String,
         language: Option<String>,
     },
+    /// Format a byte range of a node inserted earlier in this batch, exactly
+    /// as the edit of the same name.
+    SetMark {
+        node_id: String,
+        expected: String,
+        start_utf8: usize,
+        end_utf8: usize,
+        mark: MarkName,
+        on: bool,
+    },
+}
+
+/// The inline formatting marks a run can carry, each independent of the
+/// others; the names a read reports them under.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum MarkName {
+    Bold,
+    Italic,
+    Underline,
+    Strike,
+    Code,
+}
+
+impl From<MarkName> for koru_core::Mark {
+    fn from(mark: MarkName) -> Self {
+        match mark {
+            MarkName::Bold => Self::Bold,
+            MarkName::Italic => Self::Italic,
+            MarkName::Underline => Self::Underline,
+            MarkName::Strike => Self::Strike,
+            MarkName::Code => Self::Code,
+        }
+    }
+}
+
+/// The byte range a `set_mark` names, checked against the text it was read
+/// from: inside it, on character boundaries, and not empty — an empty range
+/// would write nothing, and a no-op that answers success is how a misspelt
+/// offset goes unnoticed.
+fn mark_range(
+    expected: &str,
+    start_utf8: usize,
+    end_utf8: usize,
+) -> Result<std::ops::Range<usize>, ToolError> {
+    if start_utf8 >= end_utf8 {
+        return Err(ToolError::invalid(
+            "set_mark range is empty: end_utf8 must be greater than start_utf8",
+        ));
+    }
+    if end_utf8 > expected.len()
+        || !expected.is_char_boundary(start_utf8)
+        || !expected.is_char_boundary(end_utf8)
+    {
+        return Err(ToolError::invalid(format!(
+            "set_mark range {start_utf8}..{end_utf8} is outside expected or splits a character (expected is {} bytes)",
+            expected.len()
+        )));
+    }
+    Ok(start_utf8..end_utf8)
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, schemars::JsonSchema)]
@@ -2824,8 +3040,12 @@ enum InsertKind {
     ListBlock,
     Table,
     Code,
-    Contact,
     Divider,
+    // No `contact`: a contact is a root-level reference node the `@` pill
+    // creates, not a body block, and inserting one into a body did not
+    // survive a read (ADR-470). It returns when contacts are a supported
+    // surface, with the pill's find-or-create semantics rather than a bare
+    // insert.
 }
 
 impl From<InsertKind> for Kind {
@@ -2837,7 +3057,6 @@ impl From<InsertKind> for Kind {
             InsertKind::ListBlock => Self::ListBlock,
             InsertKind::Table => Self::Table,
             InsertKind::Code => Self::Code,
-            InsertKind::Contact => Self::Contact,
             InsertKind::Divider => Self::Divider,
         }
     }
@@ -3470,6 +3689,19 @@ fn apply_ops(
                 }
                 doc.set_language(id, language.as_deref())?;
             }
+            EditOperation::SetMark {
+                node_id,
+                expected,
+                start_utf8,
+                end_utf8,
+                mark,
+                on,
+            } => {
+                let id = node(node_id)?;
+                validate_expected_text(doc, id, expected, "set_mark")?;
+                let range = mark_range(expected, *start_utf8, *end_utf8)?;
+                doc.set_mark(id, range, (*mark).into(), *on)?;
+            }
             EditOperation::SetAttribute {
                 node_id,
                 expected,
@@ -3709,6 +3941,29 @@ fn apply_initial_ops(
                     node_id: node_id.clone(),
                     expected: expected.clone(),
                     language: language.clone(),
+                }
+            }
+            InitialOperation::SetMark {
+                node_id,
+                expected,
+                start_utf8,
+                end_utf8,
+                mark,
+                on,
+            } => {
+                let target = node(node_id)?;
+                if !inserted.contains(&target) {
+                    return Err(ToolError::invalid(
+                        "initial set_mark node_id must name an earlier insert",
+                    ));
+                }
+                EditOperation::SetMark {
+                    node_id: node_id.clone(),
+                    expected: expected.clone(),
+                    start_utf8: *start_utf8,
+                    end_utf8: *end_utf8,
+                    mark: *mark,
+                    on: *on,
                 }
             }
         };
@@ -4328,11 +4583,23 @@ impl KoruMcp {
 impl KoruMcp {
     #[tool(
         title = "Read Koru model documentation",
-        description = "Read koru://docs/model, the full contract for these tools, when the host cannot read MCP resources. Read it before the first mutation.",
+        description = "koru://docs/essentials is the short contract to read before the first mutation; koru://docs/model is the whole one, or one section by heading slug (section). For hosts that cannot read MCP resources; the markdown is the text block.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     fn get_documentation(&self, Parameters(a): Parameters<DocumentationRequest>) -> CallToolResult {
-        self.call("get_documentation", a)
+        let mut result = self.call("get_documentation", a);
+        // The markdown itself is the text block, not a JSON line with the
+        // markdown escaped inside it, so an agent reads it as written instead
+        // of unescaping it first. The structured copy keeps the published
+        // `{uri, mime_type, section?, text}` shape.
+        if let Some(text) = result
+            .structured_content
+            .as_ref()
+            .and_then(|value| value["text"].as_str())
+        {
+            result.content = vec![rmcp::model::ContentBlock::text(text.to_owned())];
+        }
+        result
     }
 
     #[tool(
@@ -4412,7 +4679,7 @@ impl KoruMcp {
     }
     #[tool(
         title = "Create a Koru document",
-        description = "Atomically create, and optionally seed, a complete document before it becomes visible; returns it as read_document does. parent_document_id nests it (absent: the workspace root); kind defaults to page. A UUID idempotency_key replays the same request for seven days. With initial_operations (non-empty; insert, insert_inline, set_done and set_language only) root_node_id is required, a fresh UUID for the title node; every parent is it or an earlier insert, and no blank paragraph is added. Read koru://docs/model before the first mutation.",
+        description = "Atomically create, and optionally seed, a complete document before it becomes visible; returns it as read_document does. parent_document_id nests it (absent: the workspace root); kind defaults to page. A UUID idempotency_key replays the same request for seven days. With initial_operations (non-empty; insert, insert_inline, set_done, set_language and set_mark only) root_node_id is required, a fresh UUID for the title node; every parent is it or an earlier insert, and no blank paragraph is added. Read koru://docs/essentials before the first mutation.",
         annotations(
             read_only_hint = false,
             destructive_hint = false,
@@ -4438,7 +4705,7 @@ impl KoruMcp {
     }
     #[tool(
         title = "Edit a Koru document",
-        description = "Atomically apply edits, in order, at base_revision from the latest read_document. Read koru://docs/model before the first mutation. Each op on an existing node carries expected, its exact current text; on stale_node or a mismatch, reread and retry. insert mints node_id; parent_id is required and body blocks go under the document-title node, never the absolute CRDT root. after_node_id is a sibling and null means first; numeric ordinals are unsupported. at_utf8 is a UTF-8 byte offset into expected. remove takes the node's whole subtree. set_attribute writes koru.due, koru.priority, koru.color or a workspace's custom key in the value shapes read_document reports: date {value: YYYY-MM-DD}, datetime_zoned {instant_ms, timezone: IANA name}, datetime_floating {wall}. add_tag and remove_tag take a tag name or a tag_id. Unknown fields are errors.",
+        description = "Atomically apply edits, in order, at base_revision from the latest read_document. Read koru://docs/essentials before the first mutation. Each op on an existing node carries expected, its exact current text; on stale_node or a mismatch, reread and retry. insert mints node_id; parent_id is required and body blocks go under the document-title node, never the absolute CRDT root. after_node_id is a sibling and null means first; numeric ordinals are unsupported. at_utf8 is a UTF-8 byte offset into expected. remove takes the node's whole subtree. set_mark turns one of bold, italic, underline, strike, code on or off over start_utf8..end_utf8 of expected (non-empty, on character boundaries). set_attribute writes koru.due, koru.priority, koru.color or a workspace's custom key in the value shapes read_document reports: date {value: YYYY-MM-DD}, datetime_zoned {instant_ms, timezone: IANA name}, datetime_floating {wall}. add_tag and remove_tag take a tag name or a tag_id. Unknown fields are errors.",
         annotations(
             read_only_hint = false,
             destructive_hint = true,
@@ -4451,7 +4718,7 @@ impl KoruMcp {
     }
     #[tool(
         title = "Extract blocks to a document",
-        description = "Move complete block subtrees (source_node_id, then extra_source_node_ids; none an ancestor of another) into exactly one of a new document (new_document_title) or an existing one (target_document_id, at its top or first under under_node_id), leaving one /document link in their place. expected is source_node_id's exact current text and base_revision the source's. Read koru://docs/model before the first mutation.",
+        description = "Move complete block subtrees (source_node_id, then extra_source_node_ids; none an ancestor of another) into exactly one of a new document (new_document_title) or an existing one (target_document_id, at its top or first under under_node_id), leaving one /document link in their place. expected is source_node_id's exact current text and base_revision the source's. Read koru://docs/essentials before the first mutation.",
         annotations(
             read_only_hint = false,
             destructive_hint = true,
@@ -4467,7 +4734,7 @@ impl KoruMcp {
     }
     #[tool(
         title = "Save a document version",
-        description = "Save a pinned manual version of the current document state. Read koru://docs/model before the first mutation.",
+        description = "Save a pinned manual version of the current document state. Read koru://docs/essentials before the first mutation.",
         annotations(
             read_only_hint = false,
             destructive_hint = false,
@@ -4502,7 +4769,7 @@ impl KoruMcp {
     }
     #[tool(
         title = "Restore a document version",
-        description = "Restore a durable version at base_revision by creating forward-moving CRDT operations, with paired history boundaries. Read koru://docs/model before the first mutation.",
+        description = "Restore a durable version at base_revision by creating forward-moving CRDT operations, with paired history boundaries. Read koru://docs/essentials before the first mutation.",
         annotations(
             read_only_hint = false,
             destructive_hint = true,
@@ -4604,7 +4871,7 @@ impl ServerHandler for KoruMcp {
                 .enable_resources()
                 .build(),
         )
-        .with_instructions("Read koru://docs/model before the first mutation. It is available through standard MCP resources/read or the get_documentation compatibility tool. Read and edit Koru's typed node model, never raw CRDT operations. Always read a fresh revision before mutation; use node ids and after_node_id, never numeric remote positions. On stale_node, reread the document, remap the intended block, and retry. Use insert_inline for /document references and extract_to_document for a cross-document move; never insert kind=document into a body.")
+        .with_instructions("Read koru://docs/essentials before the first mutation; koru://docs/model is the full contract, whole or one section by heading slug. Both are standard MCP resources and the get_documentation compatibility tool. Read and edit Koru's typed node model, never raw CRDT operations. Always read a fresh revision before mutation; use node ids and after_node_id, never numeric remote positions. On stale_node, reread the document, remap the intended block, and retry. Use insert_inline for /document references and extract_to_document for a cross-document move; never insert kind=document into a body.")
     }
 
     fn list_resources(
@@ -4613,6 +4880,7 @@ impl ServerHandler for KoruMcp {
         _: rmcp::service::RequestContext<rmcp::RoleServer>,
     ) -> impl Future<Output = Result<ListResourcesResult, ErrorData>> + Send + '_ {
         std::future::ready(Ok(ListResourcesResult::with_all_items(vec![
+            essentials_resource(),
             model_resource(),
         ])))
     }
@@ -4624,25 +4892,24 @@ impl ServerHandler for KoruMcp {
     ) -> impl Future<Output = Result<ReadResourceResponse, ErrorData>> + Send + '_ {
         let started = Instant::now();
         tracing::info!(uri = %request.uri, "resource read started");
-        let result = if request.uri != MODEL_RESOURCE_URI {
+        let result = if request.uri != MODEL_RESOURCE_URI && request.uri != ESSENTIALS_RESOURCE_URI
+        {
             Err(ErrorData::resource_not_found(
                 "Koru documentation resource not found",
                 Some(json!({ "uri": request.uri })),
             ))
         } else {
-            read_model_document()
-                .map(|text| {
+            documentation(&request.uri, None)
+                .map(|answer| {
+                    let text = answer["text"].as_str().unwrap_or_default().to_owned();
                     ReadResourceResult::new(vec![
-                        ResourceContents::text(text, MODEL_RESOURCE_URI)
+                        ResourceContents::text(text, request.uri.clone())
                             .with_mime_type(MODEL_DOCUMENT_MIME),
                     ])
                     .into()
                 })
                 .map_err(|error| {
-                    ErrorData::internal_error(
-                        error.message,
-                        Some(json!({ "uri": MODEL_RESOURCE_URI })),
-                    )
+                    ErrorData::internal_error(error.message, Some(json!({ "uri": request.uri })))
                 })
         };
         match &result {
@@ -5095,7 +5362,9 @@ mod tests {
     /// 1.0.34 can lose an 8,192-byte chunk of any longer line
     /// (ADR-433-compacttools); 21 typed tools cannot fit under that, so this
     /// holds what was reached and makes growth a decision rather than a drift.
-    const TOOLS_LIST_BUDGET: usize = 17_500;
+    /// Raised from 17,500 for `set_mark`'s schema in both operation unions
+    /// (ADR-470-mcpessentials, 17,973 bytes measured).
+    const TOOLS_LIST_BUDGET: usize = 18_000;
 
     /// What crosses the wire is compact: no prose inside a schema except the
     /// generated union summaries, no `$ref`, `$defs`, `$schema`, `title` or
@@ -5423,6 +5692,124 @@ mod tests {
     }
 
     #[test]
+    fn heading_slugs_fold_the_way_a_reader_types_them() {
+        assert_eq!(
+            heading_slug("Preconditions, history, and durability"),
+            "preconditions-history-and-durability"
+        );
+        assert_eq!(
+            heading_slug("`#tag` inside the text"),
+            "tag-inside-the-text"
+        );
+        assert_eq!(
+            heading_slug("What `tools/list` publishes"),
+            "what-toolslist-publishes"
+        );
+        assert_eq!(
+            heading_slug("  Creating A Complete  Document "),
+            "creating-a-complete-document"
+        );
+        assert_eq!(
+            heading_slug("creating-a-complete-document"),
+            "creating-a-complete-document"
+        );
+    }
+
+    #[test]
+    fn a_section_runs_to_the_next_heading_of_its_level_and_skips_fenced_hashes() {
+        let markdown = "# Title\n\nintro\n\n## One\n\nbody\n\n```jsonc\n## not a heading\n```\n\n### One A\n\nchild\n\n## Two\n\nother\n";
+        let one = section_of(markdown, "one").unwrap();
+        assert!(one.starts_with("## One\n"), "{one}");
+        assert!(
+            one.contains("## not a heading"),
+            "a fenced line is content: {one}"
+        );
+        assert!(
+            one.contains("### One A"),
+            "a ### child belongs to its ##: {one}"
+        );
+        assert!(!one.contains("## Two"), "{one}");
+        assert_eq!(section_of(markdown, "one-a").unwrap(), "### One A\n\nchild");
+        assert_eq!(section_of(markdown, "two").unwrap(), "## Two\n\nother");
+        assert!(section_of(markdown, "three").is_none());
+        assert!(
+            section_of(markdown, "title").is_none(),
+            "the # title is not a section"
+        );
+        assert_eq!(section_slugs(markdown), ["one", "two"]);
+    }
+
+    #[test]
+    fn the_essentials_are_one_section_of_the_contract_and_the_tool_answers_them_as_text() {
+        let essentials = documentation(ESSENTIALS_RESOURCE_URI, None).unwrap();
+        let text = essentials["text"].as_str().unwrap();
+        assert!(text.starts_with("## Essentials\n"), "{}", &text[..40]);
+        assert!(!text.contains("## Keeping this contract current"));
+        assert!(
+            text.len() < 12_000,
+            "the short form stays short: {} bytes",
+            text.len()
+        );
+        assert_eq!(essentials["section"], Value::Null);
+
+        let whole = documentation(MODEL_RESOURCE_URI, None).unwrap();
+        assert!(whole["text"].as_str().unwrap().contains(text));
+
+        let section =
+            documentation(MODEL_RESOURCE_URI, Some("Creating a complete document")).unwrap();
+        assert_eq!(section["section"], "creating-a-complete-document");
+        let body = section["text"].as_str().unwrap();
+        assert!(body.starts_with("## Creating a complete document"));
+        assert!(!body.contains("## Inline objects"));
+
+        let missing = documentation(MODEL_RESOURCE_URI, Some("no such thing")).unwrap_err();
+        assert_eq!(missing.code, "documentation_section_not_found");
+        let sections = missing.details.unwrap()["sections"].clone();
+        assert!(
+            sections
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|s| s == "essentials"),
+            "{sections}"
+        );
+        assert!(
+            sections.as_array().unwrap().iter().any(|s| s == "tasks"),
+            "{sections}"
+        );
+        assert_eq!(
+            documentation(ESSENTIALS_RESOURCE_URI, Some("tasks"))
+                .unwrap_err()
+                .code,
+            "invalid_request"
+        );
+        assert_eq!(
+            documentation("koru://docs/other", None).unwrap_err().code,
+            "documentation_not_found"
+        );
+        verify_model_documentation().expect("the shipped contract has its essentials");
+
+        // Through the tool: the markdown is the text block, readable as
+        // written, and the structured copy keeps the published shape.
+        let server = KoruMcp::new(Arc::new(Fake), RequestContext::local());
+        let result = server.get_documentation(Parameters(DocumentationRequest {
+            uri: ESSENTIALS_RESOURCE_URI.into(),
+            section: None,
+        }));
+        assert_eq!(result.is_error, Some(false));
+        let shown = result.content[0]
+            .as_text()
+            .expect("a text block")
+            .text
+            .as_str();
+        assert!(shown.starts_with("## Essentials\n"), "{}", &shown[..40]);
+        assert_eq!(
+            result.structured_content.as_ref().unwrap()["uri"],
+            ESSENTIALS_RESOURCE_URI
+        );
+    }
+
+    #[test]
     fn tool_results_have_text_and_structured_content() {
         let server = KoruMcp::new(Arc::new(Fake), RequestContext::local());
         let result = server.list_workspaces();
@@ -5506,7 +5893,7 @@ mod tests {
         // The safety wording lives in the tool's description, condensed; the
         // schema carries which fields each op requires, generated from it.
         for phrase in [
-            "Read koru://docs/model before the first mutation",
+            "Read koru://docs/essentials before the first mutation",
             "expected, its exact current text",
             "on stale_node or a mismatch, reread and retry",
             "never the absolute CRDT root",
@@ -5531,11 +5918,14 @@ mod tests {
             "listblock",
             "table",
             "code",
-            "contact",
             "divider",
         ] {
             assert!(encoded.contains(&format!("\"{kind}\"")), "missing {kind}");
         }
+        assert!(
+            !encoded.contains("\"contact\""),
+            "a contact is not a body block this surface inserts (ADR-470)"
+        );
     }
 
     #[test]
@@ -5551,7 +5941,13 @@ mod tests {
         let encoded = serde_json::to_string(&schema).expect("schema text");
 
         assert!(!encoded.contains("$ref"), "seed variants must be inline");
-        for operation in ["insert", "insert_inline", "set_done", "set_language"] {
+        for operation in [
+            "insert",
+            "insert_inline",
+            "set_done",
+            "set_language",
+            "set_mark",
+        ] {
             assert!(
                 encoded.contains(&format!("\"{operation}\"")),
                 "missing seed operation {operation}"
@@ -5796,6 +6192,154 @@ mod tests {
         )
         .unwrap();
         assert_eq!(doc.read(block).unwrap().meta.language, None);
+    }
+
+    #[test]
+    fn set_mark_formats_a_byte_range_and_a_read_reports_it_in_the_runs() {
+        let mut doc = WorkspaceDoc::create(CoreWorkspaceId::new(), "test").unwrap();
+        let root = doc
+            .insert(Parent::Root, Node::document("Marks").unwrap())
+            .unwrap();
+        let line = doc
+            .insert(
+                Parent::Node(root),
+                Node::new(Kind::Paragraph, Content::text("Hello wörld")).unwrap(),
+            )
+            .unwrap();
+        let context = InlineContext {
+            profile: CoreProfileId::new(),
+            workspace: CoreWorkspaceId::new(),
+            documents: HashMap::new(),
+            files: HashMap::new(),
+            attrs: AttrContext::default(),
+        };
+        let mark = |start_utf8, end_utf8, mark, on| EditOperation::SetMark {
+            node_id: line.to_storage(),
+            expected: "Hello wörld".into(),
+            start_utf8,
+            end_utf8,
+            mark,
+            on,
+        };
+
+        // "wörld" is bytes 6..12: the ö is two bytes.
+        apply_ops(&mut doc, &[mark(6, 12, MarkName::Bold, true)], &context).unwrap();
+        apply_ops(&mut doc, &[mark(0, 5, MarkName::Code, true)], &context).unwrap();
+        let runs = doc.runs(line).unwrap();
+        let bold: Vec<_> = runs
+            .iter()
+            .filter(|run| run.bold)
+            .map(|run| run.text.as_str())
+            .collect();
+        let code: Vec<_> = runs
+            .iter()
+            .filter(|run| run.code)
+            .map(|run| run.text.as_str())
+            .collect();
+        assert_eq!(bold, ["wörld"]);
+        assert_eq!(code, ["Hello"]);
+        let projected: Vec<_> = runs.iter().map(run_json).collect();
+        assert!(
+            projected
+                .iter()
+                .any(|run| run["bold"] == true && run["text"] == "wörld"),
+            "{projected:?}"
+        );
+
+        // Off again, and the text is untouched throughout.
+        apply_ops(&mut doc, &[mark(6, 12, MarkName::Bold, false)], &context).unwrap();
+        assert!(doc.runs(line).unwrap().iter().all(|run| !run.bold));
+        assert_eq!(
+            doc.read(line).unwrap().content.as_text(),
+            Some("Hello wörld")
+        );
+
+        // An empty range, a range past the end and one inside the ö are
+        // refused rather than quietly writing nothing.
+        for (start, end) in [(3, 3), (5, 2), (0, 99), (6, 8)] {
+            let error = apply_ops(
+                &mut doc,
+                &[mark(start, end, MarkName::Italic, true)],
+                &context,
+            )
+            .expect_err("refused");
+            assert_eq!(
+                error.code, "invalid_request",
+                "{start}..{end}: {}",
+                error.message
+            );
+        }
+
+        // The precondition is the same one every edit carries.
+        let stale = EditOperation::SetMark {
+            node_id: line.to_storage(),
+            expected: "Hello world".into(),
+            start_utf8: 0,
+            end_utf8: 5,
+            mark: MarkName::Underline,
+            on: true,
+        };
+        let error = apply_ops(&mut doc, &[stale], &context).expect_err("stale expected");
+        assert_eq!(error.code, "precondition_failed");
+    }
+
+    #[test]
+    fn a_seed_can_format_the_block_it_just_inserted_and_nothing_else() {
+        let context = InlineContext {
+            profile: CoreProfileId::new(),
+            workspace: CoreWorkspaceId::new(),
+            documents: HashMap::new(),
+            files: HashMap::new(),
+            attrs: AttrContext::default(),
+        };
+        let first = NodeId::new();
+        let seed = |node_id: NodeId| InitialOperation::SetMark {
+            node_id: node_id.to_storage(),
+            expected: "Bold start".into(),
+            start_utf8: 0,
+            end_utf8: 4,
+            mark: MarkName::Bold,
+            on: true,
+        };
+        let insert = |root: NodeId| InitialOperation::Insert {
+            node_id: first.to_storage(),
+            parent_id: root.to_storage(),
+            after_node_id: None,
+            kind: InsertKind::Paragraph,
+            text: "Bold start".into(),
+        };
+
+        let mut doc = WorkspaceDoc::create(CoreWorkspaceId::new(), "test").unwrap();
+        let root = doc
+            .insert(Parent::Root, Node::document("Seeded").unwrap())
+            .unwrap();
+        apply_initial_ops(&mut doc, root, &[insert(root), seed(first)], &context)
+            .expect("a mark on an earlier insert is legal");
+        let bold: Vec<_> = doc
+            .runs(first)
+            .unwrap()
+            .into_iter()
+            .filter(|run| run.bold)
+            .map(|run| run.text)
+            .collect();
+        assert_eq!(bold, ["Bold"]);
+
+        let mut other = WorkspaceDoc::create(CoreWorkspaceId::new(), "test").unwrap();
+        let root = other
+            .insert(Parent::Root, Node::document("Seeded").unwrap())
+            .unwrap();
+        let error = apply_initial_ops(
+            &mut other,
+            root,
+            &[insert(root), seed(NodeId::new())],
+            &context,
+        )
+        .expect_err("a mark on a node the seed did not insert");
+        assert!(
+            error.message.contains("earlier insert"),
+            "{}",
+            error.message
+        );
     }
 
     #[test]
@@ -7883,6 +8427,14 @@ mod tests {
                 tag: None,
                 tag_id: Some(uuid::Uuid::new_v4().to_string()),
             },
+            EditOperation::SetMark {
+                node_id: id(),
+                expected: expected(),
+                start_utf8: 0,
+                end_utf8: 3,
+                mark: MarkName::Bold,
+                on: true,
+            },
         ]
     }
 
@@ -7950,9 +8502,17 @@ mod tests {
                 done: false,
             },
             InitialOperation::SetLanguage {
-                node_id: first,
+                node_id: first.clone(),
                 expected: "fn main() {}".into(),
                 language: Some("rust".into()),
+            },
+            InitialOperation::SetMark {
+                node_id: first,
+                expected: "fn main() {}".into(),
+                start_utf8: 0,
+                end_utf8: 2,
+                mark: MarkName::Code,
+                on: true,
             },
         ];
         let request = json!({
@@ -8089,8 +8649,12 @@ mod tests {
             .list_resources(None)
             .await
             .expect("resources/list over stdio");
-        assert_eq!(resources.resources.len(), 1);
-        assert_eq!(resources.resources[0].uri, MODEL_RESOURCE_URI);
+        let uris: Vec<_> = resources
+            .resources
+            .iter()
+            .map(|resource| resource.uri.as_str())
+            .collect();
+        assert_eq!(uris, [ESSENTIALS_RESOURCE_URI, MODEL_RESOURCE_URI]);
         assert_eq!(
             resources.resources[0].mime_type.as_deref(),
             Some(MODEL_DOCUMENT_MIME)

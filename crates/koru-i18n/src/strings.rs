@@ -2367,13 +2367,32 @@ pub enum Key {
     TelemetryConsentBody,
     TelemetryConsentAccept,
     TelemetryConsentDecline,
+    /// The coding-agent CLI cards: "{} update available", with the CLI's
+    /// brand name.
+    AgentCliUpdateAvailable,
+    /// "v{} → v{}": installed, then the channel's latest.
+    AgentCliVersions,
+    /// "v{}": one version.
+    AgentCliVersion,
+    AgentCliUpdate,
+    /// "Updating {}".
+    AgentCliUpdating,
+    /// The card's second line before the updater has printed anything.
+    AgentCliStarting,
+    /// "{} updated".
+    AgentCliUpdated,
+    /// "{} update failed".
+    AgentCliUpdateFailed,
+    AgentCliDismiss,
+    AgentMcpInstalled,
+    AgentMcpFailed,
 }
 
 impl Key {
     /// Every key, in table order. Written out rather than derived, because it
     /// is what the completeness tests compare the table against — a list
     /// generated from the same source it is checking would prove nothing.
-    pub const ALL: [Key; 1614] = [
+    pub const ALL: [Key; 1625] = [
         Key::Language,
         Key::Back,
         Key::TryAgain,
@@ -3988,6 +4007,17 @@ impl Key {
         Key::TelemetryConsentBody,
         Key::TelemetryConsentAccept,
         Key::TelemetryConsentDecline,
+        Key::AgentCliUpdateAvailable,
+        Key::AgentCliVersions,
+        Key::AgentCliVersion,
+        Key::AgentCliUpdate,
+        Key::AgentCliUpdating,
+        Key::AgentCliStarting,
+        Key::AgentCliUpdated,
+        Key::AgentCliUpdateFailed,
+        Key::AgentCliDismiss,
+        Key::AgentMcpInstalled,
+        Key::AgentMcpFailed,
     ];
 }
 
@@ -12380,4 +12410,15 @@ Row { key: Key::AccountCreationExpiredBody, en: "This sign-in expired. A Koru ac
     Row { key: Key::TelemetryConsentBody, en: "Koru can send anonymous usage data from this device: which features are used, how well the app runs, and basic facts about this computer such as its operating system and screen size. It's similar to what most websites collect when you visit them, and it never includes your documents, their names or anything you type.\n\nKoru is a desktop app that respects your privacy, so nothing is sent unless you say yes. If you like Koru, please consider turning it on: it shows us what matters most to you, so we can focus there. You can change this at any time in Settings.", es: "Koru puede enviar datos de uso anónimos desde este dispositivo: qué funciones se usan, cómo funciona la aplicación y datos básicos del equipo, como su sistema operativo y el tamaño de pantalla. Es parecido a lo que recopilan la mayoría de los sitios web cuando los visitas, y nunca incluye tus documentos, sus nombres ni nada de lo que escribes.\n\nKoru es una aplicación de escritorio que respeta tu privacidad, así que no se envía nada a menos que digas que sí. Si te gusta Koru, considera activarlo: nos muestra lo que más te importa para que podamos centrarnos en ello. Puedes cambiarlo en cualquier momento en Ajustes.", pt_br: "O Koru pode enviar dados de uso anônimos deste dispositivo: quais recursos são usados, como o aplicativo funciona e informações básicas do computador, como o sistema operacional e o tamanho da tela. É parecido com o que a maioria dos sites coleta quando você os visita, e nunca inclui seus documentos, os nomes deles nem nada que você digita.\n\nO Koru é um aplicativo para desktop que respeita sua privacidade, então nada é enviado a menos que você diga sim. Se você gosta do Koru, considere ativar: isso nos mostra o que mais importa para você, para que possamos focar nisso. Você pode mudar isso a qualquer momento em Configurações.", de: "Koru kann anonyme Nutzungsdaten von diesem Gerät senden: welche Funktionen genutzt werden, wie gut die App läuft und grundlegende Angaben zu diesem Computer wie Betriebssystem und Bildschirmgröße. Das ähnelt dem, was die meisten Websites bei einem Besuch erfassen, und Ihre Dokumente, deren Namen oder etwas, das Sie eingeben, sind niemals enthalten.\n\nKoru ist eine Desktop-App, die Ihre Privatsphäre respektiert, daher wird nichts gesendet, solange Sie nicht zustimmen. Wenn Ihnen Koru gefällt, schalten Sie es bitte ein: So sehen wir, was Ihnen am wichtigsten ist, und können uns darauf konzentrieren. Sie können das jederzeit in den Einstellungen ändern.", fr: "Koru peut envoyer des données d'utilisation anonymes depuis cet appareil : les fonctions utilisées, le bon fonctionnement de l'application et des informations de base sur cet ordinateur, comme son système d'exploitation et la taille de l'écran. C'est comparable à ce que collectent la plupart des sites web lors d'une visite, et cela n'inclut jamais vos documents, leurs noms ni ce que vous tapez.\n\nKoru est une application de bureau qui respecte votre vie privée : rien n'est envoyé sans votre accord. Si vous aimez Koru, pensez à l'activer : cela nous montre ce qui compte le plus pour vous, pour que nous puissions nous y consacrer. Vous pouvez changer d'avis à tout moment dans les Réglages.", ar: "يمكن لـ Koru إرسال بيانات استخدام مجهولة من هذا الجهاز: الميزات المستخدمة، ومدى جودة عمل التطبيق، ومعلومات أساسية عن هذا الكمبيوتر مثل نظام التشغيل وحجم الشاشة. وهي مشابهة لما تجمعه معظم المواقع الإلكترونية عند زيارتها، ولا تتضمن أبدًا مستنداتك أو أسماءها أو أي شيء تكتبه.\n\nKoru تطبيق لسطح المكتب يحترم خصوصيتك، لذلك لا يُرسل أي شيء ما لم توافق. إذا أعجبك Koru، فننصحك بتفعيل هذا الخيار: فهو يُظهر لنا ما يهمك أكثر حتى نركز عليه. يمكنك تغيير ذلك في أي وقت من الإعدادات.", zh_hans: "Koru 可以从此设备发送匿名使用数据：使用了哪些功能、应用的运行情况，以及这台电脑的基本信息，例如操作系统和屏幕尺寸。这与大多数网站在你访问时收集的数据类似，绝不包含你的文档、文档名称或你输入的任何内容。\n\nKoru 是一款尊重你隐私的桌面应用，因此除非你同意，否则不会发送任何数据。如果你喜欢 Koru，欢迎开启此选项：它能让我们了解你最看重什么，从而专注于此。你可以随时在设置中更改。", ja: "Koru はこの端末から匿名の使用状況データを送信できます。使われている機能、アプリの動作状況、OS や画面サイズなどこのコンピューターの基本情報です。多くのウェブサイトが訪問時に収集するものと同程度で、文書やその名前、入力した内容は一切含みません。\n\nKoru はプライバシーを尊重するデスクトップアプリなので、同意しない限り何も送信されません。Koru を気に入っていただけたら、ぜひオンにしてください。あなたにとって何が大切かがわかり、そこに力を注げます。設定でいつでも変更できます。" },
     Row { key: Key::TelemetryConsentAccept, en: "Share usage data", es: "Compartir datos de uso", pt_br: "Compartilhar dados de uso", de: "Nutzungsdaten teilen", fr: "Partager les données", ar: "مشاركة بيانات الاستخدام", zh_hans: "共享使用数据", ja: "使用状況データを共有" },
     Row { key: Key::TelemetryConsentDecline, en: "Don't share", es: "No compartir", pt_br: "Não compartilhar", de: "Nicht teilen", fr: "Ne pas partager", ar: "عدم المشاركة", zh_hans: "不共享", ja: "共有しない" },
+    Row { key: Key::AgentCliUpdateAvailable, en: "{} update available", es: "Actualización de {} disponible", pt_br: "Atualização do {} disponível", de: "Update für {} verfügbar", fr: "Mise à jour de {} disponible", ar: "يتوفر تحديث لـ {}", zh_hans: "{} 有可用更新", ja: "{} のアップデートがあります" },
+    Row { key: Key::AgentCliVersions, en: "v{} → v{}", es: "v{} → v{}", pt_br: "v{} → v{}", de: "v{} → v{}", fr: "v{} → v{}", ar: "v{} → v{}", zh_hans: "v{} → v{}", ja: "v{} → v{}" },
+    Row { key: Key::AgentCliVersion, en: "v{}", es: "v{}", pt_br: "v{}", de: "v{}", fr: "v{}", ar: "v{}", zh_hans: "v{}", ja: "v{}" },
+    Row { key: Key::AgentCliUpdate, en: "Update", es: "Actualizar", pt_br: "Atualizar", de: "Aktualisieren", fr: "Mettre à jour", ar: "تحديث", zh_hans: "更新", ja: "更新" },
+    Row { key: Key::AgentCliUpdating, en: "Updating {}", es: "Actualizando {}", pt_br: "Atualizando {}", de: "{} wird aktualisiert", fr: "Mise à jour de {}", ar: "جارٍ تحديث {}", zh_hans: "正在更新 {}", ja: "{} を更新中" },
+    Row { key: Key::AgentCliStarting, en: "Starting…", es: "Iniciando…", pt_br: "Iniciando…", de: "Wird gestartet…", fr: "Démarrage…", ar: "جارٍ البدء…", zh_hans: "正在启动…", ja: "開始しています…" },
+    Row { key: Key::AgentCliUpdated, en: "{} updated", es: "{} actualizado", pt_br: "{} atualizado", de: "{} aktualisiert", fr: "{} mis à jour", ar: "تم تحديث {}", zh_hans: "{} 已更新", ja: "{} を更新しました" },
+    Row { key: Key::AgentCliUpdateFailed, en: "{} update failed", es: "Error al actualizar {}", pt_br: "Falha ao atualizar {}", de: "Update für {} fehlgeschlagen", fr: "Échec de la mise à jour de {}", ar: "فشل تحديث {}", zh_hans: "{} 更新失败", ja: "{} の更新に失敗しました" },
+    Row { key: Key::AgentCliDismiss, en: "Dismiss", es: "Descartar", pt_br: "Dispensar", de: "Ausblenden", fr: "Ignorer", ar: "تجاهل", zh_hans: "关闭", ja: "閉じる" },
+    Row { key: Key::AgentMcpInstalled, en: "Koru's tools are added to {}. Start a new session to use them.", es: "Las herramientas de Koru se añadieron a {}. Inicia una sesión nueva para usarlas.", pt_br: "As ferramentas do Koru foram adicionadas ao {}. Inicie uma nova sessão para usá-las.", de: "Die Koru-Werkzeuge wurden zu {} hinzugefügt. Starte eine neue Sitzung, um sie zu nutzen.", fr: "Les outils de Koru sont ajoutés à {}. Démarrez une nouvelle session pour les utiliser.", ar: "تمت إضافة أدوات Koru إلى {}. ابدأ جلسة جديدة لاستخدامها.", zh_hans: "已将 Koru 的工具添加到 {}。请开启新会话来使用。", ja: "Koru のツールを {} に追加しました。新しいセッションを開始すると使えます。" },
+    Row { key: Key::AgentMcpFailed, en: "Couldn't add Koru's tools to {}: {}", es: "No se pudieron añadir las herramientas de Koru a {}: {}", pt_br: "Não foi possível adicionar as ferramentas do Koru ao {}: {}", de: "Die Koru-Werkzeuge konnten nicht zu {} hinzugefügt werden: {}", fr: "Impossible d'ajouter les outils de Koru à {} : {}", ar: "تعذّرت إضافة أدوات Koru إلى {}: {}", zh_hans: "无法将 Koru 的工具添加到 {}：{}", ja: "Koru のツールを {} に追加できませんでした: {}" },
 ];
