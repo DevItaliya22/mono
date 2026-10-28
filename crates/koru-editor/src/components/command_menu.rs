@@ -117,6 +117,12 @@ pub enum Command {
     /// Make this block a code block. Like a heading, nothing is left to choose
     /// once the command is picked, so it is applied directly. Document-only.
     Code,
+    /// **Start a diagram**: a `mermaid` code block holding a three-line
+    /// example that is drawn at once, its text open with the example selected
+    /// so the first keystroke replaces it. Applied directly, like
+    /// [`Code`](Self::Code), and offered wherever code blocks are. On a line
+    /// that has words the words stay and the diagram is the block below.
+    Diagram,
     /// **Complete the task this row is** — or reopen it, when it is done —
     /// through the canonical lifecycle command. Nothing left to choose, so
     /// it is applied the moment it is picked, as `/task` is. On a page whose
@@ -219,7 +225,7 @@ impl Command {
     ///
     /// Image, Code, Divider, the lists and the headings are filtered out by
     /// [`matching`] for views that do not offer them.
-    pub const ALL: [Command; 29] = [
+    pub const ALL: [Command; 30] = [
         Command::Attachment,
         Command::Attr,
         Command::Callout,
@@ -227,6 +233,7 @@ impl Command {
         Command::Color,
         Command::Complete,
         Command::Delegate,
+        Command::Diagram,
         Command::Dictate,
         Command::Divider,
         Command::Document,
@@ -297,6 +304,9 @@ impl Command {
             // twenty-one English rows above are a gap this does not widen;
             // `docs/contributing/techdebt/README.md` carries it.
             Self::Delegate => koru_i18n::t(koru_i18n::current(), koru_i18n::Key::DelegateCommand),
+            // Localized for the reason `Delegate` is: a new row, and the
+            // standing rule that a new string ships in every language.
+            Self::Diagram => koru_i18n::t(koru_i18n::current(), koru_i18n::Key::DiagramCommand),
         }
     }
 
@@ -312,6 +322,7 @@ impl Command {
             Self::List(ListStyle::Numbered) => icons::LIST_NUM,
             Self::List(_) => icons::LIST,
             Self::Code => icons::CODE,
+            Self::Diagram => icons::GRAPH,
             Self::Table => icons::TABLE,
             Self::Divider => icons::DIVIDER,
             Self::Quote => icons::QUOTES,
@@ -365,6 +376,7 @@ impl Command {
             Self::List(ListStyle::Letter) => "lettered",
             Self::List(ListStyle::Roman) => "roman",
             Self::Code => "code",
+            Self::Diagram => "diagram",
             Self::Table => "table",
             Self::Divider => "divider",
             Self::Quote => "quote",
@@ -433,6 +445,7 @@ impl Command {
             Self::List(ListStyle::Letter) => "a.",
             Self::List(ListStyle::Roman) => "i.",
             Self::Code => "```",
+            Self::Diagram => "```mermaid",
             Self::Table => "",
             Self::Divider => "---",
             Self::Quote => ">",
@@ -517,7 +530,7 @@ pub fn matching(q: &str, allows: &Allows) -> Vec<Command> {
         })
         .filter(|c| *c != Command::Image || allows.image)
         .filter(|c| !matches!(c, Command::Tasks | Command::List(_)) || allows.tasks)
-        .filter(|c| *c != Command::Code || allows.code)
+        .filter(|c| !matches!(c, Command::Code | Command::Diagram) || allows.code)
         .filter(|c| *c != Command::Table || allows.table)
         .filter(|c| *c != Command::Divider || allows.divider)
         .filter(|c| !matches!(c, Command::Quote | Command::Callout) || allows.quote)
@@ -532,10 +545,13 @@ pub fn matching(q: &str, allows: &Allows) -> Vec<Command> {
         // Word-prefix, not substring: "d" means Document, Date and Divider,
         // not every command with a `d` somewhere in it. A palette that answers
         // a single letter with most of its contents has not filtered anything.
+        //
+        // Diagram also answers to "mermaid", the word people type for one.
         .filter(|c| {
             c.name().starts_with(&q)
                 || word_prefix(c.label(), &q)
                 || (*c == Command::Attachment && "attach".starts_with(&q) && !q.is_empty())
+                || (*c == Command::Diagram && "mermaid".starts_with(&q) && !q.is_empty())
         })
         .collect()
 }
@@ -1134,6 +1150,7 @@ mod tests {
             // around it rather than part of a word.
             vec![
                 Command::Delegate,
+                Command::Diagram,
                 Command::Dictate,
                 Command::Divider,
                 Command::Document,
