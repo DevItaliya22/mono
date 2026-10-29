@@ -524,6 +524,43 @@ impl AgentControl for CodexControl {
         })
     }
 
+    fn steer(&mut self, input: AgentInput) -> Result<(), ProviderFailure> {
+        input.validate(self.config.maximum_input_bytes)?;
+        let invalid_state = || {
+            failure(
+                ErrorCode::InvalidTransition,
+                ProviderStage::Submit,
+                ProviderDiagnostic::InvalidState,
+            )
+        };
+        if !input.attachments.is_empty() {
+            return Err(failure(
+                ErrorCode::DeliveryUnsupported,
+                ProviderStage::Submit,
+                ProviderDiagnostic::InvalidInput,
+            ));
+        }
+        // Only a turn this adapter started and has not seen finish can be
+        // steered; the provider also checks the id it is given.
+        let native_id = self
+            .turns
+            .get(&input.turn_id)
+            .filter(|turn| !turn.terminal)
+            .and_then(|turn| turn.native_id.clone())
+            .ok_or_else(invalid_state)?;
+        let thread_id = self.thread_id.clone().ok_or_else(invalid_state)?;
+        self.call(
+            "turn/steer",
+            json!({
+                "threadId": thread_id,
+                "expectedTurnId": native_id,
+                "input": [{ "type": "text", "text": input.text }],
+            }),
+            ProviderStage::Submit,
+        )?;
+        Ok(())
+    }
+
     fn cancel(&mut self, turn_id: AgentTurnId) -> Result<(), ProviderFailure> {
         let turn = self.turns.get(&turn_id).cloned().ok_or_else(|| {
             failure(

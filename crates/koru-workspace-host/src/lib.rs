@@ -178,7 +178,7 @@ pub use app::{run, run_with_args};
 /// own notes. See the note on the function.
 pub use clipboard_markdown::parse as parse_markdown;
 pub use settings::{
-    DocViewPrefs, MAX_RECENTS, PinnedTabRef, PopoutClose, Settings, TabRef, TasksTabRef,
+    DocViewPrefs, MAX_RECENTS, PinnedTabRef, PopoutClose, SessionRecovery, Settings, TabRef, TasksTabRef, TerminalLook,
 };
 
 /// A decoded image ready to become a block, produced by the shell from the

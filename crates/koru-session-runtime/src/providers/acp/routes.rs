@@ -79,9 +79,14 @@ impl AcpDialect {
             Self::Generic => &[],
             Self::Claude => &[("0.76.0", "0.76.0")],
             Self::OpenCode => &[("1.18.27", "1.18.27")],
-            // 2.3.3: the normally installed CLI on 2026-10-27 (UPDATEAGENTS),
+            // 2.3.3 and 2.4.0: the normally installed CLI on 2026-10-27 and 2026-10-28 (UPDATEAGENTS),
             // admitted on the same factory handshake as 2.0.0.
-            Self::Kimi => &[("0.42.0", "0.42.0"), ("2.0.0", "2.0.0"), ("2.3.3", "2.3.3")],
+            Self::Kimi => &[
+                ("0.42.0", "0.42.0"),
+                ("2.0.0", "2.0.0"),
+                ("2.3.3", "2.3.3"),
+                ("2.4.0", "2.4.0"),
+            ],
             Self::Grok => &[
                 ("grok 1.0.25 (f7e67d6988e2) [stable]", "1.0.25"),
                 ("grok 1.0.34 (3736acbc8658) [stable]", "1.0.34"),

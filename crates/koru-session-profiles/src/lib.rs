@@ -387,6 +387,35 @@ pub fn resolve_executable(program: &str) -> Option<PathBuf> {
     None
 }
 
+/// The arguments that make a raw agent continue its **most recent
+/// conversation in the folder it starts in**, or `None` for a profile whose
+/// CLI has no such form (a shell, Muse, a custom profile). Each was read from
+/// the CLI's own `--help` on 2026-10-28.
+///
+/// This is the whole of what *Resume* means: Koru does not know the agent's
+/// session id (a raw PTY never tells it), so it asks the agent for "the last
+/// one here". The host appends these after the profile's own argv, which is
+/// why the client sends a flag and never a command line.
+pub fn resume_arguments(label: ProfileLabel) -> Option<&'static [&'static str]> {
+    match label {
+        ProfileLabel::Claude
+        | ProfileLabel::OpenCode
+        | ProfileLabel::QwenCode
+        | ProfileLabel::Copilot
+        | ProfileLabel::Kimi
+        | ProfileLabel::Grok
+        | ProfileLabel::Antigravity => Some(&["--continue"]),
+        // Codex's continue is a subcommand, not a flag.
+        ProfileLabel::CodexEmbedded | ProfileLabel::CodexCli => Some(&["resume", "--last"]),
+        ProfileLabel::PlatformShell
+        | ProfileLabel::PowerShell
+        | ProfileLabel::Bash
+        | ProfileLabel::Gemini
+        | ProfileLabel::Muse
+        | ProfileLabel::Custom => None,
+    }
+}
+
 /// Resolve an authored profile argv to the concrete invocation the host will
 /// spawn. Presence probing and process launch therefore cannot disagree about
 /// which Windows shim was selected.

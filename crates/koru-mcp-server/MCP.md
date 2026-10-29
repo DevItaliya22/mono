@@ -98,6 +98,9 @@ text as `expected`:
    {"op": "set_done", "node_id": "…", "expected": "Call the plumber", "done": true},
    {"op": "set_mark", "node_id": "…", "expected": "Buy oat milk",
     "start_utf8": 4, "end_utf8": 12, "mark": "italic", "on": true},
+   {"op": "set_heading", "node_id": "…", "expected": "Thursday morning", "heading": 2},
+   {"op": "set_highlight", "node_id": "…", "expected": "Buy oat milk",
+    "start_utf8": 4, "end_utf8": 7, "highlight": "yellow"},
    {"op": "move", "node_id": "…", "expected": "…", "parent_id": "…", "after_node_id": null},
    {"op": "remove", "node_id": "…", "expected": "…"},
    {"op": "set_attribute", "node_id": "…", "expected": "Call the plumber",
@@ -108,12 +111,26 @@ text as `expected`:
 ```
 
 The batch applies in order and atomically, or not at all. `remove` takes the
-whole subtree. `set_mark` formats a byte range — `bold`, `italic`,
+whole subtree, and works on an image block: a block with no text has nothing
+for `expected` to compare, so for an image `remove`, `move`, `set_align`,
+`set_done`, `set_attribute` and `clear_attribute` ignore it (send an empty
+string). Setting `koru.due` on an image or a file that is not already a task
+is refused. `set_mark` formats a byte range — `bold`, `italic`,
 `underline`, `strike` or `code`, on or off — and a read reports the result in
-`runs`. `insert_inline` puts a reference to another document or to a file
-into a node's text at a UTF-8 byte offset `at_utf8`: `{"type": "document",
-"document_id": "…"}` or `{"type": "attachment", "file_id": "…"}`.
-`set_language` labels a `code` block. Attribute values are the shapes a read
+`runs`. `set_heading` sets `metadata.heading` to 1–6, or `null` for body text.
+`set_highlight` sets `runs[].highlight` to `yellow`, `green`, `blue` or `pink`
+over the same kind of byte range, or `null` to clear; any other name is
+refused. `set_align` aligns a block's lines — `start` (the default),
+`center` or `end` — on a paragraph, heading, quote or image, and a read
+reports it in `metadata.align`. `insert_inline` puts a reference to another
+document, to a file or to a web address into a node's text at a UTF-8 byte
+offset `at_utf8`: `{"type": "document", "document_id": "…"}`,
+`{"type": "attachment", "file_id": "…"}` or `{"type": "link", "url":
+"https://…", "label": "caption"}` (`http`, `https` or `mailto`; the caption
+defaults to the address).
+`set_language` labels a `code` block. An image goes in with `add_image`, a
+separate call with the file's bytes in base64 (PNG, JPEG, GIF or WebP, up to 8
+MiB), not an operation. Attribute values are the shapes a read
 reports: `date` `{value: "YYYY-MM-DD"}`, `datetime_zoned` `{instant_ms,
 timezone}`, `datetime_floating` `{wall}`, `text`, `number`, `bool`, `url`.
 `koru.due` takes a `date` or a `datetime_zoned` and makes the node a task;
@@ -154,7 +171,7 @@ The current tool surface is:
 - `get_documentation`, `list_workspaces`, `list_documents`, `search_documents`,
   `list_tasks`, `read_document`, `list_files`, `search_files`, `get_file`, and
   `read_file` for discovery and reads;
-- `create_document`, `edit_document`, `ensure_file_note`, and
+- `create_document`, `edit_document`, `add_image`, `ensure_file_note`, and
   `extract_to_document` for durable semantic mutations; and
 - `save_document_version`, `list_document_versions`,
   `compare_document_versions`, and `restore_document_version` for history; and
@@ -201,8 +218,11 @@ This file is the long form; the reply points here.
   compares the published schemas with the generated ones.
 
 The reply was 57,071 bytes before this and 17,137 bytes after it; `set_mark`
-in both operation unions took it to 17,973 under an 18,000-byte budget
-([ADR-470](../../docs/decisions/ADR-470-mcpessentials.md)). It cannot get
+in both operation unions took it to 17,973, `add_image`, a 22nd tool, to
+19,005, and `set_heading` with `set_highlight` to 19,428, under a 19,500-byte
+budget
+([ADR-470](../../docs/decisions/ADR-470-mcpessentials.md),
+[ADR-472](../../docs/decisions/ADR-472-addimage.md)). It cannot get
 under 8 KiB with 21 typed tools: the names, titles, safety hints and typed
 parameters alone come to about 9.6 KB before a word of description. That
 matters for Grok CLI 1.0.34, which can lose an 8,192-byte chunk of any longer
@@ -254,6 +274,7 @@ and as a test held them against real values. A failure is
 | `get_file` | a file |
 | `read_file` | `{ file, offset, length, total_bytes, eof, base64 }` |
 | `read_document`, `create_document` | `{ document_id, root_node_id, revision, schema_version, nodes }` — `nodes` in preorder, each with identity, parent, ordinal, depth, kind, typed metadata and typed content |
+| `add_image` | the edit's `{ revision, history }` plus `{ node_id, hash, mime, width, height, size }` |
 | `ensure_file_note` | `{ note_id, created }` |
 | `edit_document`, `restore_document_version` | `{ revision, history: entry }`, an entry being `{ id, document, version, reason, recorded_at, label?, message?, boundary?, pinned }` |
 | `extract_to_document` | `{ document_id, document_revision, source_revision, source_link_node_id, history: { document: entry, source: entry } }` |
@@ -394,8 +415,9 @@ insertion makes a remembered number unstable while sibling identity remains
 meaningful.
 
 The live-edit operation vocabulary is `replace_text`, `insert`, `insert_inline`,
-`move`, `remove`, `set_done`, `set_language`, `set_mark`, `set_attribute`,
-`clear_attribute`, `add_tag`, and `remove_tag`. The last four are described
+`move`, `remove`, `set_done`, `set_language`, `set_mark`, `set_heading`,
+`set_highlight`, `set_align`, `set_attribute`, `clear_attribute`, `add_tag`, and
+`remove_tag`. The last four are described
 under [Attributes and tags](#attributes-and-tags), and what `set_done` and a
 `koru.due` write mean on a **task** is under [Tasks](#tasks).
 
@@ -407,9 +429,22 @@ editor calls. The range is UTF-8 byte offsets on character boundaries and may
 not be empty: an empty range would write nothing, and a success that wrote
 nothing is how a misspelt offset goes unnoticed. The text is untouched, so a
 `replace_text` and the marks over the new text are two operations, in that
-order and with the new text as the second's `expected`. The value marks a run
-also reports — `script`, `size`, `highlight` — and links are read-only here
-for now.
+order and with the new text as the second's `expected`.
+
+**A heading is `set_heading`.** `heading` is 1–6, the number a read reports as
+`metadata.heading`, or `null` to return the block to body text. It is a
+property of the whole block, so it takes no range, and it does not change the
+text. A level outside 1–6 is refused rather than clamped. An insert and the
+`set_heading` for that new block are two operations in one batch: the second's
+`expected` is the text the insert wrote.
+
+**A highlight is `set_highlight`.** It uses the same `start_utf8..end_utf8`
+rules as `set_mark`. `highlight` is `yellow`, `green`, `blue` or `pink`, the
+names a read reports on `runs`, or `null` to clear that range. Any other
+spelling is an error: the theme would otherwise paint an unknown name as the
+first swatch and the misspelling would look like a success. Other marks on the
+same characters stay. The value marks a run also reports — `script` and
+`size` — and links are read-only here for now.
 
 The `insert` schema enumerates every accepted body kind: `task`, `paragraph`,
 `quote`, `listblock`, `table`, `code`, and `divider` — not `contact`, which is
@@ -498,7 +533,53 @@ has since changed. Reusing the key for different input returns
 the key is convenient for interactive use but a caller retry after an unknown
 transport outcome can create a duplicate.
 
+## Adding an image
+
+`add_image` stores an image and puts it in a document as one block, in one call:
+
+```jsonc
+{"workspace_id": "…", "document_id": "…", "base_revision": "<from the read>",
+ "node_id": "<fresh UUID>", "parent_id": "<root_node_id>", "after_node_id": null,
+ "data_base64": "<the file's bytes, standard base64>", "name": "library.jpg"}
+```
+
+- **The bytes are checked, not trusted.** The format and the size come from the
+  file's header: PNG, JPEG, GIF or WebP, at most 8 MiB decoded. Anything else —
+  an SVG, a script, a truncated file, a mislabelled one — is refused with the
+  reason, and nothing is stored.
+- **The document holds a hash, not the bytes.** The bytes go to the workspace's
+  blob store, addressed by their content
+  ([ADR-12](../../docs/decisions/ADR-001-025.md#adr-12--blob-bytes-never-enter-the-crdt)),
+  and the new `image` block carries that hash, the type and the pixel size.
+  Storing the same bytes twice keeps one copy. `read_document` reports the
+  block as `{"type":"blob","hash","mime","width","height","attributes"}`.
+  `attributes` is the same list a text block carries, so a due on an image
+  reads back.
+- **It is an edit.** It takes `base_revision`, places the block with `parent_id`
+  and `after_node_id` exactly as an `insert` does, writes the same
+  `mcp_before` and `mcp_after` history markers, and answers the edit's
+  `revision` and `history` with `node_id`, `hash`, `mime`, `width`, `height` and
+  `size`. A stale revision is `stale_node` as for any edit.
+- **Not idempotent.** `node_id` names the block, so repeating a call that
+  succeeded is refused as a duplicate id rather than adding a second image.
+- **What it does not do yet.** It does not add an image inside a seed
+  (`create_document`), take a URL or a file path, or add a *file* to the
+  workspace's file list; `list_files` and `read_file` are unchanged.
+
 ## Inline objects
+
+**A web link is `insert_inline` with `{"type": "link", "url", "label"?}`.** It
+is a link pill — the same object a pasted link becomes — inserted at a byte
+offset, so it adds a caption to the text rather than turning words already
+there into a link; to link existing words, replace them with the pill. The
+scheme is an allowlist (`http://`, `https://`, `mailto:`): `javascript:`,
+`file:`, `data:` and anything else is refused with the reason, as is an address
+over 2,048 characters or one with spaces or control characters.
+
+**Alignment is `set_align`**, an operation on a block: `start`, `center` or
+`end`. `start` is the default and is stored as no value, so setting it on an
+aligned block puts the block back as the editor leaves a new one. An image has
+no text to compare, so its `expected` is not checked.
 
 An inline object is an attribute rendered over one invisible U+2060 anchor in a
 text node. Internally it comprises:
@@ -671,10 +752,11 @@ mirror and the reopen rule, and a raw write would be a second authority on all
 three. Write them by meaning instead: `set_done` for the lifecycle, `koru.due`
 for the deadline.
 
-One limit that follows from the surface rather than from tasks: every operation
-that targets an existing node carries its exact `expected` text, so operations
-address text-shaped nodes only. An image or a file can be a task in Koru; it
-cannot be made one from here yet.
+`remove`, `move`, `set_align`, `set_done`, `set_attribute` and
+`clear_attribute` work on an image: a block with no text has nothing for
+`expected` to compare, so send an empty string. An operation that edits text
+still carries that text. An image or a file can be a task in Koru. Making one
+from here is refused.
 
 **A task change made through MCP is attributed to the MCP client.** Task
 mutations append activity — created, completed, reopened, due changed, and the
@@ -794,11 +876,11 @@ this release:
   attribute table above gives: the marker and `koru.task_state` are readable
   and are not writable through a generic attribute door by anyone, this bridge
   included.
-- **An image or a file cannot be made a task from here**, per the `expected`
-  precondition described above: every operation targeting an existing node
-  carries its exact text, so this surface addresses text-shaped nodes only.
-  Image and file tasks are created in the editor, and are then listed, read,
-  completed and re-dated through here like any other.
+- **An image or a file cannot be made a task from here.** `set_attribute` of
+  `koru.due` on one that is not already a task is refused. One created in the
+  editor is listed, read, completed (`set_done`) and re-dated
+  (`set_attribute` or `clear_attribute` of `koru.due`) through here, with
+  `expected` empty.
 
 ## Searching
 

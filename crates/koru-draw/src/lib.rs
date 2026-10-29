@@ -19,6 +19,7 @@ pub mod emoji;
 pub mod geometry;
 pub mod icons;
 pub mod image;
+pub mod installed_fonts;
 pub mod inspect;
 pub mod pill;
 pub mod scene;

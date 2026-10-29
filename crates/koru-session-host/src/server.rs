@@ -772,9 +772,14 @@ fn handle_request(
                 .as_ref()
                 .is_some_and(koru_session_protocol::LaunchSelection::is_explicit)
                 && !protocol.launch_selection;
+            let resume_without_capability = create.resume
+                && !protocol
+                    .capabilities
+                    .supports(koru_session_protocol::capability::LAUNCH_RESUME);
             if protocol.version < 6
                 || origin_without_capability
                 || selection_without_capability
+                || resume_without_capability
                 || !protocol.profile_launch
                 || managed_without_capability
                 || placed_without_capability
@@ -1728,7 +1733,20 @@ fn create_profile_session(
             let bridge = (profile.kind == koru_session_protocol::ProfileKind::Agent)
                 .then(|| tab_bridge_for(state, profile.label))
                 .flatten();
-            let (argv, environment) = raw_launch(&profile, bridge)?;
+            // **Resume is the agent's own continue form, appended by the host**:
+            // a client asks for it by flag and never names an argument. A
+            // profile with no such form refuses rather than start fresh under
+            // a request that said otherwise.
+            let resume: &[&str] = if request.resume {
+                if profile.kind != koru_session_protocol::ProfileKind::Agent {
+                    return Err(failure(ErrorCode::ProfileIncompatible));
+                }
+                koru_session_profiles::resume_arguments(profile.label)
+                    .ok_or_else(|| failure(ErrorCode::ProfileIncompatible))?
+            } else {
+                &[]
+            };
+            let (argv, environment) = raw_launch(&profile, bridge, resume)?;
             SessionCreate {
                 profile: profile.id,
                 parent_session_id: request.parent_session_id,
@@ -2114,6 +2132,14 @@ fn tab_bridge_for(state: &HostState, label: ProfileLabel) -> Option<tab_bridge::
     tab_bridge::launch(label, &bridge_for(bridge, program), files)
 }
 
+/// A profile's own argv followed by its resume form: `codex` becomes
+/// `codex resume --last`, `claude` becomes `claude --continue`.
+fn with_resume(argv: &[String], resume: &[&str]) -> Vec<String> {
+    let mut own = argv.to_vec();
+    own.extend(resume.iter().map(|argument| (*argument).to_owned()));
+    own
+}
+
 /// A raw launch's resolved argv and environment: the profile's own, plus the
 /// tab's bridge. A bridge the platform boundary refuses — an argument a
 /// Windows batch shim cannot be trusted with — costs the tab its tools,
@@ -2121,9 +2147,14 @@ fn tab_bridge_for(state: &HostState, label: ProfileLabel) -> Option<tab_bridge::
 fn raw_launch(
     profile: &koru_session_profiles::LaunchProfile,
     bridge: Option<tab_bridge::TabBridge>,
+    resume: &[&str],
 ) -> Result<(Vec<OsString>, EnvironmentPolicy), SessionFailure> {
+    // The profile's own argv, then the resume form, then whatever the bridge
+    // adds: `codex resume --last -c mcp_servers…`, `claude --continue
+    // --mcp-config …`.
+    let own = with_resume(&profile.argv, resume);
     if let Some(bridge) = bridge {
-        let argv = tab_bridge::argv(&profile.argv, Some(&bridge));
+        let argv = tab_bridge::argv(&own, Some(&bridge));
         if let Some(argv) = koru_session_profiles::resolve_launch_argv(&argv) {
             let environment = if bridge.env.is_empty() {
                 EnvironmentPolicy::Inherit
@@ -2141,7 +2172,7 @@ fn raw_launch(
             "the launch boundary refused the bridge's arguments; the tab runs without Koru's tools"
         );
     }
-    let argv = koru_session_profiles::resolve_launch_argv(&profile.argv)
+    let argv = koru_session_profiles::resolve_launch_argv(&own)
         .ok_or_else(|| failure(ErrorCode::ProfileMissing))?;
     Ok((argv, EnvironmentPolicy::Inherit))
 }
@@ -2157,6 +2188,51 @@ fn require_attachments(protocol_version: u32, negotiated: bool) -> Result<(), Se
 }
 
 mod tab_bridge;
+
+#[cfg(test)]
+mod resume_tests {
+    use super::*;
+
+    #[test]
+    fn a_resume_is_the_agents_own_continue_form_after_its_own_arguments() {
+        assert_eq!(
+            with_resume(&["claude".into()], &["--continue"]),
+            ["claude", "--continue"]
+        );
+        assert_eq!(
+            with_resume(&["codex".into()], &["resume", "--last"]),
+            ["codex", "resume", "--last"]
+        );
+        assert_eq!(with_resume(&["grok".into()], &[]), ["grok"]);
+    }
+
+    #[test]
+    fn every_agent_with_a_per_launch_bridge_or_a_registration_can_continue() {
+        use koru_session_profiles::{ProfileLabel, resume_arguments};
+        for label in [
+            ProfileLabel::Claude,
+            ProfileLabel::CodexEmbedded,
+            ProfileLabel::CodexCli,
+            ProfileLabel::Copilot,
+            ProfileLabel::QwenCode,
+            ProfileLabel::OpenCode,
+            ProfileLabel::Grok,
+            ProfileLabel::Kimi,
+            ProfileLabel::Antigravity,
+        ] {
+            assert!(resume_arguments(label).is_some(), "{label:?}");
+        }
+        for label in [
+            ProfileLabel::PlatformShell,
+            ProfileLabel::PowerShell,
+            ProfileLabel::Bash,
+            ProfileLabel::Muse,
+            ProfileLabel::Custom,
+        ] {
+            assert!(resume_arguments(label).is_none(), "{label:?}");
+        }
+    }
+}
 
 #[cfg(test)]
 mod readiness_tests;

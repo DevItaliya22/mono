@@ -2164,3 +2164,73 @@ fn live_codex_pages_through_the_bridge_tool_list() {
         ),
     }
 }
+
+#[test]
+fn steering_adds_text_to_the_running_turn_with_its_native_id_and_only_then() {
+    let mut frames = initialize_frames(false);
+    frames.push(json!({ "id": 4, "result": { "turn": { "id": "native-turn-1" } } }));
+    frames.push(json!({ "id": 5, "result": { "turnId": "native-turn-1" } }));
+    let (mut control, state) = replay_control(frames, Arc::new(NoopAttachmentPathResolver));
+    control
+        .start(AgentStart {
+            session_id: SessionId::mint(),
+            parent_session_id: None,
+            resume: None,
+        })
+        .unwrap();
+    let turn_id = AgentTurnId::mint();
+    control
+        .submit(AgentInput {
+            turn_id,
+            text: "start".into(),
+            attachments: Vec::new(),
+        })
+        .unwrap();
+
+    control
+        .steer(AgentInput {
+            turn_id,
+            text: "also this".into(),
+            attachments: Vec::new(),
+        })
+        .unwrap();
+    let sent = state.lock().unwrap().sent.clone();
+    let steer = sent
+        .iter()
+        .find(|message| message.get("method").and_then(Value::as_str) == Some("turn/steer"))
+        .expect("a turn/steer request");
+    let params = &steer["params"];
+    assert_eq!(params["threadId"], "fixture-thread");
+    assert_eq!(params["expectedTurnId"], "native-turn-1");
+    assert_eq!(params["input"][0]["text"], "also this");
+
+    // A turn this adapter never started, or one that finished, is not steered.
+    let stranger = control
+        .steer(AgentInput {
+            turn_id: AgentTurnId::mint(),
+            text: "x".into(),
+            attachments: Vec::new(),
+        })
+        .unwrap_err();
+    assert_eq!(stranger.code, ErrorCode::InvalidTransition);
+    control.turns.get_mut(&turn_id).unwrap().terminal = true;
+    let finished = control
+        .steer(AgentInput {
+            turn_id,
+            text: "late".into(),
+            attachments: Vec::new(),
+        })
+        .unwrap_err();
+    assert_eq!(finished.code, ErrorCode::InvalidTransition);
+    assert_eq!(
+        state
+            .lock()
+            .unwrap()
+            .sent
+            .iter()
+            .filter(|message| message.get("method").and_then(Value::as_str) == Some("turn/steer"))
+            .count(),
+        1,
+        "nothing was sent for either refusal"
+    );
+}
