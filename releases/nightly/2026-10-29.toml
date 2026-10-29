@@ -65,6 +65,14 @@ builds older than this one, including other devices on an older version.
 - Quit in the tray menu now stays quit. Before, an open window started Koru's
   background service again straight away.
 
+## Windows
+
+The nightly now has a Windows download too, a zip beside the Linux tarball.
+Unpack it anywhere and run `koru.exe`; an installed Windows nightly then
+updates itself from this page, as Linux does. It is not code-signed yet, so
+SmartScreen asks before the first run, and reminders show no notifications
+until it is.
+
 ## Linking a device
 
 Copy link code now copies only the code, without the
