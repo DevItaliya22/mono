@@ -653,18 +653,9 @@ fn resume_sends_a_continuation_in_the_saved_folder_and_start_new_a_fresh_launch(
                 );
             } else {
                 // The first button found by pressing around the pane is
-                // Resume (it sits first); Start new is the other one.
-                let mut seen = Vec::new();
-                while let Some(choice) = click_until_chosen(view) {
-                    if choice == Choice::StartNew {
-                        seen.push(choice);
-                        break;
-                    }
-                    // A Resume press is consumed; keep scanning for the other.
-                    break;
-                }
-                if seen.is_empty() {
-                    // Fall back to pressing at the far end of the button row.
+                // Resume (it sits first); Start new is the other one, so a
+                // scan that lands on Resume chooses Start new directly.
+                if click_until_chosen(view) != Some(Choice::StartNew) {
                     view.offer
                         .as_mut()
                         .unwrap()

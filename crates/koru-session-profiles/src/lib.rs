@@ -737,7 +737,7 @@ mod tests {
         for argument in [
             "--mcp-config",
             r"C:\Users\A B\AppData\Local\Koru\agent\sessions\bridge\claude.json",
-            r"@C:\Users\a\bridge\copilot.json",
+            r"@C:\Users\me\bridge\copilot.json",
             r"mcp_servers.koru.command='C:\Program Files\Koru\koru-mcp.exe'",
             "mcp_servers.koru.args=['serve','--stdio']",
         ] {

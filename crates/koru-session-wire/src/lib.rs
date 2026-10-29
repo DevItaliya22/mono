@@ -992,7 +992,10 @@ mod tests {
                 selection: None,
                 resume,
                 working_directory: PathBuf::from("/tmp"),
-                size: GridSize { columns: 80, rows: 24 },
+                size: GridSize {
+                    columns: 80,
+                    rows: 24,
+                },
             })
             .unwrap()
         };

@@ -2463,14 +2463,7 @@ impl ContextMenu {
             engine,
             MenuSubject::Tab(tab),
             anchor,
-            tab_items_for(
-                document,
-                pinnable,
-                pinned,
-                show_title,
-                mcp,
-                terminal_look,
-            ),
+            tab_items_for(document, pinnable, pinned, show_title, mcp, terminal_look),
         )
     }
 

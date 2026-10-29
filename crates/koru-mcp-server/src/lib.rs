@@ -7693,7 +7693,10 @@ mod tests {
             &attr.value,
             AttrValue::Url(url) if url == "https://koru.do/docs?a=1#top"
         ));
-        assert_eq!(link_attr("MAILTO:hi@koru.do", None).unwrap().label, None);
+        assert_eq!(
+            link_attr("MAILTO:someone@example.com", None).unwrap().label,
+            None
+        );
         // The scheme is an allowlist.
         for bad in [
             "javascript:alert(1)",
