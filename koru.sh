@@ -327,6 +327,9 @@ usage: ./koru.sh <command> [cargo args...]
   voice-models fetch, repackage and publish the speech models (dry run by default)
   voice-test  launch an isolated stack with both locally served speech models
   mcp        check MCP discovery; --console serves stdio in this terminal
+  mcp-add    register this checkout's bridge with the agent CLIs on PATH
+             (Claude Code, Codex, Gemini): mcp-add [name]; absent ones are skipped
+  mcp-remove unregister it from the same: mcp-remove [name]; the name defaults to koru
   voice      run or inspect the voice worker (status | stop)
   document   launch the built-in document on its own
   dist-local package the whole bundle into dist/cloud/ — local signing, no upload
@@ -677,6 +680,62 @@ mcp_verb() {
   exec cargo run -p koru-mcp -- "${command[@]}"
 }
 
+# Register this checkout's bridge with the agent CLIs on PATH — Claude Code,
+# Codex and Gemini — under a name, "koru" unless one is given, so testing an
+# agent against a dev build is one verb rather than a path to type into each:
+# the debug bridge beside the other binaries, with the channel root every
+# other verb uses, so the agent reaches the store the window shows. A CLI that
+# is not installed is skipped and said so; the verb fails only when none of
+# the three is there. Built first: a registration records a path and says
+# nothing when nothing is there yet. `mcp-remove` undoes it.
+#
+# User scope where the CLI has one: Claude's and Gemini's default scope is the
+# directory the command ran in, so a session started anywhere else — a
+# terminal inside Koru, another worktree — would not see the entry. Codex
+# keeps one global config. Grok, Kimi, Copilot and Muse are left alone: no
+# registration command of theirs is verified here.
+mcp_name() {
+  MCP_NAME="${1:-koru}"
+}
+
+mcp_add_verb() {
+  mcp_name "$@"
+  cargo build -p koru-mcp || exit 1
+  local bridge="$PWD/target/debug/koru-mcp"
+  local -a tail=(serve --stdio)
+  if [ -n "${KORU_ROOT:-}" ]; then
+    tail+=(--root "$KORU_ROOT")
+  fi
+  local any=0
+  if command -v claude >/dev/null 2>&1; then
+    claude mcp add --scope user "$MCP_NAME" -- "$bridge" "${tail[@]}" && any=1
+  else
+    echo "[Koru] claude is not on PATH; skipped"
+  fi
+  if command -v codex >/dev/null 2>&1; then
+    codex mcp add "$MCP_NAME" -- "$bridge" "${tail[@]}" && any=1
+  else
+    echo "[Koru] codex is not on PATH; skipped"
+  fi
+  if command -v gemini >/dev/null 2>&1; then
+    gemini mcp add --scope user "$MCP_NAME" "$bridge" -- "${tail[@]}" && any=1
+  else
+    echo "[Koru] gemini is not on PATH; skipped"
+  fi
+  if [ "$any" = 0 ]; then
+    echo "koru: none of claude, codex or gemini is on PATH; nothing was registered." >&2
+    exit 1
+  fi
+}
+
+mcp_remove_verb() {
+  mcp_name "$@"
+  command -v claude >/dev/null 2>&1 && claude mcp remove --scope user "$MCP_NAME"
+  command -v codex >/dev/null 2>&1 && codex mcp remove "$MCP_NAME"
+  command -v gemini >/dev/null 2>&1 && gemini mcp remove --scope user "$MCP_NAME"
+  return 0
+}
+
 # Which Cloud a launch talks to is a file, not a flag you can forget —
 # koru.bat's rule, for koru.bat's reason: a desktop pointed at the wrong API
 # signs in, enables Cloud sync and uploads somebody's pictures to it, and
@@ -826,6 +885,8 @@ case "$sub" in
     ;;
   voice)    voice_verb "$@" ;;
   mcp)      mcp_verb "$@" ;;
+  mcp-add)    mcp_add_verb "$@" ;;
+  mcp-remove) mcp_remove_verb "$@" ;;
   document) ensure_fonts; exec cargo run -p koru-document "$@" ;;
   # The whole package — every shipped binary and all thirty fonts — staged and
   # zipped into dist/cloud/, and then nothing: no signing, no upload. It replaced
