@@ -589,7 +589,7 @@ fn the_two_version_numbers_are_not_the_same_declaration() {
     // Literal numbers rather than an inequality, so that bumping one is a
     // deliberate edit here as well as there -- which is what caught the
     // `OpenLink` bump that took the protocol to 8 and left the frame alone.
-    assert_eq!(PROTOCOL_VERSION, 43);
+    assert_eq!(PROTOCOL_VERSION, 44);
     assert_eq!(FRAME_VERSION, 1);
 }
 
