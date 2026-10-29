@@ -140,7 +140,7 @@ impl MainView {
     }
 
     /// What a session tab keeps so it can offer a replacement when its session
-    /// is gone at the next start (ADR-473): the folder and project the host
+    /// is gone at the next start (ADR-474): the folder and project the host
     /// reports for the live session, or — for a restored tab whose session has
     /// not been confirmed, or is gone and now offered — what it was saved with,
     /// so a second quit before a choice does not lose it.

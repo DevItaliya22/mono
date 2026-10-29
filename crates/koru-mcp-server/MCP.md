@@ -221,8 +221,8 @@ The reply was 57,071 bytes before this and 17,137 bytes after it; `set_mark`
 in both operation unions took it to 17,973, `add_image`, a 22nd tool, to
 19,005, and `set_heading` with `set_highlight` to 19,428, under a 19,500-byte
 budget
-([ADR-470](../../docs/decisions/ADR-470-mcpessentials.md),
-[ADR-472](../../docs/decisions/ADR-472-addimage.md)). It cannot get
+([ADR-471](../../docs/decisions/ADR-471-mcpessentials.md),
+[ADR-473](../../docs/decisions/ADR-473-addimage.md)). It cannot get
 under 8 KiB with 21 typed tools: the names, titles, safety hints and typed
 parameters alone come to about 9.6 KB before a word of description. That
 matters for Grok CLI 1.0.34, which can lose an 8,192-byte chunk of any longer
@@ -449,7 +449,7 @@ same characters stay. The value marks a run also reports — `script` and
 The `insert` schema enumerates every accepted body kind: `task`, `paragraph`,
 `quote`, `listblock`, `table`, `code`, and `divider` — not `contact`, which is
 a root-level reference the `@` pill creates and no supported surface here
-inserts (ADR-470). Operation
+inserts (ADR-471). Operation
 variants are inlined in the published tool schema so an MCP host need not
 resolve a private `$ref` to discover their fields. All request objects deny
 unknown fields; a misspelling is an error, never a successful no-op.

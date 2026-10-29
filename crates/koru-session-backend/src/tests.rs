@@ -1583,7 +1583,7 @@ fn ordinary_managed_preference_calls_live_creation_while_discovery_is_checking()
 }
 
 /// A window that offers a request the host refuses on an un-negotiated
-/// connection shows `Session failed` (ADR-473): the offer must carry
+/// connection shows `Session failed` (ADR-474): the offer must carry
 /// `launch-resume`, and the host's own offer must agree to it.
 #[test]
 fn the_windows_offer_negotiates_launch_resume_with_the_host() {

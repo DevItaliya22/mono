@@ -28,7 +28,7 @@ use koru_session_view::{
 use koru_settings::TerminalSettings;
 
 static CURRENT: Mutex<Option<TerminalSettings>> = Mutex::new(None);
-/// **The look each agent's terminals override Settings with** (ADR-474), keyed
+/// **The look each agent's terminals override Settings with** (ADR-475), keyed
 /// by the profile's stable key. Process-wide like [`CURRENT`], loaded from the
 /// profile file at restore and written back at capture.
 static AGENTS: Mutex<std::collections::BTreeMap<String, koru_workspace_host::TerminalLook>> =

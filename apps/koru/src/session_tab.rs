@@ -106,7 +106,7 @@ pub struct SessionView {
     /// What this tab was when it was saved — its folder, its project, whether
     /// it was a raw terminal — kept from a restore until the Agent's first
     /// catalog says the session is still alive (then it is dropped) or is not
-    /// (then the tab offers a replacement instead of closing; ADR-473).
+    /// (then the tab offers a replacement instead of closing; ADR-474).
     pub recovery: Option<koru_workspace_host::SessionRecovery>,
     /// The panel a recovered tab shows in place of a terminal.
     pub offer: Option<crate::session_offer::Offer>,

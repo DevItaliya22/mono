@@ -10,7 +10,7 @@
 //! Every CLI that can take an MCP server for one process now gets the bridge
 //! on its command line or in its environment. Nothing is written into the
 //! person's own configuration, so there is nothing to remove when the tab
-//! closes, and a tab opened outside Koru is exactly what it was (ADR-469).
+//! closes, and a tab opened outside Koru is exactly what it was (ADR-470).
 //!
 //! The carriers, as each CLI documents them:
 //!

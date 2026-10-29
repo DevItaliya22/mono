@@ -129,7 +129,7 @@ pub enum TabRef {
     /// the same tolerance the retired `workspace` token already relies on.
     ///
     /// **`recovery` is what the tab keeps for the day its session is gone**
-    /// (ADR-473): the folder it was in, the project it was placed in and
+    /// (ADR-474): the folder it was in, the project it was placed in and
     /// whether it was a raw terminal. It is written as a `|`-separated suffix
     /// of percent-encoded `key=value` pairs, so neither the list's comma nor
     /// the scroll's colon can appear in it, and an older reader — which
@@ -995,7 +995,7 @@ pub struct Settings {
     pub pinned_tab: Option<usize>,
     /// Welcome default: newly pinned tabs show their title.
     pub pinned_show_title: bool,
-    /// **The terminal's theme and font, per agent** (ADR-474): `claude`,
+    /// **The terminal's theme and font, per agent** (ADR-475): `claude`,
     /// `codex`, `powershell`, or `custom:<id>` to the look that agent's tabs
     /// use instead of the Settings page's. A key absent here follows Settings.
     pub terminal_looks: std::collections::BTreeMap<String, TerminalLook>,
@@ -2968,7 +2968,7 @@ mod tests {
         assert!(!custom.to_storage().contains(','));
     }
 
-    /// **A session tab keeps what it needs to come back** (ADR-473): the folder
+    /// **A session tab keeps what it needs to come back** (ADR-474): the folder
     /// (a Windows path, whose colon, backslashes and spaces would otherwise be
     /// read as the grammar's), the project, and whether it was a raw terminal.
     #[test]
@@ -3062,7 +3062,7 @@ mod tests {
         );
     }
 
-    /// **A terminal look is one line, per agent** (ADR-474): written only for an
+    /// **A terminal look is one line, per agent** (ADR-475): written only for an
     /// agent that chose something, an empty half meaning *follow Settings*.
     #[test]
     fn a_terminal_look_per_agent_round_trips_through_the_profile_file() {

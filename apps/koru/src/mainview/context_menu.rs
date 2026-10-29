@@ -288,7 +288,7 @@ pub enum MenuAction {
     /// The explicit kill, behind Koru Terminal's confirm.
     SessionTerminate,
     /// *Install Koru MCP*, on the tab of an agent that has no per-launch form
-    /// for it (ADR-471): registers the bridge in the agent's own configuration.
+    /// for it (ADR-472): registers the bridge in the agent's own configuration.
     InstallMcp,
     /// The same row once the bridge is registered: takes it out again.
     UninstallMcp,
@@ -297,7 +297,7 @@ pub enum MenuAction {
     /// Parent of the *Terminal font ▸* flyout.
     TerminalFont,
     /// A theme for this agent's terminals: `light`, `dark`, or `None` to
-    /// follow Settings (ADR-474).
+    /// follow Settings (ADR-475).
     TerminalThemeIs(Option<&'static str>),
     /// A monospaced font family's token for this agent's terminals, or `None`
     /// to follow Settings.
@@ -1515,7 +1515,7 @@ pub fn tab_items_for(
     }
     items.extend_from_slice(&TAB_ITEMS);
     // A session tab draws a terminal, so its theme and font are its own to
-    // choose, per agent (ADR-474).
+    // choose, per agent (ADR-475).
     if terminal_look {
         let pop = items.pop();
         items.push(MenuAction::TerminalTheme);
