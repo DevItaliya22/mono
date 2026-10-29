@@ -2195,8 +2195,7 @@ impl Workspace {
 
             let d = syncstats::Phase::start();
             let drained = session.drain(&mut self.ws).unwrap_or(false);
-            if drained {
-            }
+            if drained {}
             changed |= drained;
             draining += d.stop();
 
@@ -2207,8 +2206,7 @@ impl Workspace {
             if let Some(session) = self.doc_sessions.get_mut(id) {
                 let d = syncstats::Phase::start();
                 let drained = session.drain(doc).unwrap_or(false);
-                if drained {
-                }
+                if drained {}
                 changed |= drained;
                 draining += d.stop();
             }
