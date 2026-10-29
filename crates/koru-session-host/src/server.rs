@@ -1729,7 +1729,7 @@ fn create_profile_session(
             }
             // A tab's agent gets Koru's tools the way a chat's does, in its
             // CLI's per-process form; a shell, a custom profile and a CLI
-            // with no such form get exactly their own launch (ADR-469).
+            // with no such form get exactly their own launch (ADR-470).
             let bridge = (profile.kind == koru_session_protocol::ProfileKind::Agent)
                 .then(|| tab_bridge_for(state, profile.label))
                 .flatten();

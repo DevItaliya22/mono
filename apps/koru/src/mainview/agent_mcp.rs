@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! *Install Koru MCP*, from the right-click menu of an agent's tab
-//! ([ADR-471](../../../../docs/decisions/ADR-471-installmcp.md)).
+//! ([ADR-472](../../../../docs/decisions/ADR-472-installmcp.md)).
 //!
 //! Claude Code, Codex, Copilot, Qwen Code and OpenCode are given Koru's bridge
-//! for the one launch (ADR-469). Grok and Antigravity have no such form, only
+//! for the one launch (ADR-470). Grok and Antigravity have no such form, only
 //! a registration in their own configuration, which Koru makes **when asked**:
 //! the person chose the tab's menu row, the command is the agent's own
 //! `mcp add`, and nothing is written otherwise. The command runs on a worker

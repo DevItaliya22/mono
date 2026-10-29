@@ -2,7 +2,7 @@
 
 Admitted on Windows on 2026-10-28 with the normally installed `codex`, on the
 maintainers' instruction: the first **Update** press on Koru's update card
-(ADR-468) moved the installation from 0.163.0, and **Codex (Embedded)** read
+(ADR-469) moved the installation from 0.163.0, and **Codex (Embedded)** read
 *Needs a supported version* again. The generated v2 schema SHA-256 is
 `38027ec8a6fffc2422b674cab13dc1a05c26e13a48349c46a274609d52090e35`
 (generated twice, same digest). Reproduce it with

@@ -3373,7 +3373,7 @@ enum InsertKind {
     Divider,
     // No `contact`: a contact is a root-level reference node the `@` pill
     // creates, not a body block, and inserting one into a body did not
-    // survive a read (ADR-470). It returns when contacts are a supported
+    // survive a read (ADR-471). It returns when contacts are a supported
     // surface, with the pill's find-or-create semantics rather than a bare
     // insert.
 }
@@ -5813,11 +5813,11 @@ mod tests {
     /// (ADR-433-compacttools); 21 typed tools cannot fit under that, so this
     /// holds what was reached and makes growth a decision rather than a drift.
     /// Raised from 17,500 for `set_mark`'s schema in both operation unions
-    /// (ADR-470-mcpessentials, 17,973 bytes measured), to 19,100 for
-    /// `add_image`, a 22nd tool (ADR-472-addimage, 19,005 bytes measured),
+    /// (ADR-471-mcpessentials, 17,973 bytes measured), to 19,100 for
+    /// `add_image`, a 22nd tool (ADR-473-addimage, 19,005 bytes measured),
     /// and to 19,500 for `set_heading` and `set_highlight` on `edit_document`
     /// (19,428 bytes measured), and to 20,000 for `set_align` and the link
-    /// inline (ADR-472-addimage).
+    /// inline (ADR-473-addimage).
     const TOOLS_LIST_BUDGET: usize = 20_000;
 
     /// What crosses the wire is compact: no prose inside a schema except the
@@ -6378,7 +6378,7 @@ mod tests {
         }
         assert!(
             !encoded.contains("\"contact\""),
-            "a contact is not a body block this surface inserts (ADR-470)"
+            "a contact is not a body block this surface inserts (ADR-471)"
         );
     }
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! What a restored terminal tab offers when its session did not survive
-//! ([ADR-473](../../../docs/decisions/ADR-473-sessionrecovery.md)).
+//! ([ADR-474](../../../docs/decisions/ADR-474-sessionrecovery.md)).
 //!
 //! The tab's layout, its agent and its folder were saved; the process was not,
 //! because the Agent that owned it stopped (a reboot, a crash, **Quit** from

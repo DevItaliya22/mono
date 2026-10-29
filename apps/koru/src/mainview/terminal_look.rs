@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 //! A terminal tab's own theme and font, chosen from its right-click menu and
-//! kept **per agent** ([ADR-474](../../../../docs/decisions/ADR-474-terminallook.md)).
+//! kept **per agent** ([ADR-475](../../../../docs/decisions/ADR-475-terminallook.md)).
 //!
 //! The Settings page has one terminal theme and one font. A person who reads
 //! Claude in a light terminal and runs Codex in a dark one has no way to say

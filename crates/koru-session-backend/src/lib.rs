@@ -2553,7 +2553,7 @@ pub fn protocol_offer() -> ProtocolOffer {
         // no delegated session — that is the orchestrator's — and manual
         // managed profiles are untouched by the offer.
         capability::DELEGATION,
-        // **Continue the last conversation** (ADR-473): a saved agent tab
+        // **Continue the last conversation** (ADR-474): a saved agent tab
         // offers to resume, and the host refuses that to a peer that did not
         // negotiate it — `capability_not_negotiated`, the failure a window
         // that forgot to offer it shows as `Session failed`.

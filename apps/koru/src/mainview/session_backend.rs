@@ -530,7 +530,7 @@ impl MainView {
         // watch it.
         let mut tab = self.build_existing_session_tab(session, Some(profile_key), &label, false);
         // What the tab was, kept until the first catalog says whether the
-        // session is still alive (ADR-473).
+        // session is still alive (ADR-474).
         if let TabView::Session(view) = &mut tab.view {
             view.recovery = recovery;
         }
@@ -567,7 +567,7 @@ impl MainView {
         let mut changed = false;
         for &tab_id in tab_ids {
             // **A restored tab whose session did not survive offers a new one
-            // instead of closing** (ADR-473): its layout, agent and folder were
+            // instead of closing** (ADR-474): its layout, agent and folder were
             // saved, and the tab is where the person was working. Only a tab
             // restored with that record qualifies; a session that ends during a
             // run, or one restored from an older file, closes as before.
@@ -1557,7 +1557,7 @@ impl MainView {
                 // **What each tab was, read before the catalog is replaced.**
                 // A tab started in this run holds no saved record; the old
                 // catalog still names its folder and project, and the new one
-                // will not. With it the tab offers to continue (ADR-473)
+                // will not. With it the tab offers to continue (ADR-474)
                 // instead of vanishing and leaving a Welcome tab where the
                 // terminal was.
                 let lost: Vec<(u64, Option<koru_workspace_host::SessionRecovery>)> = self

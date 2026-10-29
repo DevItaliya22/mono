@@ -472,7 +472,7 @@ fn open_delegate_picker_accepts_readiness_updates_and_retries_without_launching(
 
 // ----------------------------------------------------------- session recovery
 //
-// ADR-473: a restored tab whose session did not survive offers a replacement
+// ADR-474: a restored tab whose session did not survive offers a replacement
 // in the same place instead of closing. These pin the three ways it can end
 // (an agent waits for a choice, a shell restarts itself, a living session
 // needs nothing) and the two choices an agent has.
@@ -741,7 +741,7 @@ fn a_session_in_an_unfocused_pane_stays_attached() {
     );
 }
 
-/// **A host restart under a running terminal offers to continue it** (ADR-473)
+/// **A host restart under a running terminal offers to continue it** (ADR-474)
 /// instead of closing the tab and leaving a Welcome tab where it was: the
 /// catalog still named the session's folder at the moment it was lost, and a
 /// tab started in this run has no saved record to fall back on.
