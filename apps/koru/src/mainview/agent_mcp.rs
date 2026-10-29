@@ -28,7 +28,7 @@ const DEADLINE: Duration = Duration::from_secs(60);
 const SERVER: &str = "koru";
 
 /// An agent that takes the bridge by registration.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub(super) enum Target {
     Grok,
     Antigravity,
@@ -88,23 +88,30 @@ pub(super) fn arguments(bridge: &Path, root: Option<&Path>) -> Vec<String> {
 pub(super) enum Outcome {
     Installed,
     Failed(String),
+    Removed,
+    RemoveFailed(String),
+    /// What the agent's listing said: whether `koru` is registered.
+    Listed(bool),
 }
 
 #[derive(Default)]
 pub(super) struct Install {
     running: Option<(Target, Receiver<Outcome>)>,
+    /// Whether each agent has `koru` registered, as last seen. Absent until
+    /// the first look; the menu says *Install* until then.
+    registered: std::collections::HashMap<Target, bool>,
 }
 
-/// Run the registration to its end or its deadline.
-fn run(target: Target, bridge: &Path, root: Option<&Path>) -> Outcome {
+/// Run the agent's own `mcp` command to its end or its deadline, and give back
+/// what it printed.
+fn exec(target: Target, args: &[String]) -> Result<String, String> {
     let Some(program) = koru_session_profiles::resolve_executable(target.program()) else {
-        return Outcome::Failed(format!("{} is not on PATH", target.program()));
+        return Err(format!("{} is not on PATH", target.program()));
     };
-    let args = arguments(bridge, root);
     // The same boundary a tab's launch goes through, so a `.cmd` shim is run
     // the way Koru runs one and an argument it cannot trust is refused.
-    let Some(argv) = koru_session_profiles::platform_launch_argv(program, &args) else {
-        return Outcome::Failed("the command line cannot be passed safely".into());
+    let Some(argv) = koru_session_profiles::platform_launch_argv(program, args) else {
+        return Err("the command line cannot be passed safely".into());
     };
     let mut command = std::process::Command::new(&argv[0]);
     command
@@ -119,7 +126,7 @@ fn run(target: Target, bridge: &Path, root: Option<&Path>) -> Outcome {
     }
     let child = match command.spawn() {
         Ok(child) => child,
-        Err(error) => return Outcome::Failed(error.to_string()),
+        Err(error) => return Err(error.to_string()),
     };
     // The output is read on this worker thread; a second thread holds the
     // deadline, because `wait_with_output` blocks until the program ends.
@@ -130,14 +137,14 @@ fn run(target: Target, bridge: &Path, root: Option<&Path>) -> Outcome {
     });
     let output = match finished.recv_timeout(DEADLINE) {
         Ok(Ok(output)) => output,
-        Ok(Err(error)) => return Outcome::Failed(error.to_string()),
+        Ok(Err(error)) => return Err(error.to_string()),
         Err(_) => {
             kill(id);
-            return Outcome::Failed("it did not finish in a minute".into());
+            return Err("it did not finish in a minute".into());
         }
     };
     if output.status.success() {
-        return Outcome::Installed;
+        return Ok(String::from_utf8_lossy(&output.stdout).into_owned());
     }
     let said = String::from_utf8_lossy(&output.stderr);
     let said = if said.trim().is_empty() {
@@ -151,7 +158,44 @@ fn run(target: Target, bridge: &Path, root: Option<&Path>) -> Outcome {
         .map(str::trim)
         .find(|line| !line.is_empty())
         .unwrap_or("it exited with an error");
-    Outcome::Failed(last.chars().take(160).collect())
+    Err(last.chars().take(160).collect())
+}
+
+/// Run the registration.
+fn run(target: Target, bridge: &Path, root: Option<&Path>) -> Outcome {
+    match exec(target, &arguments(bridge, root)) {
+        Ok(_) => Outcome::Installed,
+        Err(why) => Outcome::Failed(why),
+    }
+}
+
+/// Take the registration out again: the agent's own `mcp remove koru`.
+fn remove(target: Target) -> Outcome {
+    let args = ["mcp".to_owned(), "remove".to_owned(), SERVER.to_owned()];
+    match exec(target, &args) {
+        Ok(_) => Outcome::Removed,
+        Err(why) => Outcome::RemoveFailed(why),
+    }
+}
+
+/// Whether the agent lists a server named `koru`. Both agents print one per
+/// line, the name first (Grok as `koru: <command>`, Antigravity as a table).
+fn lists_koru(listing: &str) -> bool {
+    listing.lines().any(|line| {
+        line.split(|c: char| c.is_whitespace() || c == ':')
+            .find(|word| !word.is_empty())
+            == Some(SERVER)
+    })
+}
+
+/// Ask the agent what it has registered.
+fn probe(target: Target) -> Outcome {
+    let args = ["mcp".to_owned(), "list".to_owned()];
+    match exec(target, &args) {
+        Ok(listing) => Outcome::Listed(lists_koru(&listing)),
+        // A failed look is not an answer: the row stays *Install*.
+        Err(_) => Outcome::Listed(false),
+    }
 }
 
 /// End a registration that outlived its deadline.
@@ -186,6 +230,44 @@ impl MainView {
         self.agent_mcp.running.is_some()
     }
 
+    /// Whether the tab's agent has Koru's bridge registered, as last seen.
+    pub(super) fn agent_mcp_registered(&self, tab: usize) -> bool {
+        self.agent_mcp_target(tab)
+            .and_then(|target| self.agent_mcp.registered.get(&target).copied())
+            .unwrap_or(false)
+    }
+
+    fn start_agent_mcp(&mut self, target: Target, work: impl FnOnce() -> Outcome + Send + 'static) {
+        let (sender, receiver) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            let _ = sender.send(work());
+        });
+        self.agent_mcp.running = Some((target, receiver));
+    }
+
+    /// *Remove Koru MCP*: the registration, taken out again.
+    pub(super) fn remove_agent_mcp(&mut self, tab: usize) -> bool {
+        let Some(target) = self.agent_mcp_target(tab) else {
+            return false;
+        };
+        if self.agent_mcp_running() {
+            return true;
+        }
+        self.start_agent_mcp(target, move || remove(target));
+        true
+    }
+
+    /// Look once at each kind of agent a tab shows, so the menu knows whether
+    /// to say *Install* or *Remove*.
+    fn probe_agent_mcp(&mut self) {
+        let unseen = (0..self.tabs().len())
+            .filter_map(|tab| self.agent_mcp_target(tab))
+            .find(|target| !self.agent_mcp.registered.contains_key(target));
+        if let Some(target) = unseen {
+            self.start_agent_mcp(target, move || probe(target));
+        }
+    }
+
     /// *Install Koru MCP*: start the registration for the tab's agent.
     pub(super) fn install_agent_mcp(&mut self, tab: usize) -> bool {
         let Some(target) = self.agent_mcp_target(tab) else {
@@ -195,11 +277,7 @@ impl MainView {
             return true;
         }
         let (bridge, root) = crate::welcome::mcp::bridge();
-        let (sender, receiver) = std::sync::mpsc::channel();
-        std::thread::spawn(move || {
-            let _ = sender.send(run(target, &bridge, root.as_deref()));
-        });
-        self.agent_mcp.running = Some((target, receiver));
+        self.start_agent_mcp(target, move || run(target, &bridge, root.as_deref()));
         true
     }
 
@@ -207,6 +285,7 @@ impl MainView {
     /// return while nothing runs.
     pub(super) fn poll_agent_mcp(&mut self) {
         let Some((target, receiver)) = &self.agent_mcp.running else {
+            self.probe_agent_mcp();
             return;
         };
         let target = *target;
@@ -218,8 +297,22 @@ impl MainView {
         self.agent_mcp.running = None;
         let lang = crate::format::lang();
         let message = match outcome {
-            Outcome::Installed => fill(t(lang, Key::AgentMcpInstalled), &[target.name()]),
+            Outcome::Listed(found) => {
+                self.agent_mcp.registered.insert(target, found);
+                return;
+            }
+            Outcome::Installed => {
+                self.agent_mcp.registered.insert(target, true);
+                fill(t(lang, Key::AgentMcpInstalled), &[target.name()])
+            }
             Outcome::Failed(why) => fill(t(lang, Key::AgentMcpFailed), &[target.name(), &why]),
+            Outcome::Removed => {
+                self.agent_mcp.registered.insert(target, false);
+                fill(t(lang, Key::AgentMcpRemoved), &[target.name()])
+            }
+            Outcome::RemoveFailed(why) => {
+                fill(t(lang, Key::AgentMcpRemoveFailed), &[target.name(), &why])
+            }
         };
         self.toast = Some((
             koru_ui::Toast::new(message, None, Instant::now()),

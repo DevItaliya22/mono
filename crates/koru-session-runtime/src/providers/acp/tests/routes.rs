@@ -47,6 +47,10 @@ fn exact_version_carriers_accept_pinned_output_and_refuse_adornments_or_new_rele
         "2.3.3"
     );
     assert_eq!(
+        AcpRoute::kimi().parse_version("2.4.0\n").unwrap().as_str(),
+        "2.4.0"
+    );
+    assert_eq!(
         AcpRoute::grok()
             .parse_version("grok 1.0.34 (3736acbc8658) [stable]\n")
             .unwrap()

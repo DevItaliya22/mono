@@ -48,6 +48,7 @@ mod run_view;
 mod schedule_index;
 mod schedule_words;
 mod search;
+mod session_offer;
 mod session_tab;
 mod settings_view;
 mod socials_view;

@@ -88,6 +88,8 @@ pub enum Chord {
     /// would silently remove alignment, which is the `Ctrl+Shift+N` trap the
     /// comment below spells out.
     Reminders,
+    /// Ctrl+Shift+T - bring back the tab closed last.
+    ReopenClosedTab,
 }
 
 impl Chord {
@@ -223,6 +225,7 @@ fn resolve_any(key: &Key, text: Option<&str>, mods: ModifiersState) -> Option<Ch
             'f' => Some(Chord::Search),
             'j' => Some(Chord::ToggleAi),
             'r' => Some(Chord::Reminders),
+            't' => Some(Chord::ReopenClosedTab),
             _ => None,
         };
     }

@@ -1015,6 +1015,7 @@ wrong.
 | `Ctrl+Shift+A` | open **Add…** — create a document or import content |
 | `Ctrl+W` | close this one — not a pinned tab; unpin or right-click Close |
 | `Ctrl+Tab` / `Ctrl+Shift+Tab` | the next tab, or the previous |
+| `Ctrl+Shift+T` | reopen the tab closed last (a document or a terminal; this window only) |
 | `Ctrl+1` … `Ctrl+9` | the tab in that position |
 
 **Open tabs stay when you switch workspace.** Every document you have open remains in the strip, whichever workspace it belongs to. **Selecting a tab only changes the page** — it does not move the active workspace or the Explore pane. To land Explore on the page under a tab, use **`Ctrl+Shift+E`** or right-click the tab → **Reveal in Explore View** (same chord): that switches to the tab's home workspace if needed, focuses the tree, and scrolls the file into view.
@@ -3012,7 +3013,7 @@ the letters. All of these are yours only — documents never store them.
 | --- | --- |
 | `F7` | documents only — cycle the page layout: Page → Narrow → Full |
 | `Ctrl+Shift+P` / `N` / `G` | documents only — Page, Narrow or Full width outright |
-| `Ctrl+Shift+T` | pin the window above other windows (per-window; the title-bar menu toggles it too) |
+| `Ctrl+Alt+A` | pin the window above other windows (per-window; the title-bar menu toggles it too) |
 | `Ctrl+=` / `Ctrl+-` | zoom in / out (or `Ctrl` + scroll); `Ctrl+0` resets |
 
 ## The title bar menu
@@ -3023,7 +3024,7 @@ or click it to open application destinations:
 
 | | |
 | --- | --- |
-| 📌 Always on Top | `Ctrl+Shift+T` |
+| 📌 Always on Top | `Ctrl+Alt+A` |
 | Settings | `Ctrl+,` |
 | Zoom | placeholder |
 | Feedback | Send feedback tab (general, idea, or bug) |
@@ -3223,10 +3224,19 @@ A session belongs to your machine, not to the tab. **Closing a tab leaves the
 session running** — reopen it from the Agents list. Typing `exit` (or Ctrl+C)
 ends the shell itself, and its tab closes. Close Koru and reopen it and your
 session tabs come back, reattached, as long as the background Koru Agent kept
-running; if it was stopped, the tabs return saying the session ended, and you
-start fresh. The Koru Agent's tray menu has the same **Agents** list, so you
+running. If it was stopped — a restart of the computer, a crash, or **Quit**
+from the tray — the tab is still there, in the same place and the same folder.
+A shell starts again by itself. An agent shows **Resume**, which continues its
+most recent conversation in that folder where the agent can, and **Start new**;
+nothing starts until you choose. What was on the screen is not brought back. The Koru Agent's tray menu has the same **Agents** list, so you
 can jump to a session from there too. The composer (for sending a message to a
-managed agent) is hidden until you need it — **Ctrl+Shift+U** shows it.
+managed agent) is hidden until you need it — **Ctrl+Shift+U** shows it. A message you send to Codex while it is working is added to the turn in progress instead of being refused.
+
+**A terminal's theme and font are yours to set, per agent.** Right-click a
+terminal tab and choose **Terminal theme** (Light or Dark) or **Terminal font**
+(a short list of monospaced families, or **More fonts…** for any font installed on your computer: search by name, and press Tab to include proportional fonts too). The choice belongs to that agent — every Claude tab, and
+the next one you open, uses it — and **Default (Settings)** hands that part back
+to the Settings page. Another agent's terminals are not affected.
 
 **An agent in a tab has Koru's tools.** Claude Code, Codex, GitHub Copilot,
 Qwen Code and OpenCode are started with Koru's own MCP server, the same
@@ -5574,7 +5584,7 @@ paragraph ready for typing. The title remains unchanged.
 | drag a library row into a pane | open it there — an edge splits, the strip places it, the middle opens a tab |
 | drag the hairline between panes | resize them (panes keep at least 400 × 200) |
 | click below the last line | caret to the end of it |
-| `Ctrl+Shift+T` | pin **this** window above other windows (or click 📌 in its caption) |
+| `Ctrl+Alt+A` | pin **this** window above other windows (or click 📌 in its caption) |
 | `Ctrl+=` / `Ctrl+-` / `Ctrl+0` | zoom in / out / reset (or `Ctrl` + scroll) |
 
 ### Tabs and columns
