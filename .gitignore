@@ -58,8 +58,6 @@ __pycache__/
 # Cloud, a root's own `.env.local`, apps/android's build settings, or any
 # local override. They hold machine- and account-specific values and must
 # never reach git. The examples carry names and no values.
-.env
-.env.*
 !.env.example
 
 # Downloaded and repackaged speech models, from `koru.bat voice-models`. Each
@@ -93,3 +91,5 @@ branch_structure.json
 temp_auto_push.bat
 temp_interactive_push.bat
 .gitignore
+config.bat
+node_modules
